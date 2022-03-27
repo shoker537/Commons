@@ -1,0 +1,9 @@
+name: Commons
+version: "${version}"
+main: ru.shk.commons.Commons
+api-version: 1.17
+load: STARTUP
+authors: [ shoker137 ]
+softdepend:
+  - MySQLAPI
+  - FastAsyncWorldEdit
