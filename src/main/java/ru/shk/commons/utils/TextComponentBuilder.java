@@ -33,21 +33,6 @@ public class TextComponentBuilder {
         return this;
     }
 
-    public TextComponentBuilder bold(){
-        component.setBold(true);
-        return this;
-    }
-
-    public TextComponentBuilder underline(){
-        component.setUnderlined(true);
-        return this;
-    }
-
-    public TextComponentBuilder italic(){
-        component.setItalic(true);
-        return this;
-    }
-
     public TextComponent build(){
         return component;
     }

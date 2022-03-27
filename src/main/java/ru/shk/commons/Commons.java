@@ -1,24 +1,15 @@
 package ru.shk.commons;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import com.sk89q.worldedit.WorldEdit;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
-import net.minecraft.server.MinecraftServer;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.shk.commons.sockets.SocketMessageListener;
-import ru.shk.commons.sockets.low.ServerType;
-import ru.shk.commons.sockets.low.SocketManager;
-import ru.shk.commons.sockets.low.SocketMessageType;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
@@ -27,16 +18,12 @@ import ru.shk.guilib.GUILib;
 import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
-import java.io.DataInputStream;
-import java.net.InetSocketAddress;
 import java.sql.ResultSet;
-import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class Commons extends JavaPlugin {
     @Getter private static Commons instance;
@@ -44,16 +31,11 @@ public final class Commons extends JavaPlugin {
     private final List<Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     private MySQL mysql;
-    private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+    private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     @Getter@Nullable private WorldEditManager worldEditManager;
-    @Getter private PAFManager pafManager;
-    @Getter private SocketManager socketManager;
-    private Config config;
 
     @Override
     public void onLoad() {
-        SocketManager.serverType = ServerType.SPIGOT;
-        pool.setKeepAliveTime(5, TimeUnit.SECONDS);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -63,61 +45,21 @@ public final class Commons extends JavaPlugin {
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
         } catch (Exception e){
             Commons.ver = PacketVersion.values()[PacketVersion.values().length-1];
-            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
+            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
         }
         info(" ");
         instance = this;
-        try {
-            plugins.add(new GUILib());
-        } catch (Throwable e){
-            e.printStackTrace();
-        }
-        try {
-            plugins.add(new ConfigAPI());
-        } catch (Throwable e){
-            e.printStackTrace();
-        }
+
+        plugins.add(new GUILib());
+        plugins.add(new ConfigAPI());
 
         plugins.forEach(plugin -> {
             try {
                 plugin.load();
-            } catch (Throwable e){
+            } catch (Exception e){
                 e.printStackTrace();
             }
         });
-    }
-
-    private void sendLocationFeedback(String uuid, Coordinates coordinates){
-        ByteArrayDataOutput o = ByteStreams.newDataOutput();
-        o.writeUTF("location");
-        o.writeUTF(uuid);
-        if(coordinates==null){
-            o.writeUTF("player-not-found-error");
-            o.writeInt(0);
-            o.writeInt(0);
-            o.writeInt(0);
-        } else {
-            o.writeUTF(coordinates.getWorld());
-            o.writeInt(coordinates.getX());
-            o.writeInt(coordinates.getY());
-            o.writeInt(coordinates.getZ());
-        }
-        Bukkit.getOnlinePlayers().stream().findAny().ifPresent(player -> player.sendPluginMessage(this, "BungeeCord", o.toByteArray()));
-    }
-
-    public void executeCommandAtBungee(Player p, String cmd){
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("executeAtBungee");
-        out.writeUTF(cmd);
-        p.sendPluginMessage(this, "BungeeCord", out.toByteArray());
-    }
-
-    public void broadcastOnBungee(String msg){
-        Optional<? extends Player> p = Bukkit.getOnlinePlayers().stream().findAny();
-        if(p.isEmpty()) return;
-        ByteArrayDataOutput o = ByteStreams.newDataOutput();
-        o.writeUTF(msg);
-        p.get().sendPluginMessage(this, "commons:broadcast", o.toByteArray());
     }
 
     public static PacketVersion getServerVersion(){
@@ -126,36 +68,12 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        config = new Config(getDataFolder(), true);
-        if(!config.contains("sockets.enable")) config.setValue("sockets.enable", false);
-        if(!config.contains("sockets.auto-find-port")) config.setValue("sockets.auto-find-port", true);
-        if(!config.contains("sockets.server-port")) config.setValue("sockets.server-port", 3001);
-        if(!config.contains("sockets.bungee-socket-ip")) config.setValue("sockets.bungee-socket-ip", "127.0.0.1");
-        if(!config.contains("sockets.bungee-socket-port")) config.setValue("sockets.bungee-socket-port", 3000);
-        if(config.getBoolean("sockets.enable")) {
-            socketManager = new SocketManager(
-                    config.getBoolean("sockets.auto-find-port")?-1:config.getInt("sockets.server-port"),
-                    s -> sync(() -> getServer().getConsoleSender().sendMessage(colorize(s))),
-                    new InetSocketAddress(config.getString("sockets.bungee-socket-ip"), config.getInt("sockets.bungee-socket-port"))
-            );
-            socketManager.getSocketThread().start();
-
-            // TEST
-            DecimalFormat f = new DecimalFormat("##.#");
-            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
-                @Override
-                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
-                    manager.sendToBungee("TPS", List.of(f.format(MinecraftServer.getServer().recentTps[0]).toString()));
-                }
-            });
-        }
         getServer().getPluginManager().registerEvents(new Events(), this);
         if(Bukkit.getPluginManager().getPlugin("MySQLAPI")==null){
             warning("&cMySQLAPI not loaded! &rSome features may be not available.");
         } else {
             Config config = new Config(getDataFolder(), true);
             if(config.contains("mysql-database")){
-                info("Connecting to database "+org.bukkit.ChatColor.GREEN+config.getString("mysql-database"));
                 mysql = new MySQL(config.getString("mysql-database"));
             } else {
                 warning("&cMySQL database is not defined in config! &rMySQL won't connect.");
@@ -173,53 +91,10 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
-        pafManager = new PAFManager(this);
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:location", (s, player, bytes) -> {
-            async(() -> {
-                ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-                String uuid = in.readUTF();
-                UUID u = UUID.fromString(uuid);
-                Player p = Bukkit.getPlayer(u);
-                if(p==null || !p.isOnline()){
-                    sendLocationFeedback(uuid, null);
-                } else {
-                    sendLocationFeedback(uuid, new Coordinates(p.getLocation()));
-                }
-            });
-        });
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:updateinv", (s, player, bytes) -> {
-            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-            String uuid = in.readUTF();
-            UUID u = UUID.fromString(uuid);
-            Player p = Bukkit.getPlayer(u);
-            if(p==null || !p.isOnline()) return;
-            p.updateInventory();
-        });
-        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:notification", (s, player, bytes) -> {
-            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-            String uuid = in.readUTF();
-            Player p = Bukkit.getPlayer(UUID.fromString(uuid));
-            if(p==null || !p.isOnline()) return;
-            String header = in.readUTF();
-            String footer = in.readUTF();
-            String icon = in.readUTF();
-//            showAdvancementNotification(p, header, footer, icon);
-        });
     }
-
     @Override
     public void onDisable() {
-        if(socketManager!=null){
-            socketManager.sendToBungee(SocketMessageType.UNREGISTER, List.of());
-            try {
-                socketManager.getSocketThread().getSendQueue().awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            socketManager.close();
-        }
+        pool.shutdown();
         plugins.forEach(plugin -> {
             try {
                 plugin.disable();
@@ -228,17 +103,6 @@ public final class Commons extends JavaPlugin {
             }
         });
         plugins.clear();
-        info("Waiting for tasks to complete...");
-        try {
-            pool.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        info("Tasks completed.");
-    }
-
-    public void showAdvancementNotification(Player p, String header, String footer, String icon){
-        new Notification(header, footer, "minecraft:"+icon).show(p);
     }
 
     @Nullable
@@ -262,7 +126,7 @@ public final class Commons extends JavaPlugin {
 
     @Nullable
     public ItemStackBuilder getCustomHead(String key){
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute();
+        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("key="+key).LIMIT(1).execute();
         try {
             if(rs.next()){
                 CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
@@ -308,23 +172,6 @@ public final class Commons extends JavaPlugin {
     public void asyncRepeating(Runnable r, int delay, int period){
         getServer().getScheduler().runTaskTimerAsynchronously(this, r, delay, period);
     }
-
-    public void sync(JavaPlugin plugin, Runnable r){
-        getServer().getScheduler().runTask(plugin, r);
-    }
-    public void syncLater(JavaPlugin plugin, Runnable r, int delay){
-        getServer().getScheduler().runTaskLater(plugin, r, delay);
-    }
-    public void asyncLater(JavaPlugin plugin, Runnable r, int delay){
-        getServer().getScheduler().runTaskLaterAsynchronously(plugin, r, delay);
-    }
-    public void syncRepeating(JavaPlugin plugin, Runnable r, int delay, int period){
-        getServer().getScheduler().runTaskTimer(plugin, r, delay, period);
-    }
-    public void asyncRepeating(JavaPlugin plugin, Runnable r, int delay, int period){
-        getServer().getScheduler().runTaskTimerAsynchronously(plugin, r, delay, period);
-    }
-
     public void info(String log){
         Bukkit.getConsoleSender().sendMessage(colorize(log));
     }
@@ -351,14 +198,5 @@ public final class Commons extends JavaPlugin {
         fw.setMetadata("effect", new FixedMetadataValue(this, true));
         fw.detonate();
     }
-    public static String colorizeWithHex(String message) {
-        Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
-        Matcher matcher = pattern.matcher(message);
-        while (matcher.find()) {
-            String color = message.substring(matcher.start(), matcher.end());
-            message = message.replace(color, ChatColor.of(color.substring(1)) + "");
-            matcher = pattern.matcher(message);
-        }
-        return ChatColor.translateAlternateColorCodes('&', message);
-    }
+
 }

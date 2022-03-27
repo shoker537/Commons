@@ -107,7 +107,7 @@ public class SB {
 
     private static void sendScoreboardTeamPacket(Player p, String team, String prefix, String suffix){
         try {
-            PacketUtil.sendScoreboardTeamPacket(false,p, team, prefix, suffix);
+            PacketUtil.sendScoreboardTeamPacket(p, team, prefix, suffix);
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }

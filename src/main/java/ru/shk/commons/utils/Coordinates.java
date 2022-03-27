@@ -1,12 +1,13 @@
 package ru.shk.commons.utils;
 
 import lombok.Getter;
+import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.Objects;
 
 @Getter
 public class Coordinates {
-    private String world;
     private int x;
     private int y;
     private int z;
@@ -16,17 +17,10 @@ public class Coordinates {
         this.y = y;
         this.z = z;
     }
-    public Coordinates(String world, int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.world = world;
-    }
-    public Coordinates(org.bukkit.Location l) {
+    public Coordinates(Location l) {
         this.x = l.getBlockX();
         this.y = l.getBlockY();
         this.z = l.getBlockZ();
-        this.world = l.getWorld().getName();
     }
 
     public Coordinates add(int x, int y, int z){
@@ -35,21 +29,11 @@ public class Coordinates {
         this.z+=z;
         return this;
     }
-
     public Coordinates subtract(int x, int y, int z){
         this.x-=x;
         this.y-=y;
         this.z-=z;
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return "{" +
-                "x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                '}';
     }
 
     @Override
@@ -65,7 +49,7 @@ public class Coordinates {
         return Objects.hash(x, y, z);
     }
 
-    public org.bukkit.Location toLocation(org.bukkit.World world){
-        return new org.bukkit.Location(world, x, y, z);
+    public Location toLocation(World world){
+        return new Location(world, x, y, z);
     }
 }

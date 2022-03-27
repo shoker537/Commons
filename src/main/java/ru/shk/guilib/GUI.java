@@ -91,23 +91,14 @@ public class GUI {
         return this;
     }
     public void clear(int max){
-        for (int i = 0; i < max; i++) {
-            inv.setItem(i, null);
-            slotActions.remove(i);
-        }
+        for (int i = 0; i < max; i++) inv.setItem(i, null);
     }
     public void clear(){
         for (int i = 0; i < slots; i++) inv.setItem(i, null);
-        slotActions.clear();
-        materialActions.clear();
-        universalAction = null;
     }
     public void close(){
         if(inv==null) throw new IllegalStateException("Inventory is not open yet!");
         new ArrayList<>(inv.getViewers()).forEach(HumanEntity::closeInventory);
-    }
-    public void close(Player p){
-        p.closeInventory();
     }
     public void clickedSlot(ClickType type, int slot, ItemStack item){
         if(slotActions.size()!=0){
@@ -122,9 +113,7 @@ public class GUI {
                 return;
             }
         }
-        if(universalAction!=null) {
-            universalAction.accept(type, slot, item);
-        }
+        if(universalAction!=null) universalAction.accept(type, slot, item);
     }
     public boolean isOpen(){
         return inv!=null && inv.getViewers().size()!=0;
@@ -150,8 +139,8 @@ public class GUI {
         Commons.getInstance().sync(p::closeInventory);
         Commons.getInstance().syncLater(() -> {
             if(!p.isOnline()) return;
-            p.openInventory(inv);
             GUILib.getInstance().getGuis().put(p.getUniqueId(), this);
-        }, 2);
+            p.openInventory(inv);
+        }, 1);
     }
 }

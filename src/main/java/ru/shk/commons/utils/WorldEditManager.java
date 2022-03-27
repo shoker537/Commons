@@ -1,6 +1,9 @@
 package ru.shk.commons.utils;
 
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extension.factory.parser.mask.NegateMaskParser;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -16,9 +19,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
 import java.io.*;
 
 public class WorldEditManager {
@@ -42,13 +43,9 @@ public class WorldEditManager {
     }
 
     public void saveSchematic(Location loc1, Location loc2, File file) throws IOException {
-        CuboidRegion region = createRegion(loc1, loc2);
+        CuboidRegion region = new CuboidRegion(BlockVector3.at(loc1.getBlockX(), loc1.getBlockY(), loc1.getBlockZ()), BlockVector3.at(loc2.getBlockX(), loc2.getBlockY(), loc2.getBlockZ()));
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
         saveSchematic(clipboard, file);
-    }
-
-    public CuboidRegion createRegion(Location loc1, Location loc2){
-        return new CuboidRegion(BlockVector3.at(loc1.getBlockX(), loc1.getBlockY(), loc1.getBlockZ()), BlockVector3.at(loc2.getBlockX(), loc2.getBlockY(), loc2.getBlockZ()));
     }
 
     public void saveSchematic(Clipboard clipboard, File file) throws IOException {
@@ -62,14 +59,6 @@ public class WorldEditManager {
         try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
             Clipboard clipboard = reader.read();
             pasteSchematic(clipboard, location);
-        }
-    }
-
-    public void pasteSchematicIgnoringAir(File file, Location location) throws WorldEditException, IOException {
-        ClipboardFormat format = ClipboardFormats.findByFile(file);
-        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
-            Clipboard clipboard = reader.read();
-            pasteSchematic(clipboard, location, true);
         }
     }
 
@@ -88,32 +77,6 @@ public class WorldEditManager {
                     .build();
             Operations.complete(operation);
         }
-    }
-
-    public void pasteSchematic(Clipboard clipboard, Location location, boolean ignoreAir) throws WorldEditException, IOException {
-        clipboard.setOrigin(BlockVector3.at(location.getX(), location.getY(), location.getZ()));
-        com.sk89q.worldedit.world.World world = BukkitAdapter.adapt(location.getWorld());
-        double x = location.getX();
-        double y = location.getY();
-        double z = location.getZ();
-        try (EditSession editSession = worldEdit.newEditSession(world)) {
-            Operation operation = new ClipboardHolder(clipboard)
-                    .createPaste(editSession)
-                    .to(BlockVector3.at(x, y, z))
-                    .copyEntities(true)
-                    .copyBiomes(true)
-                    .ignoreAirBlocks(ignoreAir)
-                    .build();
-            Operations.complete(operation);
-        }
-    }
-    @Nullable
-    public Region getPlayerSelection(Player p){
-        try {
-            LocalSession s = worldEdit.getSessionManager().get(BukkitAdapter.adapt(p));
-            return s.getRegionSelector(s.getSelectionWorld()).getRegion();
-        } catch (IncompleteRegionException ignored) {}
-        return null;
     }
 
 }
