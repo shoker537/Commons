@@ -43,7 +43,7 @@ public class GUILib implements Plugin, Listener {
 
     @EventHandler
     public void pluginDisableEvent(PluginDisableEvent e){
-        guis.values().stream().filter(gui -> gui.getOwnerPlugin()!=null && gui.getOwnerPlugin().equals(e.getPlugin())).toList().forEach(GUI::close);
+        guis.values().stream().filter(gui -> gui.getOwnerPlugin()!=null && gui.getOwnerPlugin().equals(e.getPlugin())).forEach(GUI::close);
     }
 
     @Override

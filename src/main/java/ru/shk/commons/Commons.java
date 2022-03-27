@@ -172,6 +172,24 @@ public final class Commons extends JavaPlugin {
     public void asyncRepeating(Runnable r, int delay, int period){
         getServer().getScheduler().runTaskTimerAsynchronously(this, r, delay, period);
     }
+
+
+    public void sync(JavaPlugin plugin, Runnable r){
+        getServer().getScheduler().runTask(plugin, r);
+    }
+    public void syncLater(JavaPlugin plugin, Runnable r, int delay){
+        getServer().getScheduler().runTaskLater(plugin, r, delay);
+    }
+    public void asyncLater(JavaPlugin plugin, Runnable r, int delay){
+        getServer().getScheduler().runTaskLaterAsynchronously(plugin, r, delay);
+    }
+    public void syncRepeating(JavaPlugin plugin, Runnable r, int delay, int period){
+        getServer().getScheduler().runTaskTimer(plugin, r, delay, period);
+    }
+    public void asyncRepeating(JavaPlugin plugin, Runnable r, int delay, int period){
+        getServer().getScheduler().runTaskTimerAsynchronously(plugin, r, delay, period);
+    }
+
     public void info(String log){
         Bukkit.getConsoleSender().sendMessage(colorize(log));
     }

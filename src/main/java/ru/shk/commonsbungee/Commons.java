@@ -12,16 +12,23 @@ import java.util.concurrent.TimeUnit;
 public class Commons extends Plugin {
     private ThreadPoolExecutor threadPool;
     @Getter private static Commons instance;
+    @Getter private boolean isProtocolizeInstelled = false;
 
     @Override
     public void onEnable() {
+        info(" ");
+        info("&b            shoker'&fs &bcommon&fs");
+        info("&f                   v"+getDescription().getVersion());
+        info(" ");
+        if(getProxy().getPluginManager().getPlugin("Protocolize")==null) {
+            warning("Protocolize not found! &fSome API features may be unavailable.");
+        } else {
+            isProtocolizeInstelled = true;
+        }
         instance = this;
         threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     }
 
-    public void registerEvents(Listener l){
-        getProxy().getPluginManager().registerListener(this, l);
-    }
     public void async(Runnable r){
         threadPool.submit(r);
     }
@@ -37,6 +44,25 @@ public class Commons extends Plugin {
     public void asyncRepeating(Runnable r, int delay, int period){
         getProxy().getScheduler().schedule(this, () -> new Thread(r).start(), delay, period, TimeUnit.SECONDS);
     }
+
+
+    public void registerEvents(Plugin plugin, Listener l){
+        getProxy().getPluginManager().registerListener(plugin, l);
+    }
+    public void syncLater(Plugin plugin, Runnable r, int delay){
+        getProxy().getScheduler().schedule(plugin, r, delay, TimeUnit.SECONDS);
+    }
+    public void asyncLater(Plugin plugin, Runnable r, int delay){
+        getProxy().getScheduler().schedule(plugin, () -> new Thread(r).start(), delay, TimeUnit.SECONDS);
+    }
+    public void syncRepeating(Plugin plugin, Runnable r, int delay, int period){
+        getProxy().getScheduler().schedule(plugin, r, delay, period, TimeUnit.SECONDS);
+    }
+    public void asyncRepeating(Plugin plugin, Runnable r, int delay, int period){
+        getProxy().getScheduler().schedule(plugin, () -> new Thread(r).start(), delay, period, TimeUnit.SECONDS);
+    }
+
+
     public void info(String log){
         getLogger().info(colorize(log));
     }
