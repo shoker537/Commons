@@ -5,4 +5,4 @@
 - **CommonsBungee** - bungee library for common methods
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
 - **GUILib** - spigot library for creating GUIs
-- **GUILibBungee** - bungee library for GUIs
+- **GUILibBungee** - bungee library for GUIs (requires Protocolize)
