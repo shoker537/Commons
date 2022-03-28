@@ -38,9 +38,9 @@ public final class Commons extends JavaPlugin {
     public void onLoad() {
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
-        String packageName = Bukkit.getServer().getClass().getPackage().getName();
-        String ver = packageName.substring(packageName.lastIndexOf(46) + 1);
         try {
+            String packageName = Bukkit.getServer().getClass().getPackage().getName();
+            String ver = packageName.substring(packageName.lastIndexOf(46) + 1);
             Commons.ver = PacketVersion.valueOf(ver);
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
         } catch (Exception e){
@@ -172,7 +172,6 @@ public final class Commons extends JavaPlugin {
     public void asyncRepeating(Runnable r, int delay, int period){
         getServer().getScheduler().runTaskTimerAsynchronously(this, r, delay, period);
     }
-
 
     public void sync(JavaPlugin plugin, Runnable r){
         getServer().getScheduler().runTask(plugin, r);
