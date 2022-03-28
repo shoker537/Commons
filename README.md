@@ -109,5 +109,4 @@ player.setScoreboard(sb.getBoard());
 Updating lines personally (dynamic lines only; using packets):
 ```java
 SB.updateScoreboardPersonally(player, "status", "Status: ", "YourPersonalStatus");
-SB.updateScoreboardPersonally(player, "status", "YourPersonalStatus");
 ```
