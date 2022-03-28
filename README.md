@@ -26,7 +26,6 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 
 # Commons (spigot-side)
 
-
 - **getServerVersion** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
 - **getCustomHead** returns a CustomHead defined in a database
 - **secondsToTime** turns seconds to a String in format "0:00"
@@ -39,7 +38,6 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 
 ### Threads/Scheduling:
 
-
 - **sync** executes a Runnable synchronously
 - **async** executes a Runnable in async ThreadPool
 - **syncLater** executes a Runnable synchronously with delay
@@ -48,7 +46,6 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **asyncRepeating** executes a Runnable asynchronously with delay and period
 
 # GUILib (spigot-side)
-
 
 GUI examples:
 ```java
@@ -76,7 +73,6 @@ gui.setItemRaw(2, new ItemStack(Material.PAPER));
 
 # GUILib (bungee)
 
-
 Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
 ```java
 new GUI("&cHello", InventoryType.GENERIC_9X5)
@@ -86,7 +82,6 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 
 # Utility classes (spigot-side)
 
-
 - **ItemStackBuilder** - to create ItemStacks simply
 - **TextComponentBuilder** - to create md_5's TextComponents simply
 - **Coordinates** - xyz holder and can be converted to Location
@@ -95,7 +90,6 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 - **SB** - scoreboard implementation
 
 # SB - simple scoreboards
-
 
 Example:
 
