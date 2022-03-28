@@ -2,6 +2,17 @@
 
 Modules which use NMS support 1.17.1 and 1.18.2.
 
+#Importing
+```groovy
+repositories {
+    maven { url = 'https://nexus.shoker.su/repository/maven-releases/' }
+}
+dependencies {
+    compileOnly 'ru.shk:Commons:1.3.3'
+}
+```
+Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
+
 # Modules:
 - **Commons** - spigot library for common methods
 - **CommonsBungee** - bungee library for common methods
