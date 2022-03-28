@@ -2,7 +2,9 @@
 
 Modules which use NMS support 1.17.1 and 1.18.2.
 
+
 #Importing
+
 
 ```groovy
 repositories {
@@ -14,7 +16,9 @@ dependencies {
 ```
 Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
 
+
 # Modules:
+
 
 - **Commons** - spigot library for common methods
 - **CommonsBungee** - bungee library for common methods
@@ -22,7 +26,9 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **GUILib** - spigot library for creating GUIs
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 
+
 #Commons (spigot-side)
+
 
 - **getServerVersion** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
 - **getCustomHead** returns a CustomHead defined in a database
@@ -34,7 +40,9 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **warning** sends a red message to console (auto colorizing)
 - **colorize** returns a String with translated color codes
 
+
 ### Threads/Scheduling:
+
 
 - **sync** executes a Runnable synchronously
 - **async** executes a Runnable in async ThreadPool
@@ -43,7 +51,9 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **syncRepeating** executes a Runnable synchronously with delay and period
 - **asyncRepeating** executes a Runnable asynchronously with delay and period
 
+
 #GUILib (spigot-side)
+
 
 GUI examples:
 ```java
@@ -69,7 +79,9 @@ Updating items in GUI after its creation:
 gui.setItemRaw(2, new ItemStack(Material.PAPER));
 ```
 
+
 #GUILib (bungee)
+
 
 Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
 ```java
@@ -78,7 +90,9 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 .open(player);
 ```
 
+
 #Utility classes (spigot-side)
+
 
 - **ItemStackBuilder** - to create ItemStacks simply
 - **TextComponentBuilder** - to create md_5's TextComponents simply
@@ -87,7 +101,9 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 - **PacketUtil** - a few useful packet-based methods
 - **SB** - scoreboard implementation
 
+
 #SB - simple scoreboards
+
 
 Example:
 
