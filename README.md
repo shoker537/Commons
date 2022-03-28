@@ -31,24 +31,24 @@ Be careful at importing the correct Commons class:
 
 # Commons (spigot-side)
 
-- **getServerVersion** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
-- **getCustomHead** returns a CustomHead defined in a database
-- **secondsToTime** turns seconds to a String in format "0:00"
-- **currentSeconds** returns current time in seconds
-- **registerEvents** registers a Listener class
-- **firework** spawns and detonates a no-damage firework
-- **info** sends a message to console (auto colorizing)
-- **warning** sends a red message to console (auto colorizing)
-- **colorize** returns a String with translated color codes
+- **getServerVersion()** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
+- **getCustomHead()** returns a CustomHead defined in a database, requires additional setup
+- **secondsToTime()** turns seconds to a String in format "0:00"
+- **currentSeconds()** returns current time in seconds
+- **registerEvents()** registers a Listener class
+- **firework()** spawns and detonates a no-damage firework
+- **info()** sends a message to console (auto colorizing)
+- **warning()** sends a red message to console (auto colorizing)
+- **colorize()** returns a String with translated color codes
 
 ### Threads/Scheduling:
 
-- **sync** executes a Runnable synchronously
-- **async** executes a Runnable in async ThreadPool
-- **syncLater** executes a Runnable synchronously with delay
-- **asyncLater** executes a Runnable asynchronously with delay
-- **syncRepeating** executes a Runnable synchronously with delay and period
-- **asyncRepeating** executes a Runnable asynchronously with delay and period
+- **sync()** executes a Runnable synchronously
+- **async()** executes a Runnable in async ThreadPool
+- **syncLater()** executes a Runnable synchronously with delay
+- **asyncLater()** executes a Runnable asynchronously with delay
+- **syncRepeating()** executes a Runnable synchronously with delay and period
+- **asyncRepeating()** executes a Runnable asynchronously with delay and period
 
 # ConfigAPI
 Examples:
