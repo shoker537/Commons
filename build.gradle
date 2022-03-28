@@ -7,7 +7,7 @@ plugins {
 def repoUrl = "https://nexus.shoker.su/repository/maven-releases/"
 
 group = 'ru.shk'
-version = '1.3.3'
+version = '1.3.4'
 def nexusProperties = new Properties()
 file("nexus.properties").withInputStream { nexusProperties.load(it) }
 publishing {
