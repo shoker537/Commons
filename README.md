@@ -20,11 +20,14 @@ All version names can be found [here](https://nexus.shoker.su/#browse/browse:mav
 
 # Modules:
 
-- **Commons** - spigot library for common methods
-- **CommonsBungee** - bungee library for common methods
+- **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
 - **GUILib** - spigot library for creating GUIs
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
+
+Be careful at importing the correct Commons class:
+- **ru.shk.commons.Commons** for Spigot plugins
+- **ru.shk.commonsbungee.Commons** for Bungee plugins
 
 # Commons (spigot-side)
 
