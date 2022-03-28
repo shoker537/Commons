@@ -6,6 +6,8 @@ Modules which use NMS support 1.17.1 and 1.18.2.
 
 Commons requires to be installed as a plugin. You can download the latest version [here](https://nexus.shoker.su/service/rest/v1/search/assets/download?sort=version&group=ru.shk&q=Commons&repository=maven-releases)
 
+Also don't forget to mention Commons as a dependency in plugin.yml.
+
 ```groovy
 repositories {
     maven { url = 'https://nexus.shoker.su/repository/maven-releases/' }
@@ -14,7 +16,7 @@ dependencies {
     compileOnly 'ru.shk:Commons:1.3.3'
 }
 ```
-Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
+All version names can be found [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
 
 # Modules:
 
