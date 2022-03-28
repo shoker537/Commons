@@ -2,7 +2,6 @@
 
 Modules which use NMS support 1.17.1 and 1.18.2.
 
-
 #Importing
 
 
@@ -16,7 +15,6 @@ dependencies {
 ```
 Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
 
-
 # Modules:
 
 
@@ -25,7 +23,6 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
 - **GUILib** - spigot library for creating GUIs
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
-
 
 #Commons (spigot-side)
 
@@ -40,7 +37,6 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **warning** sends a red message to console (auto colorizing)
 - **colorize** returns a String with translated color codes
 
-
 ### Threads/Scheduling:
 
 
@@ -50,7 +46,6 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **asyncLater** executes a Runnable asynchronously with delay
 - **syncRepeating** executes a Runnable synchronously with delay and period
 - **asyncRepeating** executes a Runnable asynchronously with delay and period
-
 
 #GUILib (spigot-side)
 
@@ -79,8 +74,7 @@ Updating items in GUI after its creation:
 gui.setItemRaw(2, new ItemStack(Material.PAPER));
 ```
 
-
-#GUILib (bungee)
+# GUILib (bungee)
 
 
 Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
@@ -89,7 +83,6 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 .item(12, new ItemStack(ItemType.ALLIUM), this::action)
 .open(player);
 ```
-
 
 #Utility classes (spigot-side)
 
@@ -100,7 +93,6 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 - **WorldEditManager** - select, copy, fill and work with schematics
 - **PacketUtil** - a few useful packet-based methods
 - **SB** - scoreboard implementation
-
 
 #SB - simple scoreboards
 
