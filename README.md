@@ -3,6 +3,7 @@
 Modules which use NMS support 1.17.1 and 1.18.2.
 
 #Importing
+
 ```groovy
 repositories {
     maven { url = 'https://nexus.shoker.su/repository/maven-releases/' }
@@ -14,6 +15,7 @@ dependencies {
 Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
 
 # Modules:
+
 - **Commons** - spigot library for common methods
 - **CommonsBungee** - bungee library for common methods
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
@@ -21,6 +23,7 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 
 #Commons (spigot-side)
+
 - **getServerVersion** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
 - **getCustomHead** returns a CustomHead defined in a database
 - **secondsToTime** turns seconds to a String in format "0:00"
@@ -67,6 +70,7 @@ gui.setItemRaw(2, new ItemStack(Material.PAPER));
 ```
 
 #GUILib (bungee)
+
 Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
 ```java
 new GUI("&cHello", InventoryType.GENERIC_9X5)
@@ -75,6 +79,7 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 ```
 
 #Utility classes (spigot-side)
+
 - **ItemStackBuilder** - to create ItemStacks simply
 - **TextComponentBuilder** - to create md_5's TextComponents simply
 - **Coordinates** - xyz holder and can be converted to Location
@@ -83,6 +88,7 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 - **SB** - scoreboard implementation
 
 #SB - simple scoreboards
+
 Example:
 
 ```java
