@@ -17,14 +17,13 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 
 # Modules:
 
-
 - **Commons** - spigot library for common methods
 - **CommonsBungee** - bungee library for common methods
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
 - **GUILib** - spigot library for creating GUIs
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 
-#Commons (spigot-side)
+# Commons (spigot-side)
 
 
 - **getServerVersion** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
@@ -47,7 +46,7 @@ Check out the latest version [here](https://nexus.shoker.su/#browse/browse:maven
 - **syncRepeating** executes a Runnable synchronously with delay and period
 - **asyncRepeating** executes a Runnable asynchronously with delay and period
 
-#GUILib (spigot-side)
+# GUILib (spigot-side)
 
 
 GUI examples:
@@ -84,7 +83,7 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 .open(player);
 ```
 
-#Utility classes (spigot-side)
+# Utility classes (spigot-side)
 
 
 - **ItemStackBuilder** - to create ItemStacks simply
@@ -94,7 +93,7 @@ new GUI("&cHello", InventoryType.GENERIC_9X5)
 - **PacketUtil** - a few useful packet-based methods
 - **SB** - scoreboard implementation
 
-#SB - simple scoreboards
+# SB - simple scoreboards
 
 
 Example:
