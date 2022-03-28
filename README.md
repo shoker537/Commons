@@ -47,6 +47,32 @@ All version names can be found [here](https://nexus.shoker.su/#browse/browse:mav
 - **syncRepeating** executes a Runnable synchronously with delay and period
 - **asyncRepeating** executes a Runnable asynchronously with delay and period
 
+# ConfigAPI
+Examples:
+```java
+Config config = new Config(getDataFolder(), true); // true means automatically assign file name to 'config.yml'
+Config config = new Config(new File(getDataFolder()+File.separator+"config.yml")); // create config from File
+Config config = new Config(getDataFolder(), "settings"); // create config with custom name, auto adds .yml if it is not provided
+```
+**Config** is YamlConfiguration so you can use any getters/setters as usual. But there are some extra methods:
+```java
+config.setValue("value", true); // sets the value and automatically saves config to a file
+config.save(); // save without try/catch
+```
+```java
+Config.decodeLocation(config.getString("location-from-config")); // returns Location stored in config as String
+Config.encodeLocation(new Location(...)); // returns a String created from Location
+
+config.location("location-in-config"); // automatically gets a string in config and decodes to Location
+```
+
+```java
+Config.getIfHasInt(config, "config-key", (integer) -> this::keyFound); // executes an operation if config has a 'config-key' value intended to be Integer
+Config.getIfHasBoolean(config, "config-key", (b) -> this::keyFound); // executes an operation if config has a 'config-key' value intended to be Boolean
+Config.getIfHasString(config, "config-key", (string) -> this::keyFound); // executes an operation if config has a 'config-key' value intended to be String
+Config.getIfHasStringList(config, "config-key", (list) -> this::keyFound); // executes an operation if config has a 'config-key' value intended to be List<String>
+```
+
 # GUILib (spigot-side)
 
 GUI examples:
