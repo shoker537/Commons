@@ -91,10 +91,16 @@ public class GUI {
         return this;
     }
     public void clear(int max){
-        for (int i = 0; i < max; i++) inv.setItem(i, null);
+        for (int i = 0; i < max; i++) {
+            inv.setItem(i, null);
+            slotActions.remove(i);
+        }
     }
     public void clear(){
         for (int i = 0; i < slots; i++) inv.setItem(i, null);
+        slotActions.clear();
+        materialActions.clear();
+        universalAction = null;
     }
     public void close(){
         if(inv==null) throw new IllegalStateException("Inventory is not open yet!");
