@@ -23,6 +23,7 @@ All version names can be found [here](https://nexus.shoker.su/#browse/browse:mav
 - **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
 - **GUILib** - spigot library for creating GUIs
+- **PacketUtil** - simply send packets with no nms* imports (limited functionality for now). Supports 1.17.1, 1.18.1 and 1.18.2 packet versions.
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 
 Be careful at importing the correct Commons class:
