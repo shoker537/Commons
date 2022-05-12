@@ -1,58 +1,22 @@
 package ru.shk.commonsbungee;
 
-import com.google.gson.JsonObject;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
-import land.shield.playerapi.CachedPlayer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.config.Configuration;
 import net.querz.nbt.tag.*;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.shk.commons.utils.HTTPRequest;
-import ru.shk.configapibungee.Config;
 
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Consumer;
+import java.util.Arrays;
+import java.util.List;
 
 public class ItemStackBuilder {
-    private static final ThreadPoolExecutor mojangRequestThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
-    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     private final ItemStack item;
-    private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(350);
-
-    public ItemStackBuilder(ItemStack stack){
-        this.item = stack;
-    }
 
     public ItemStackBuilder(ItemType type){
         item = new ItemStack(type);
-    }
-
-    public ItemStackBuilder(Configuration section){
-        ItemType type = ItemType.valueOf(section.getString("type"));
-        item = new ItemStack(type);
-        Config.getIfHasString(section, "display-name", this::displayName);
-        Config.getIfHasStringList(section, "lore", this::lore);
-        Config.getIfHasStringList(section, "enchant", list -> {
-            for (String line : list) {
-                String[] parts = line.split(" ");
-                String e = parts[0].toUpperCase();
-                int level = Integer.parseInt(parts[1]);
-                this.enchant(e, level);
-            }
-        });
-        if(type==ItemType.PLAYER_HEAD) {
-            Config.getIfHasString(section, "head-owner", this::headOwner);
-            Config.getIfHasString(section, "head-base64", this::base64head);
-        }
-        Config.getIfHasInt(section, "amount", this::amount);
     }
 
     public ItemStackBuilder amount(int amount){
@@ -74,69 +38,10 @@ public class ItemStackBuilder {
         item.displayName(stringToComponent(Commons.getInstance().colorize(name)));
         return this;
     }
+
     public ItemStackBuilder headOwner(String player){
-        Optional<Pair<CachedPlayer,String>> o = headsCache.stream().filter(pair -> pair.getLeft().getName().equalsIgnoreCase(player)).findAny();
-        if(o.isPresent()) return base64head(o.get().getRight());
         item.nbtData().put("SkullOwner", new StringTag(player));
         return this;
-    }
-    /**
-     * Applies player skin texture to PLAYER_HEAD.<br>
-     * <b>Can be run in the main thread.</b><br>
-     * If a skin texture is not cached, just puts an nbt-tag with player name, which shows Steve first and then after a few seconds gets updated to player skin. Not getting cached this way, loads the skin each time.
-     *    **/
-    public ItemStackBuilder headOwner(CachedPlayer player){
-        Optional<Pair<CachedPlayer,String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
-        if(o.isPresent()) return base64head(o.get().getRight());
-        item.nbtData().put("SkullOwner", new StringTag(player.getName()));
-        return this;
-    }
-    /**
-     * Applies player skin texture to PLAYER_HEAD.<br>
-     * <b>Note: Never run in the main thread!</b><br>
-     * If a skin texture is not cached, makes request to Mojang web API.
-     *    **/
-    public ItemStackBuilder headOwnerBlockingThread(CachedPlayer player){
-        String texture = getPlayerHead(player);
-        if(texture==null) return headOwner(player.getName());
-        return base64head(texture);
-    }
-
-    /**
-     * The most right way to get player head in asynchronous way.<br>
-     * If a skin texture is not cached, searches in database, or if there's no cached texture makes request to Mojang web API.
-     *    **/
-    public static void getPlayerHead(CachedPlayer player, Consumer<ItemStackBuilder> consumer){
-        ItemStackBuilder b = new ItemStackBuilder(ItemType.PLAYER_HEAD);
-        cacheThreadPool.submit(() -> {
-            Optional<Pair<CachedPlayer, String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
-            if(o.isEmpty()){
-                mojangRequestThreadPool.submit(() -> {
-                    String texture = Commons.getInstance().getSkinTexture(player);
-                    if(texture==null) {
-                        consumer.accept(b.headOwner(player.getName()));
-                        return;
-                    }
-                    headsCache.add(Pair.of(player, texture));
-                    while (headsCache.size()>300) headsCache.remove(0);
-                    consumer.accept(b.base64head(texture));
-                });
-                return;
-            }
-            consumer.accept(b.base64head(o.get().getRight()));
-        });
-    }
-
-    private static String getPlayerHead(CachedPlayer player){
-        Optional<Pair<CachedPlayer, String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
-        if(o.isEmpty()){
-            String texture = Commons.getInstance().getSkinTexture(player);
-            if(texture==null) return null;
-            headsCache.add(Pair.of(player, texture));
-            while (headsCache.size()>300) headsCache.remove(0);
-            return texture;
-        }
-        return o.get().getRight();
     }
 
     public ItemStackBuilder base64head(String texture){
@@ -184,12 +89,12 @@ public class ItemStackBuilder {
         return item;
     }
 
-    public static Object stringToComponent(String s){
-        return new BaseComponent[]{new TextComponent(s)};
+    private Object stringToComponent(String s){
+        return new BaseComponent[]{new TextComponent(ChatColor.WHITE+s)};
     }
 
-    public static List<Object> stringsToComponentList(List<String> list){
-        return list.stream().map(s -> ChatColor.WHITE+s).map(ItemStackBuilder::stringToComponent).toList();
+    private List<Object> stringsToComponentList(List<String> list){
+        return list.stream().map(this::stringToComponent).toList();
     }
 
 }

@@ -1,9 +1,6 @@
 package ru.shk.commons.utils;
 
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extension.factory.parser.mask.NegateMaskParser;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -19,7 +16,9 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.io.*;
 
 public class WorldEditManager {
@@ -43,9 +42,13 @@ public class WorldEditManager {
     }
 
     public void saveSchematic(Location loc1, Location loc2, File file) throws IOException {
-        CuboidRegion region = new CuboidRegion(BlockVector3.at(loc1.getBlockX(), loc1.getBlockY(), loc1.getBlockZ()), BlockVector3.at(loc2.getBlockX(), loc2.getBlockY(), loc2.getBlockZ()));
+        CuboidRegion region = createRegion(loc1, loc2);
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
         saveSchematic(clipboard, file);
+    }
+
+    public CuboidRegion createRegion(Location loc1, Location loc2){
+        return new CuboidRegion(BlockVector3.at(loc1.getBlockX(), loc1.getBlockY(), loc1.getBlockZ()), BlockVector3.at(loc2.getBlockX(), loc2.getBlockY(), loc2.getBlockZ()));
     }
 
     public void saveSchematic(Clipboard clipboard, File file) throws IOException {
@@ -77,6 +80,15 @@ public class WorldEditManager {
                     .build();
             Operations.complete(operation);
         }
+    }
+
+    @Nullable
+    public Region getPlayerSelection(Player p){
+        try {
+            LocalSession s = worldEdit.getSessionManager().get(BukkitAdapter.adapt(p));
+            return s.getRegionSelector(s.getSelectionWorld()).getRegion();
+        } catch (IncompleteRegionException ignored) {}
+        return null;
     }
 
 }

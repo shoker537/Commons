@@ -3,26 +3,21 @@ package ru.shk.commons.utils.nms;
 import ru.shk.commons.Commons;
 
 public enum FieldMappings {
-    ENTITY_GETID("getId", "ae", "ae"),
-    ENTITY_GETDATAWATCHER("getDataWatcher", "ai", "ai"),
-    ENTITY_LOCX("locX", "dc", "dg"),
-    ENTITY_LOCY("locY", "de", "di"),
-    ENTITY_LOCZ("locZ", "di", "dm"),
-    ENTITY_SET_POS("setPosition", "e", "e"),
-    ENTITY_SETNOGRAVITY("setNoGravity", "e", "e"),
-    ENTITY_SETCUSTOMNAMEVISIBLE("setCustomNameVisible", "n", "n"),
-    ENTITY_SETCUSTOMNAME("setCustomName", "a", "b"),
-    ARMORSTAND_SETINVISIBLE("setInvisible", "j", "j"),
-    ARMORSTAND_SETBASEPLATE("setBasePlate", "s", "s"),
-    ARMORSTAND_SETARMS("setArms", "r", "r"),
-    ARMORSTAND_SETMARKER("setMarker", "t", "t"),
-    ARMORSTAND_SETHEADPOSE("setHeadPose", "a", "a"),
-    ARMORSTAND_SETSMALL("setSmall", "a", "a"),
-    SCOREBOARDTEAM_SETCOLLISIONMODE("setCollisionRule", "a", "a"),
-
-    BLOCKBASE_GETMAPCOLOR("s", "t", "s"),
-
-    MAPCOLOR_INTCOLOR("al", "ak", "ak")
+    ENTITY_GETID("getId", "ae"),
+    ENTITY_GETDATAWATCHER("getDataWatcher", "ai"),
+    ENTITY_LOCX("locX", "dc"),
+    ENTITY_LOCY("locY", "de"),
+    ENTITY_LOCZ("locZ", "di"),
+    ENTITY_SET_POS("setPosition", "e"),
+    ENTITY_SETNOGRAVITY("setNoGravity", "e"),
+    ENTITY_SETCUSTOMNAMEVISIBLE("setCustomNameVisible", "n"),
+    ENTITY_SETCUSTOMNAME("setCustomNameVisible", "a"),
+    ARMORSTAND_SETINVISIBLE("setInvisible", "j"),
+    ARMORSTAND_SETBASEPLATE("setBasePlate", "s"),
+    ARMORSTAND_SETARMS("setArms", "r"),
+    ARMORSTAND_SETMARKER("setMarker", "t"),
+    ARMORSTAND_SETHEADPOSE("setHeadPose", "a"),
+    ARMORSTAND_SETSMALL("setSmall", "a")
     ;
 
     private static int versionId;
@@ -32,11 +27,13 @@ public enum FieldMappings {
     }
 
     private static void init(){
-        versionId = switch (Commons.getServerVersion()){
-            case v1_17_R1 -> 0;
-            case v1_18_R1, v1_18_R2 -> 1;
-            default -> 3;
-        };
+        for (int i = 0; i < PacketVersion.values().length; i++) {
+            if(Commons.getServerVersion()==PacketVersion.values()[i]){
+                versionId = i;
+                return;
+            }
+        }
+        versionId = -1;
     }
 
     private final String[] mappings;

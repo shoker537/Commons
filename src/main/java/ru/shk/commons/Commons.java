@@ -1,11 +1,14 @@
 package ru.shk.commons;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import com.sk89q.worldedit.WorldEdit;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -22,6 +25,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -45,21 +49,38 @@ public final class Commons extends JavaPlugin {
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
         } catch (Exception e){
             Commons.ver = PacketVersion.values()[PacketVersion.values().length-1];
-            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
+            info(ChatColor.WHITE+"          Running on "+ChatColor.RED+"Unsupported version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
         }
         info(" ");
         instance = this;
-
-        plugins.add(new GUILib());
-        plugins.add(new ConfigAPI());
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
+        try {
+            plugins.add(new GUILib());
+        } catch (Throwable e){
+            e.printStackTrace();
+        }
+        try {
+            plugins.add(new ConfigAPI());
+        } catch (Throwable e){
+            e.printStackTrace();
+        }
 
         plugins.forEach(plugin -> {
             try {
                 plugin.load();
-            } catch (Exception e){
+            } catch (Throwable e){
                 e.printStackTrace();
             }
         });
+
+    }
+
+    public void broadcastOnBungee(String msg){
+        Optional<? extends Player> p = Bukkit.getOnlinePlayers().stream().findAny();
+        if(p.isEmpty()) return;
+        ByteArrayDataOutput o = ByteStreams.newDataOutput();
+        o.writeUTF(msg);
+        p.get().sendPluginMessage(this, "commons:broadcast", o.toByteArray());
     }
 
     public static PacketVersion getServerVersion(){
