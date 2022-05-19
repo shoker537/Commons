@@ -2,7 +2,6 @@ package ru.shk.configapibungee;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -20,23 +19,6 @@ public class Config {
 
     static {
         provider = ConfigurationProvider.getProvider(YamlConfiguration.class);
-    }
-
-    @SneakyThrows
-    public Config(File file, boolean autoConfig){
-        if(autoConfig){
-            this.file = new File(file+File.separator+"config.yml");
-        } else {
-            this.file = file;
-        }
-        if (file.exists()) {
-            existed = true;
-        } else {
-            existed = false;
-            this.file.getParentFile().mkdirs();
-            this.file.createNewFile();
-        }
-        configuration = provider.load(this.file);
     }
 
     @SneakyThrows

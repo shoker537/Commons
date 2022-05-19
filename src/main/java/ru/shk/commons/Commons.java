@@ -95,6 +95,7 @@ public final class Commons extends JavaPlugin {
         } else {
             Config config = new Config(getDataFolder(), true);
             if(config.contains("mysql-database")){
+                info("Connecting to database "+org.bukkit.ChatColor.GREEN+config.getString("mysql-database"));
                 mysql = new MySQL(config.getString("mysql-database"));
             } else {
                 warning("&cMySQL database is not defined in config! &rMySQL won't connect.");
