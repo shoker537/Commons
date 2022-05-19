@@ -5,9 +5,11 @@ import dev.simplix.protocolize.data.ItemType;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.config.Configuration;
 import net.querz.nbt.tag.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.configapibungee.Config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +19,28 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder(ItemType type){
         item = new ItemStack(type);
+    }
+
+    public ItemStackBuilder(Configuration section){
+        ItemType type = ItemType.valueOf(section.getString("type"));
+        item = new ItemStack(type);
+
+        Config.getIfHasString(section, "display-name", this::displayName);
+        Config.getIfHasStringList(section, "lore", this::lore);
+        Config.getIfHasStringList(section, "enchant", list -> {
+            for (String line : list) {
+                String[] parts = line.split(" ");
+                String e = parts[0].toUpperCase();
+                int level = Integer.parseInt(parts[1]);
+                this.enchant(e, level);
+            }
+        });
+
+        if(type==ItemType.PLAYER_HEAD) {
+            Config.getIfHasString(section, "head-owner", this::headOwner);
+            Config.getIfHasString(section, "head-base64", this::base64head);
+        }
+        Config.getIfHasInt(section, "amount", this::amount);
     }
 
     public ItemStackBuilder amount(int amount){

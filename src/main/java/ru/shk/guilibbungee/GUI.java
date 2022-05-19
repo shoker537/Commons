@@ -6,6 +6,7 @@ import dev.simplix.protocolize.api.inventory.InventoryClick;
 import dev.simplix.protocolize.api.inventory.InventoryClose;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
+import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import lombok.Getter;
 import lombok.val;
@@ -32,7 +33,7 @@ public class GUI extends Inventory {
     public void clear(){
         slotActions.clear();
         universalAction = inventoryClick -> {};
-        new HashMap<>(items()).forEach((integer, itemStack) -> item(integer, null));
+        new HashMap<>(items()).forEach((integer, itemStack) -> item(integer, new ItemStack(ItemType.AIR)));
     }
 
     @Deprecated
@@ -81,5 +82,10 @@ public class GUI extends Inventory {
     public void close(ProxiedPlayer p){
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
+    }
+
+    public void update(){
+        ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
+        player.proxyInventory().update();
     }
 }
