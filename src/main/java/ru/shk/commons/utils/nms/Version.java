@@ -10,6 +10,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.MaterialMapColor;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -101,6 +102,13 @@ public abstract class Version {
     @SneakyThrows
     protected EntityPlayer getNMSPlayer(Player p){
         return (EntityPlayer) p.getClass().getMethod("getHandle").invoke(p);
+    }
+
+    public abstract net.minecraft.world.level.block.Block getBlock(Material m);
+
+    @SneakyThrows
+    protected int getMaterialColorInt(Material m){
+        return getBlock(m).s().al;
     }
 
 }

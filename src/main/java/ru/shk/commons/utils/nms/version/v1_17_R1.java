@@ -5,7 +5,6 @@ import lombok.val;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
-import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.Scoreboard;
@@ -14,7 +13,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
@@ -71,6 +69,12 @@ public class v1_17_R1 extends Version {
     @Override
     protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework) {
         explodeFirework(p, l, firework, "ad", "Z");
+    }
+
+    @Override@SneakyThrows
+    public net.minecraft.world.level.block.Block getBlock(Material m) {
+        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers");
+        return (net.minecraft.world.level.block.Block) c.getMethod("getBlock", Material.class).invoke(null, m);
     }
 
 }
