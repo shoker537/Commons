@@ -30,6 +30,10 @@ public class PacketUtil {
         versionClass = versionClass1;
     }
 
+    public static int getMaterialColorInt(Material m){
+        return versionClass.getMaterialColorInt(m);
+    }
+
     public static void sendPacket(Player p, Packet<?>... packets) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         for (Packet<?> packet : packets) versionClass.sendPacket(p, packet);
     }

@@ -72,5 +72,10 @@ public class v1_18_R2 extends Version {
     protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework) {
         explodeFirework(p, l, firework, "ai", "ae");
     }
+    @Override@SneakyThrows
+    public net.minecraft.world.level.block.Block getBlock(Material m) {
+        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers");
+        return (net.minecraft.world.level.block.Block) c.getMethod("getBlock", Material.class).invoke(null, m);
+    }
 
 }
