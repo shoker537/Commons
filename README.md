@@ -1,6 +1,7 @@
 **shoker's commons** is an API to make my life easier. And maybe even yours ;)
 
-Modules which use NMS support 1.17.1 and 1.18.2.
+Compiled with Java 17
+Modules which use NMS support 1.17.1, 1.18.1 and 1.18.2.
 
 # Using
 
@@ -16,14 +17,14 @@ dependencies {
     compileOnly 'ru.shk:Commons:1.3.3'
 }
 ```
-All version names can be found [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
+All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
 
 # Modules:
 
 - **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
 - **ConfigAPI** - simple config-management interface (spigot side only for now)
 - **GUILib** - spigot library for creating GUIs
-- **PacketUtil** - simply send packets with no nms* imports (limited functionality for now). Supports 1.17.1, 1.18.1 and 1.18.2 packet versions.
+- **PacketUtil** - simply send packets with no nms* imports (limited functionality for now). Supports 1.17.1, 1.18.1 and 1.18.2 packet versions. Explore all the methods!
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 
 Be careful at importing the correct Commons class:
@@ -40,12 +41,12 @@ Be careful at importing the correct Commons class:
 - **firework()** spawns and detonates a no-damage firework
 - **info()** sends a message to console (auto colorizing)
 - **warning()** sends a red message to console (auto colorizing)
-- **colorize()** returns a String with translated color codes
+- **colorize()** returns a String with translated color codes (&)
 
 ### Threads/Scheduling:
 
 - **sync()** executes a Runnable synchronously
-- **async()** executes a Runnable in async ThreadPool
+- **async()** executes a Runnable in a fixed ThreadPool
 - **syncLater()** executes a Runnable synchronously with delay
 - **asyncLater()** executes a Runnable asynchronously with delay
 - **syncRepeating()** executes a Runnable synchronously with delay and period
