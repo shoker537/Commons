@@ -7,19 +7,15 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.MaterialMapColor;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import ru.shk.commons.Commons;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -108,7 +104,10 @@ public abstract class Version {
 
     @SneakyThrows
     protected int getMaterialColorInt(Material m){
-        return getBlock(m).s().al;
+        net.minecraft.world.level.block.Block b = getBlock(m);
+        Object mapColor = b.getClass().getMethod(FieldMappings.BLOCKBASE_GETMAPCOLOR.getField()).invoke(b);
+        return mapColor.getClass().getField(FieldMappings.MAPCOLOR_INTCOLOR.getField()).getInt(mapColor);
+
     }
 
 }
