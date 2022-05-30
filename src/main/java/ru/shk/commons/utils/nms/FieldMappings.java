@@ -17,7 +17,11 @@ public enum FieldMappings {
     ARMORSTAND_SETARMS("setArms", "r"),
     ARMORSTAND_SETMARKER("setMarker", "t"),
     ARMORSTAND_SETHEADPOSE("setHeadPose", "a"),
-    ARMORSTAND_SETSMALL("setSmall", "a")
+    ARMORSTAND_SETSMALL("setSmall", "a"),
+
+    BLOCKBASE_GETMAPCOLOR("s", "t"),
+
+    MAPCOLOR_INTCOLOR("al", "ak")
     ;
 
     private static int versionId;
@@ -27,13 +31,17 @@ public enum FieldMappings {
     }
 
     private static void init(){
-        for (int i = 0; i < PacketVersion.values().length; i++) {
-            if(Commons.getServerVersion()==PacketVersion.values()[i]){
-                versionId = i;
-                return;
-            }
-        }
-        versionId = -1;
+        versionId = switch (Commons.getServerVersion()){
+            case v1_17_R1 -> 0;
+            default -> 1;
+        };
+//        for (int i = 0; i < PacketVersion.values().length; i++) {
+//            if(Commons.getServerVersion()==PacketVersion.values()[i]){
+//                versionId = i;
+//                return;
+//            }
+//        }
+//        versionId = -1;
     }
 
     private final String[] mappings;
