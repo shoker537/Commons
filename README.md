@@ -4,7 +4,7 @@ Compiled with Java 17
 
 Modules which use NMS support 1.17.1, 1.18.1 and 1.18.2
 
-# Using
+# Usage
 
 Commons requires to be installed as a plugin. You can download the latest version [here](https://nexus.shoker.su/service/rest/v1/search/assets/download?sort=version&group=ru.shk&q=Commons&repository=maven-releases)
 
