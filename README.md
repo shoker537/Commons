@@ -1,7 +1,8 @@
 **shoker's commons** is an API to make my life easier. And maybe even yours ;)
 
 Compiled with Java 17
-Modules which use NMS support 1.17.1, 1.18.1 and 1.18.2.
+
+Modules which use NMS support 1.17.1, 1.18.1 and 1.18.2
 
 # Using
 
