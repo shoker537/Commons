@@ -86,6 +86,14 @@ public class ItemStackBuilder {
         Config.getIfHasBoolean(section, "hide-flags", aBoolean -> {
             if(aBoolean) disableFlags();
         });
+        Config.getIfHasStringList(section, "flags", strings -> strings.forEach(s -> {
+            try {
+                ItemFlag flag = ItemFlag.valueOf(s.toUpperCase());
+                flags(flag);
+            } catch (Exception e){
+                Bukkit.getLogger().warning("Wrong ItemFlag provided for item "+type+": "+s+". It's being ignored.");
+            }
+        }));
         Config.getIfHasInt(section, "amount", this::count);
     }
 
