@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -91,10 +93,25 @@ public class ItemStackBuilder {
                 ItemFlag flag = ItemFlag.valueOf(s.toUpperCase());
                 flags(flag);
             } catch (Exception e){
-                Bukkit.getLogger().warning("Wrong ItemFlag provided for item "+type+": "+s+". It's being ignored.");
+                Bukkit.getLogger().warning("Wrong ItemFlag provided for item "+type+": "+s+": "+e.getMessage()+". It's being ignored.");
             }
         }));
+        if(section.contains("attributes")) section.getMapList("attributes").forEach(map -> {
+            try {
+                addAttribute((String) map.get("attribute"), (String) map.get("display-name"), (double) map.get("value"), (String) map.get("operation"));
+            } catch (IllegalArgumentException e){
+                Bukkit.getLogger().warning("Item "+type+" has one or more wrong arguments for 'attributes': "+e.getMessage()+". It's being ignored.");
+            }
+        });
         Config.getIfHasInt(section, "amount", this::count);
+    }
+
+    private ItemStackBuilder addAttribute(String attribute, String displayName, double value, String operation) throws IllegalArgumentException {
+        return addAttribute(Attribute.valueOf(attribute), displayName, value, AttributeModifier.Operation.valueOf(operation));
+    }
+    private ItemStackBuilder addAttribute(Attribute attribute, String displayName, double value, AttributeModifier.Operation operation){
+        meta.addAttributeModifier(attribute, new AttributeModifier(displayName, value, operation));
+        return this;
     }
 
     private void meta(){
