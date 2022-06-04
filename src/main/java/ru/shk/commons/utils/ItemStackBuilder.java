@@ -13,16 +13,20 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.w3c.dom.Attr;
+import ru.shk.commons.Commons;
 import ru.shk.configapi.Config;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -98,7 +102,14 @@ public class ItemStackBuilder {
         }));
         if(section.contains("attributes")) section.getMapList("attributes").forEach(map -> {
             try {
-                addAttribute((String) map.get("attribute"), (String) map.get("display-name"), (double) map.get("value"), (String) map.get("operation"));
+                String name = (String) map.get("attribute");
+                String displayName = (String) map.get("display-name");
+                double value = (double) map.get("value");
+                String operation = (String) map.get("operation");
+                String slot = map.containsKey("slot")?(String) map.get("slot"):null;
+                UUID uuid = map.containsKey("uuid")?UUID.fromString((String) map.get("slot")):new UUID(0,0);
+
+                autoAddAttribute(uuid, Attribute.valueOf(name.toUpperCase()), displayName, value, AttributeModifier.Operation.valueOf(operation), slot);
             } catch (IllegalArgumentException e){
                 Bukkit.getLogger().warning("Item "+type+" has one or more wrong arguments for 'attributes': "+e.getMessage()+". It's being ignored.");
             }
@@ -106,11 +117,16 @@ public class ItemStackBuilder {
         Config.getIfHasInt(section, "amount", this::count);
     }
 
-    private ItemStackBuilder addAttribute(String attribute, String displayName, double value, String operation) throws IllegalArgumentException {
-        return addAttribute(Attribute.valueOf(attribute), displayName, value, AttributeModifier.Operation.valueOf(operation));
+    private ItemStackBuilder autoAddAttribute(UUID attributeUUID, Attribute attribute, String displayName, double value, AttributeModifier.Operation operation, String slot) {
+        if(slot!=null) return addAttribute(attributeUUID, attribute, displayName, value, operation, EquipmentSlot.valueOf(slot.toUpperCase()));
+        return addAttribute(attribute, displayName, value, operation);
     }
     private ItemStackBuilder addAttribute(Attribute attribute, String displayName, double value, AttributeModifier.Operation operation){
         meta.addAttributeModifier(attribute, new AttributeModifier(displayName, value, operation));
+        return this;
+    }
+    private ItemStackBuilder addAttribute(UUID attributeUUID, Attribute attribute, String displayName, double value, AttributeModifier.Operation operation, EquipmentSlot slot){
+        meta.addAttributeModifier(attribute, new AttributeModifier(attributeUUID, displayName, value, operation, slot));
         return this;
     }
 
@@ -224,7 +240,7 @@ public class ItemStackBuilder {
     }
     public ItemStackBuilder base64Head(String texture) {
         SkullMeta skullMeta = (SkullMeta) meta;
-        GameProfile profile = new GameProfile(UUID.randomUUID(), "");
+        GameProfile profile = new GameProfile(new UUID(0,0), "");
         profile.getProperties().put("textures", new Property("textures", texture));
         Field profileField;
         try {
@@ -283,7 +299,7 @@ public class ItemStackBuilder {
     }
 
     private String colorize(String s){
-        return ChatColor.translateAlternateColorCodes('&', s);
+        return Commons.colorizeWithHex(s);
     }
 
     @Override
