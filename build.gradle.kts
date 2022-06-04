@@ -4,12 +4,12 @@ import java.util.Properties
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.3.8"
+  id("io.papermc.paperweight.userdev") version "1.3.5"
   id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "ru.shk"
-version = "1.3.54-beta3"
+version = "1.3.24"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -58,37 +58,24 @@ repositories {
   maven {
     url = URI.create("https://mvn.exceptionflug.de/repository/exceptionflug-public/")
   }
-  maven {
-    url = URI.create("https://nexus.shoker.su/repository/maven-shield/")
-    credentials {
-      username = "${nexusRepository["user"]}"
-      password = "${nexusRepository["password"]}"
-    }
-  }
-  maven {
-    url = URI.create("https://simonsator.de/repo")
-  }
 }
 
 dependencies {
-  paperDevBundle("1.19.2-R0.1-20220926.081544-62")
+  paperDevBundle("1.18.2-R0.1-SNAPSHOT")
   compileOnly(files("D:/Libraries/spigot-1.17.1.jar"))
-  implementation("org.apache.commons:commons-lang3:3.12.0")
-  compileOnly(files("D:/Libraries/worldedit-bukkit.jar"))
-  compileOnly(files("D:/Libraries/worldedit-core.jar"))
+
+  compileOnly(files("D:/Libraries/worldedit-bukkit-7.3.0.jar"))
+  compileOnly(files("D:/Libraries/worldedit-core-7.3.0.jar"))
   implementation("commons-io:commons-io:2.11.0")
-//  compileOnly("dev.simplix:protocolize-api:2.2.2")
-  compileOnly(files("D:/Libraries/protocolize.jar"))
+  compileOnly("dev.simplix:protocolize-api:2.1.2")
   compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
   implementation(files("D:/Libraries/anvilgui.jar"))
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   compileOnly("com.mojang:authlib:1.5.21")
-  compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
 
   implementation("org.projectlombok:lombok:1.18.22")
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
-  compileOnly("land.shield:PlayerAPI:1.4.0")
   compileOnly("ru.shk:MySQLAPI:2.0.1")
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   // paperweightDevBundle("com.example.paperfork", "1.18.2-R0.1-SNAPSHOT")
@@ -104,8 +91,12 @@ tasks {
     dependsOn(reobfJar)
     dependsOn(shadowJar)
   }
+
   compileJava {
-    options.encoding = Charsets.UTF_8.name()
+    options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+
+    // Set the release flag. This configures what version bytecode the compiler will emit, as well as what JDK APIs are usable.
+    // See https://openjdk.java.net/jeps/247 for more information.
     options.release.set(17)
   }
   javadoc {
@@ -125,9 +116,6 @@ tasks {
     outputJar.set(layout.buildDirectory.file("libs/${project.name}.jar"))
   }
 }
-//task("deleteUnused") {
-//  delete("build/libs/*-dev*.jar")
-//}
-tasks.create<Delete>("deleteUnused"){
-  delete("build/libs/${project.name}-${project.version}-dev.jar", "build/libs/${project.name}-${project.version}-dev-all.jar")
+task("deleteUnused") {
+  delete("build/libs/*-dev*.jar")
 }
