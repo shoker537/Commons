@@ -3,7 +3,6 @@ package ru.shk.commons.utils;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import lombok.NonNull;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -20,13 +19,11 @@ import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.w3c.dom.Attr;
 import ru.shk.commons.Commons;
 import ru.shk.configapi.Config;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -107,7 +104,7 @@ public class ItemStackBuilder {
                 double value = (double) map.get("value");
                 String operation = (String) map.get("operation");
                 String slot = map.containsKey("slot")?(String) map.get("slot"):null;
-                UUID uuid = map.containsKey("uuid")?UUID.fromString((String) map.get("slot")):new UUID(0,0);
+                UUID uuid = map.containsKey("uuid")?UUID.fromString((String) map.get("uuid")):new UUID(1,1);
 
                 autoAddAttribute(uuid, Attribute.valueOf(name.toUpperCase()), displayName, value, AttributeModifier.Operation.valueOf(operation), slot);
             } catch (IllegalArgumentException e){
@@ -126,7 +123,8 @@ public class ItemStackBuilder {
         return this;
     }
     private ItemStackBuilder addAttribute(UUID attributeUUID, Attribute attribute, String displayName, double value, AttributeModifier.Operation operation, EquipmentSlot slot){
-        meta.addAttributeModifier(attribute, new AttributeModifier(attributeUUID, displayName, value, operation, slot));
+        AttributeModifier am = new AttributeModifier(attributeUUID, displayName, value, operation, slot);
+        meta.addAttributeModifier(attribute, am);
         return this;
     }
 

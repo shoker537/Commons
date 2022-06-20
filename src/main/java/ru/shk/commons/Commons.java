@@ -240,11 +240,11 @@ public final class Commons extends JavaPlugin {
         fw.detonate();
     }
     public static String colorizeWithHex(String message) {
-        Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
+        Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
         Matcher matcher = pattern.matcher(message);
         while (matcher.find()) {
             String color = message.substring(matcher.start(), matcher.end());
-            message = message.replace(color, ChatColor.of(color) + "");
+            message = message.replace(color, ChatColor.of(color.substring(1)) + "");
             matcher = pattern.matcher(message);
         }
         return ChatColor.translateAlternateColorCodes('&', message);
