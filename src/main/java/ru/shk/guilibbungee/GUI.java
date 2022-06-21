@@ -30,6 +30,12 @@ public class GUI extends Inventory {
         this.owner = pl;
     }
 
+    public void clear(int itemSlot){
+        item(itemSlot, null);
+        slotActions.remove(itemSlot);
+        update();
+    }
+
     public void clear(){
         slotActions.clear();
         universalAction = inventoryClick -> {};
@@ -85,6 +91,7 @@ public class GUI extends Inventory {
     }
 
     public void update(){
+        if(pp==null) return;
         ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
         player.proxyInventory().update();
     }
