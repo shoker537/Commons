@@ -17,7 +17,6 @@ import java.util.function.Function;
 
 @Getter
 public class GUIPageGenerator {
-    @Getter private static final Consumer<InventoryClick> EMPTY_ACTION = click -> {};
     private final int slotOffset;
     @Setter private Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator;
     @Setter private Function<Integer, Boolean> pageExistsCheck;
@@ -29,11 +28,8 @@ public class GUIPageGenerator {
     private final int lastGeneratorSlot;
     private final int firstButtonsLineSlot;
     private final ItemStack fillerItem;
-    @Setter private int currentPage = 0;
+    private int currentPage = 0;
     private final ProxiedPlayer viewer;
-    @Setter private ItemStack leftButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build();
-    @Setter private ItemStack rightButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b>> Дальше").build();
-    @Setter private ItemStack backgroundItem = new ItemStack(ItemType.AIR);
 
     public GUIPageGenerator(ProxiedPlayer viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
         this(viewer,gui, skipLinesCount, linesCountOfGeneratedItems, nothingItem, nothingSlot, fillerItem);
@@ -57,8 +53,6 @@ public class GUIPageGenerator {
 
     public void generatePage(){
         clear();
-        addButtonsLine();
-        gui.update();
         if(pageExistsCheck.apply(currentPage)){
             val generated = pageGenerator.apply(currentPage);
             if(generated.size()==0){
@@ -66,35 +60,33 @@ public class GUIPageGenerator {
             } else {
                 for (int i = 0; i < generated.size(); i++) {
                     val pair = generated.get(i);
-                    gui.item(slotOffset+i, pair.getKey(), pair.getRight()==null?EMPTY_ACTION:pair.getRight());
+                    gui.item(slotOffset+i, pair.getKey(), pair.getRight());
                 }
             }
         } else {
             gui.item(nothingSlot, nothingItem);
         }
+        addButtonsLine();
         gui.update();
     }
 
-    public void clear(){
-        for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) {
-            gui.clear(i);
-            gui.item(i, backgroundItem);
-        }
+    private void clear(){
+        for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) gui.clear(i);
     }
 
-    public void fillBottomPanes(){
+    private void fillBottomPanes(){
         for (int i = firstButtonsLineSlot; i <= firstButtonsLineSlot+8; i++) gui.item(i, fillerItem);
     }
 
-    public void addButtonsLine(){
+    private void addButtonsLine(){
         fillBottomPanes();
         boolean previous = pageExistsCheck.apply(currentPage-1);
         boolean next = pageExistsCheck.apply(currentPage+1);
-        if(next) gui.item(firstButtonsLineSlot+8, rightButton, inventoryClick -> switchPage(true));
-        if(previous) gui.item(firstButtonsLineSlot, leftButton, inventoryClick -> switchPage(false));
+        if(next) gui.item(firstButtonsLineSlot+8, new ItemStackBuilder(ItemType.PAPER).displayName("&b>> Дальше").build(), inventoryClick -> switchPage(true));
+        if(previous) gui.item(firstButtonsLineSlot, new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build(), inventoryClick -> switchPage(false));
     }
 
-    public void switchPage(boolean next){
+    private void switchPage(boolean next){
         currentPage += next?1:-1;
         Commons.getInstance().async(this::generatePage);
     }
