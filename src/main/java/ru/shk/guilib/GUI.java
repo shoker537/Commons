@@ -119,7 +119,9 @@ public class GUI {
                 return;
             }
         }
-        if(universalAction!=null) universalAction.accept(type, slot, item);
+        if(universalAction!=null) {
+            universalAction.accept(type, slot, item);
+        }
     }
     public boolean isOpen(){
         return inv!=null && inv.getViewers().size()!=0;
@@ -145,8 +147,8 @@ public class GUI {
         Commons.getInstance().sync(p::closeInventory);
         Commons.getInstance().syncLater(() -> {
             if(!p.isOnline()) return;
-            GUILib.getInstance().getGuis().put(p.getUniqueId(), this);
             p.openInventory(inv);
-        }, 1);
+            GUILib.getInstance().getGuis().put(p.getUniqueId(), this);
+        }, 2);
     }
 }

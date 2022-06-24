@@ -8,8 +8,11 @@ import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
+import dev.simplix.protocolize.data.packets.SetSlot;
 import lombok.Getter;
 import lombok.val;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import ru.shk.commonsbungee.Commons;
@@ -31,7 +34,7 @@ public class GUI extends Inventory {
     }
 
     public void clear(int itemSlot){
-        item(itemSlot, null);
+        item(itemSlot, new ItemStack(ItemType.AIR));
         slotActions.remove(itemSlot);
         update();
     }
@@ -61,12 +64,14 @@ public class GUI extends Inventory {
     public GUI item(int slot, ItemStack item, Consumer<InventoryClick> action){
         item(slot, item);
         slotActions.put(slot, action);
+        update();
         return this;
     }
 
     public GUI item(int slot, ItemStackBuilder item, Consumer<InventoryClick> action){
         item(slot, item.build());
         slotActions.put(slot, action);
+        update();
         return this;
     }
 
@@ -92,7 +97,19 @@ public class GUI extends Inventory {
 
     public void update(){
         if(pp==null) return;
+        int windowId = -1;
         ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
-        player.proxyInventory().update();
+        for (Integer id : player.registeredInventories().keySet()) {
+            if(player.registeredInventories().get(id).equals(this)) {
+                windowId = id;
+                break;
+            }
+        }
+        if(windowId==-1) {
+            ProxyServer.getInstance().getPlayer(pp).sendMessage(ChatColor.RED+"WindowsId not found. GUI not registered?");
+            return;
+        }
+        int finalWindowId = windowId;
+        this.items().forEach((integer, itemStack) -> player.sendPacket(new SetSlot((byte) finalWindowId, (short) ((int)integer), itemStack, 0)));
     }
 }

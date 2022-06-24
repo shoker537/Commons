@@ -17,6 +17,10 @@ import java.util.List;
 public class ItemStackBuilder {
     private final ItemStack item;
 
+    public ItemStackBuilder(ItemStack stack){
+        this.item = stack;
+    }
+
     public ItemStackBuilder(ItemType type){
         item = new ItemStack(type);
     }
