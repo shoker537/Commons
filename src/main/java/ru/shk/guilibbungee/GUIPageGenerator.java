@@ -28,7 +28,7 @@ public class GUIPageGenerator {
     private final int lastGeneratorSlot;
     private final int firstButtonsLineSlot;
     private final ItemStack fillerItem;
-    private int currentPage = 0;
+    @Setter private int currentPage = 0;
     private final ProxiedPlayer viewer;
 
     public GUIPageGenerator(ProxiedPlayer viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
@@ -70,15 +70,15 @@ public class GUIPageGenerator {
         gui.update();
     }
 
-    private void clear(){
+    public void clear(){
         for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) gui.clear(i);
     }
 
-    private void fillBottomPanes(){
+    public void fillBottomPanes(){
         for (int i = firstButtonsLineSlot; i <= firstButtonsLineSlot+8; i++) gui.item(i, fillerItem);
     }
 
-    private void addButtonsLine(){
+    public void addButtonsLine(){
         fillBottomPanes();
         boolean previous = pageExistsCheck.apply(currentPage-1);
         boolean next = pageExistsCheck.apply(currentPage+1);
@@ -86,7 +86,7 @@ public class GUIPageGenerator {
         if(previous) gui.item(firstButtonsLineSlot, new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build(), inventoryClick -> switchPage(false));
     }
 
-    private void switchPage(boolean next){
+    public void switchPage(boolean next){
         currentPage += next?1:-1;
         Commons.getInstance().async(this::generatePage);
     }

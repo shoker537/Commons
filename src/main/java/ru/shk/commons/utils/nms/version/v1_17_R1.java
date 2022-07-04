@@ -2,6 +2,7 @@ package ru.shk.commons.utils.nms.version;
 
 import lombok.SneakyThrows;
 import lombok.val;
+import net.minecraft.EnumChatFormat;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
@@ -9,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.ScoreboardTeam;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -21,6 +23,7 @@ import ru.shk.commons.utils.nms.Version;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class v1_17_R1 extends Version {
     @Override
@@ -34,16 +37,28 @@ public class v1_17_R1 extends Version {
     }
 
     @Override
-    public Packet<?> createScoreboardTeamPacket(String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix, null, null);
+    }
+
+    @Override
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ScoreboardTeam t = new ScoreboardTeam(new Scoreboard(), name);
         t.setPrefix(IChatBaseComponent.a(prefix));
         t.setSuffix(IChatBaseComponent.a(suffix));
-        return PacketPlayOutScoreboardTeam.a(t, false);
+        if(color!=null) t.setColor(EnumChatFormat.valueOf(color.name()));
+        if(entries!=null) t.getPlayerNameSet().addAll(entries);
+        return PacketPlayOutScoreboardTeam.a(t, createTeamOrUpdate);
     }
 
     @Override
     public Packet<?> createSetBlockPacket(Block block) {
         return null;
+    }
+
+    @Override
+    protected Packet<?> createRemoveTeamPacket(String team) {
+        return PacketPlayOutScoreboardTeam.a(new ScoreboardTeam(new Scoreboard(), team));
     }
 
     @Override

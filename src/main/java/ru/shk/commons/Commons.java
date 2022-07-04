@@ -44,14 +44,14 @@ public final class Commons extends JavaPlugin {
     public void onLoad() {
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
+        String packageName = Bukkit.getServer().getClass().getPackage().getName();
+        String ver = packageName.substring(packageName.lastIndexOf(46) + 1);
         try {
-            String packageName = Bukkit.getServer().getClass().getPackage().getName();
-            String ver = packageName.substring(packageName.lastIndexOf(46) + 1);
             Commons.ver = PacketVersion.valueOf(ver);
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
         } catch (Exception e){
             Commons.ver = PacketVersion.values()[PacketVersion.values().length-1];
-            info(ChatColor.WHITE+"          Running on "+ChatColor.RED+"Unsupported version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
+            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
         }
         info(" ");
         instance = this;
