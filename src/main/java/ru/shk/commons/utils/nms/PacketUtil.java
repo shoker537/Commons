@@ -1,9 +1,11 @@
 package ru.shk.commons.utils.nms;
 
 import com.mojang.datafixers.util.Pair;
+import lombok.SneakyThrows;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -30,6 +32,14 @@ public class PacketUtil {
         versionClass = versionClass1;
     }
 
+    public static void createAndSendTeam(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix, color, entries));
+    }
+
+    public static void removeTeamPacket(String team, Player... toSend) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        for (Player player : toSend) sendPacket(player, versionClass.createRemoveTeamPacket(team));
+    }
+
     public static int getMaterialColorInt(Material m){
         return versionClass.getMaterialColorInt(m);
     }
@@ -39,7 +49,11 @@ public class PacketUtil {
     }
 
     public static void sendScoreboardTeamPacket(Player p, String name, String prefix, String suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
-        Packet<?> packet = versionClass.createScoreboardTeamPacket(name, prefix, suffix);
+        Packet<?> packet = versionClass.createScoreboardTeamPacket(false,name, prefix, suffix);
+        sendPacket(p, packet);
+    }
+    public static void sendScoreboardTeamPacket(boolean createTeamOrUpdate, Player p, String name, String prefix, String suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
+        Packet<?> packet = versionClass.createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix);
         sendPacket(p, packet);
     }
 

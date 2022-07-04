@@ -10,10 +10,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang.reflect.ConstructorUtils;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -25,8 +22,10 @@ public abstract class Version {
 
     protected abstract void sendPacket(Player p, Packet<?> packet) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException;
 
-    protected abstract Packet<?> createScoreboardTeamPacket(String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
+    protected abstract Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
+    protected abstract Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
     protected abstract Packet<?> createSetBlockPacket(Block block);
+    protected abstract Packet<?> createRemoveTeamPacket(String team);
 
     protected abstract String getItemTypeTranslationKey(Material m);
     protected abstract ItemStack asNMSCopy(org.bukkit.inventory.ItemStack itemStack);

@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
-public class v1_18_R2 extends Version {
+public class v1_19_R1 extends Version {
     @Override
     public void sendPacket(Player p, Packet<?> packet) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         Method getHandle = p.getClass().getMethod("getHandle");
@@ -36,7 +36,7 @@ public class v1_18_R2 extends Version {
 
     @Override
     public Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        return createScoreboardTeamPacket(createTeamOrUpdate, name, prefix, suffix, null, null);
+        return createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix, null, null);
     }
 
     @Override
@@ -72,18 +72,18 @@ public class v1_18_R2 extends Version {
 
     @Override@SneakyThrows
     public ItemStack asNMSCopy(org.bukkit.inventory.ItemStack itemStack) {
-        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack");
+        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_19_R0.inventory.CraftItemStack");
         return (ItemStack) c.getMethod("asNMSCopy", org.bukkit.inventory.ItemStack.class).invoke(null, itemStack);
     }
 
     @SneakyThrows
     private Class<?> craftMagicNumbers(){
-        return Class.forName("org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers");
+        return Class.forName("org.bukkit.craftbukkit.v1_19_R0.util.CraftMagicNumbers");
     }
 
     @Override@SneakyThrows
     public Object getNMSWorld(World world) {
-        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_18_R2.CraftWorld");
+        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_19_R0.CraftWorld");
         val craftWorld = c.cast(world);
         return craftWorld.getClass().getMethod("getHandle").invoke(craftWorld);
     }
@@ -94,8 +94,7 @@ public class v1_18_R2 extends Version {
     }
     @Override@SneakyThrows
     public net.minecraft.world.level.block.Block getBlock(Material m) {
-        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers");
+        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_19_R0.util.CraftMagicNumbers");
         return (net.minecraft.world.level.block.Block) c.getMethod("getBlock", Material.class).invoke(null, m);
     }
-
 }
