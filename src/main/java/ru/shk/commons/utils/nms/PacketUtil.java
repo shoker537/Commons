@@ -33,7 +33,11 @@ public class PacketUtil {
     }
 
     public static void createAndSendTeam(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
-        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix, color, entries));
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate, true,name, prefix, suffix, color, entries));
+    }
+
+    public static void createAndSendTeam(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,collideTeammates,name, prefix, suffix, color, entries));
     }
 
     public static void removeTeamPacket(String team, Player... toSend) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {

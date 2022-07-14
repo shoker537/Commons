@@ -65,6 +65,14 @@ public class WorldEditManager {
         }
     }
 
+    public void pasteSchematicIgnoringAir(File file, Location location) throws WorldEditException, IOException {
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            Clipboard clipboard = reader.read();
+            pasteSchematic(clipboard, location, true);
+        }
+    }
+
     public void pasteSchematic(Clipboard clipboard, Location location) throws WorldEditException, IOException {
         clipboard.setOrigin(BlockVector3.at(location.getX(), location.getY(), location.getZ()));
         com.sk89q.worldedit.world.World world = BukkitAdapter.adapt(location.getWorld());
@@ -82,6 +90,23 @@ public class WorldEditManager {
         }
     }
 
+    public void pasteSchematic(Clipboard clipboard, Location location, boolean ignoreAir) throws WorldEditException, IOException {
+        clipboard.setOrigin(BlockVector3.at(location.getX(), location.getY(), location.getZ()));
+        com.sk89q.worldedit.world.World world = BukkitAdapter.adapt(location.getWorld());
+        double x = location.getX();
+        double y = location.getY();
+        double z = location.getZ();
+        try (EditSession editSession = worldEdit.newEditSession(world)) {
+            Operation operation = new ClipboardHolder(clipboard)
+                    .createPaste(editSession)
+                    .to(BlockVector3.at(x, y, z))
+                    .copyEntities(true)
+                    .copyBiomes(true)
+                    .ignoreAirBlocks(ignoreAir)
+                    .build();
+            Operations.complete(operation);
+        }
+    }
     @Nullable
     public Region getPlayerSelection(Player p){
         try {

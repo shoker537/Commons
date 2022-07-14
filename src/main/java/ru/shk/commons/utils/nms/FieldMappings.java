@@ -18,6 +18,7 @@ public enum FieldMappings {
     ARMORSTAND_SETMARKER("setMarker", "t", "t"),
     ARMORSTAND_SETHEADPOSE("setHeadPose", "a", "a"),
     ARMORSTAND_SETSMALL("setSmall", "a", "a"),
+    SCOREBOARDTEAM_SETCOLLISIONMODE("setCollisionRule", "a", "a"),
 
     BLOCKBASE_GETMAPCOLOR("s", "t", "s"),
 
