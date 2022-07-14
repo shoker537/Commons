@@ -37,13 +37,9 @@ public class v1_17_R1 extends Version {
     }
 
     @Override
-    public Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        return createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix, null, null);
-    }
-
-    @Override
-    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ScoreboardTeam t = new ScoreboardTeam(new Scoreboard(), name);
+        if(!collideTeammates) disableTeammatesCollision(t);
         t.setPrefix(IChatBaseComponent.a(prefix));
         t.setSuffix(IChatBaseComponent.a(suffix));
         if(color!=null) t.setColor(EnumChatFormat.valueOf(color.name()));

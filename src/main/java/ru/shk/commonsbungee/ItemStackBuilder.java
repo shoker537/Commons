@@ -2,20 +2,23 @@ package ru.shk.commonsbungee;
 
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
+import land.shield.playerapi.CachedPlayer;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.config.Configuration;
 import net.querz.nbt.tag.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.shk.configapibungee.Config;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class ItemStackBuilder {
     private final ItemStack item;
+    private static final List<Pair<Integer, String>> headsCache = new ArrayList<>();
 
     public ItemStackBuilder(ItemStack stack){
         this.item = stack;
@@ -28,7 +31,6 @@ public class ItemStackBuilder {
     public ItemStackBuilder(Configuration section){
         ItemType type = ItemType.valueOf(section.getString("type"));
         item = new ItemStack(type);
-
         Config.getIfHasString(section, "display-name", this::displayName);
         Config.getIfHasStringList(section, "lore", this::lore);
         Config.getIfHasStringList(section, "enchant", list -> {
@@ -39,7 +41,6 @@ public class ItemStackBuilder {
                 this.enchant(e, level);
             }
         });
-
         if(type==ItemType.PLAYER_HEAD) {
             Config.getIfHasString(section, "head-owner", this::headOwner);
             Config.getIfHasString(section, "head-base64", this::base64head);
@@ -66,10 +67,32 @@ public class ItemStackBuilder {
         item.displayName(stringToComponent(Commons.getInstance().colorize(name)));
         return this;
     }
-
+    @Deprecated
     public ItemStackBuilder headOwner(String player){
         item.nbtData().put("SkullOwner", new StringTag(player));
         return this;
+    }
+    /**
+     * Applies player skin texture to PLAYER_HEAD.<br>
+     * <b>Can be run in the main thread.</b><br>
+     * If a skin texture is not cached, just puts an nbt-tag with player name, which shows Steve first and then after a few seconds gets updated to player skin. Not getting cached this way, loads the skin each time.
+     *    **/
+    public ItemStackBuilder headOwner(CachedPlayer player){
+        Optional<Pair<Integer,String>> o = headsCache.stream().filter(pair -> pair.getLeft()==player.getId()).findAny();
+        if(o.isPresent()) return base64head(o.get().getRight());
+        item.nbtData().put("SkullOwner", new StringTag(player.getName()));
+
+        return this;
+    }
+    /**
+     * Applies player skin texture to PLAYER_HEAD.<br>
+     * <b>Note: Never run in the main thread!</b><br>
+     * If a skin texture is not cached, makes request to Mojang web API.
+     *    **/
+    public ItemStackBuilder headOwnerBlockingThread(CachedPlayer player){
+        Optional<Pair<Integer,String>> o = headsCache.stream().filter(pair -> pair.getLeft()==player.getId()).findAny();
+        if(o.isEmpty()) return headOwner(player.getName());
+        return base64head(o.get().getRight());
     }
 
     public ItemStackBuilder base64head(String texture){

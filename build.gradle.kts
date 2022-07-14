@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.31"
+version = "1.3.33"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -58,6 +58,13 @@ repositories {
   maven {
     url = URI.create("https://mvn.exceptionflug.de/repository/exceptionflug-public/")
   }
+  maven {
+    url = URI.create("https://nexus.shoker.su/repository/maven-shield/")
+    credentials {
+        username = "shield"
+        password = "KQBVXvQh7fedYNU"
+    }
+  }
 }
 
 dependencies {
@@ -76,6 +83,7 @@ dependencies {
   implementation("org.projectlombok:lombok:1.18.22")
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
+  compileOnly("land.shield:PlayerAPI:1.4.0")
   compileOnly("ru.shk:MySQLAPI:2.0.1")
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   // paperweightDevBundle("com.example.paperfork", "1.18.2-R0.1-SNAPSHOT")
@@ -116,6 +124,9 @@ tasks {
     outputJar.set(layout.buildDirectory.file("libs/${project.name}.jar"))
   }
 }
-task("deleteUnused") {
-  delete("build/libs/*-dev*.jar")
+//task("deleteUnused") {
+//  delete("build/libs/*-dev*.jar")
+//}
+tasks.create<Delete>("deleteUnused"){
+  delete("build/libs/${project.name}-${project.version}-dev.jar", "build/libs/${project.name}-${project.version}-dev-all.jar")
 }
