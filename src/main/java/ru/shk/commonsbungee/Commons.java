@@ -1,10 +1,13 @@
 package ru.shk.commonsbungee;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import dev.simplix.protocolize.data.ItemType;
+import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -15,9 +18,15 @@ import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +75,7 @@ public class Commons extends Plugin implements Listener {
         threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
 
         getProxy().getPluginManager().registerListener(this, this);
+        getProxy().registerChannel("commons:updateinv");
         getProxy().registerChannel("commons:broadcast");
         plugins.forEach(plugin -> {
             try {
@@ -76,8 +86,26 @@ public class Commons extends Plugin implements Listener {
         });
     }
 
+    public void sendInvUpdate(ProxiedPlayer p){
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF(p.getUniqueId().toString());
+        p.getServer().sendData("commons:updateinv", out.toByteArray());
+    }
+
     @EventHandler
     public void onPluginMessage(PluginMessageEvent e){
+        if(e.getTag().equals("BungeeCord")) {
+            ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
+            String type = in.readUTF();
+            switch (type){
+                case "executeAtBungee" -> {
+                    String cmd = in.readUTF();
+                    ProxiedPlayer p = (ProxiedPlayer) e.getReceiver();
+                    getProxy().getPluginManager().dispatchCommand(p, cmd);
+                }
+            }
+            return;
+        }
         if(!e.getTag().startsWith("commons")) return;
         String type = e.getTag().split(":")[1];
         switch (type) {
@@ -110,7 +138,7 @@ public class Commons extends Plugin implements Listener {
 
     @Nullable
     public ItemStackBuilder getCustomHead(String key){
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("key="+key).LIMIT(1).execute();
+        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute();
         try {
             if(rs.next()){
                 CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
@@ -178,5 +206,35 @@ public class Commons extends Plugin implements Listener {
     @Override
     public void onDisable() {
         threadPool.shutdown();
+    }
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy hh:mm");
+
+    public String getOnlineState(CachedPlayer cp){
+        if(cp.getId()==-1) return ChatColor.RED+"Ошибка: id=-1";
+        ProxiedPlayer pp = getProxy().getPlayer(cp.getUuid());
+        if(pp!=null && pp.isConnected() && !isVanished(cp.getUuid())) return ChatColor.GREEN+"Онлайн";
+        ResultSet rs = mysql.Query().SELECT("lastQuit").FROM("masuite_players").WHERE("id="+cp.getId()).LIMIT(1).execute();
+        try {
+            if(rs.next()){
+                long a = rs.getLong(1)*1000;
+                return ChatColor.RED+" Заходил(а) "+ formatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(a), ZoneId.of("Europe/Moscow")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ChatColor.RED+"Ошибка получения данных";
+    }
+
+    public boolean isVanished(UUID uuid){
+        ResultSet rs = mysql.Query("SELECT Vanished FROM premiumvanish_playerdata WHERE uuid='"+uuid.toString()+"' LIMIT 1");
+        try {
+            if(rs.next()){
+                return rs.getInt(1)==1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

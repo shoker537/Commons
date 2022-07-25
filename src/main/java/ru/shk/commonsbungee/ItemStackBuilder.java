@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
-import lombok.Getter;
 import lombok.val;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -15,15 +14,11 @@ import net.querz.nbt.tag.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import ru.shk.configapibungee.Config;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
@@ -130,7 +125,7 @@ public class ItemStackBuilder {
             JsonObject o = gson.fromJson(result, JsonObject.class);
             return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
         } catch (Exception e){
-            e.printStackTrace();
+            Commons.getInstance().warning(e.getMessage());
             return null;
         }
     }

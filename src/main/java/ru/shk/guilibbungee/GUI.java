@@ -1,5 +1,6 @@
 package ru.shk.guilibbungee;
 
+import dev.simplix.protocolize.api.ClickType;
 import dev.simplix.protocolize.api.Protocolize;
 import dev.simplix.protocolize.api.inventory.Inventory;
 import dev.simplix.protocolize.api.inventory.InventoryClick;
@@ -27,6 +28,7 @@ public class GUI extends Inventory {
     private Consumer<InventoryClick> universalAction = inventoryClick -> {};
     @Getter private Plugin owner;
     private UUID pp;
+    @Getter private boolean open = false;
 
     public GUI(Plugin pl, String name, InventoryType type){
         this(name, type);
@@ -51,6 +53,12 @@ public class GUI extends Inventory {
         title(Commons.getInstance().colorize(name));
         super.onClick(inventoryClick-> {
             inventoryClick.cancelled(true);
+            if(inventoryClick.clickType()==ClickType.SHIFT_LEFT_CLICK || inventoryClick.clickType()==ClickType.SHIFT_RIGHT_CLICK) {
+                Commons.getInstance().async(() -> {
+                    ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
+                    Commons.getInstance().sendInvUpdate(p);
+                });
+            }
             slotActions.getOrDefault(inventoryClick.slot(), universalAction).accept(inventoryClick);
         });
     }
@@ -81,6 +89,7 @@ public class GUI extends Inventory {
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
         player.openInventory(this);
+        open = true;
     }
 
     @Override
@@ -91,11 +100,13 @@ public class GUI extends Inventory {
     }
 
     public void close(ProxiedPlayer p){
+        open = false;
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
     }
 
     public void update(){
+        if(!open) return;
         if(pp==null) {
             ProxyServer.getInstance().getLogger().warning("Tried to update an inventory when the viewer is null!");
             return;

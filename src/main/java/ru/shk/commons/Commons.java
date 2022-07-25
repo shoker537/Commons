@@ -1,5 +1,6 @@
 package ru.shk.commons;
 
+import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.sk89q.worldedit.WorldEdit;
@@ -22,10 +23,7 @@ import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
@@ -74,7 +72,13 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
+    }
 
+    public void executeCommandAtBungee(Player p, String cmd){
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("executeAtBungee");
+        out.writeUTF(cmd);
+        p.sendPluginMessage(this, "BungeeCord", out.toByteArray());
     }
 
     public void broadcastOnBungee(String msg){
@@ -114,6 +118,14 @@ public final class Commons extends JavaPlugin {
             } catch (Exception e){
                 e.printStackTrace();
             }
+        });
+        getServer().getMessenger().registerIncomingPluginChannel(this, "", (s, player, bytes) -> {
+            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
+            String uuid = in.readUTF();
+            UUID u = UUID.fromString(uuid);
+            Player p = Bukkit.getPlayer(u);
+            if(p==null || !p.isOnline()) return;
+            p.updateInventory();
         });
     }
     @Override
