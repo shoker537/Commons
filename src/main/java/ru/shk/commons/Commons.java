@@ -119,7 +119,7 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
-        getServer().getMessenger().registerIncomingPluginChannel(this, "", (s, player, bytes) -> {
+        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:updateinv", (s, player, bytes) -> {
             ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
             String uuid = in.readUTF();
             UUID u = UUID.fromString(uuid);
