@@ -76,7 +76,7 @@ dependencies {
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.1.2")
   compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
-  implementation(files("D:/Libraries/anvilgui.jar"))
+  implementation(files("net.wesjd:anvilgui:1.5.3-SNAPSHOT"))
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   compileOnly("com.mojang:authlib:1.5.21")
 
