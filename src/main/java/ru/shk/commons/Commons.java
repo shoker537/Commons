@@ -7,6 +7,7 @@ import com.sk89q.worldedit.WorldEdit;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -53,7 +54,6 @@ public final class Commons extends JavaPlugin {
         }
         info(" ");
         instance = this;
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
         try {
             plugins.add(new GUILib());
         } catch (Throwable e){
@@ -72,6 +72,24 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
+    }
+
+    private void sendLocationFeedback(String uuid, Coordinates coordinates){
+        ByteArrayDataOutput o = ByteStreams.newDataOutput();
+        o.writeUTF("location");
+        o.writeUTF(uuid);
+        if(coordinates==null){
+            o.writeUTF("player-not-found-error");
+            o.writeInt(0);
+            o.writeInt(0);
+            o.writeInt(0);
+        } else {
+            o.writeUTF(coordinates.getWorld());
+            o.writeInt(coordinates.getX());
+            o.writeInt(coordinates.getY());
+            o.writeInt(coordinates.getZ());
+        }
+        Bukkit.getOnlinePlayers().stream().findAny().ifPresent(player -> player.sendPluginMessage(this, "BungeeCord", o.toByteArray()));
     }
 
     public void executeCommandAtBungee(Player p, String cmd){
@@ -119,6 +137,21 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:location", (s, player, bytes) -> {
+            async(() -> {
+                ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
+                String uuid = in.readUTF();
+                UUID u = UUID.fromString(uuid);
+                Player p = Bukkit.getPlayer(u);
+                if(p==null || !p.isOnline()){
+                    sendLocationFeedback(uuid, null);
+                } else {
+                    sendLocationFeedback(uuid, new Coordinates(p.getLocation()));
+                }
+            });
+        });
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getMessenger().registerIncomingPluginChannel(this, "commons:updateinv", (s, player, bytes) -> {
             ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
             String uuid = in.readUTF();
@@ -127,7 +160,18 @@ public final class Commons extends JavaPlugin {
             if(p==null || !p.isOnline()) return;
             p.updateInventory();
         });
+        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:notification", (s, player, bytes) -> {
+            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
+            String uuid = in.readUTF();
+            Player p = Bukkit.getPlayer(UUID.fromString(uuid));
+            if(p==null || !p.isOnline()) return;
+            String header = in.readUTF();
+            String footer = in.readUTF();
+            String icon = in.readUTF();
+            showAdvancementNotification(p, header, footer, icon);
+        });
     }
+
     @Override
     public void onDisable() {
         pool.shutdown();
@@ -139,6 +183,10 @@ public final class Commons extends JavaPlugin {
             }
         });
         plugins.clear();
+    }
+
+    public void showAdvancementNotification(Player p, String header, String footer, String icon){
+        new Notification(header, footer, "minecraft:"+icon).show(p);
     }
 
     @Nullable

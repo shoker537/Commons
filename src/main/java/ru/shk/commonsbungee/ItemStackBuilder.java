@@ -1,11 +1,9 @@
 package ru.shk.commonsbungee;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
-import lombok.val;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -14,17 +12,20 @@ import net.querz.nbt.tag.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.commons.utils.HTTPRequest;
 import ru.shk.configapibungee.Config;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Consumer;
 
 public class ItemStackBuilder {
+    private static final ThreadPoolExecutor mojangRequestThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     private final ItemStack item;
-    private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>();
+    private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(350);
 
     public ItemStackBuilder(ItemStack stack){
         this.item = stack;
@@ -101,28 +102,55 @@ public class ItemStackBuilder {
         String texture = getSkinTextureFromMojang(player.getUuid());
         if(texture==null) return headOwner(player.getName());
         headsCache.add(Pair.of(player, texture));
-        while (headsCache.size()>200) headsCache.remove(0);
+        while (headsCache.size()>300) headsCache.remove(0);
         return base64head(texture);
     }
 
-    private String getSkinTextureFromMojang(UUID uuid) {
+    /**
+     * The most right way to get player head in asynchronous way.<br>
+     * If a skin texture is not cached, makes request to Mojang web API.
+     *    **/
+    public static void getPlayerHead(CachedPlayer player, Consumer<ItemStackBuilder> consumer){
+        ItemStackBuilder b = new ItemStackBuilder(ItemType.PLAYER_HEAD);
+        cacheThreadPool.submit(() -> {
+            Optional<Pair<CachedPlayer, String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
+            if(o.isEmpty()){
+                mojangRequestThreadPool.submit(() -> {
+                    String texture = getSkinTextureFromMojang(player.getUuid());
+                    if(texture==null) {
+                        consumer.accept(b.headOwner(player.getName()));
+                        return;
+                    }
+                    headsCache.add(Pair.of(player, texture));
+                    consumer.accept(b.base64head(texture));
+                });
+                return;
+            }
+            consumer.accept(b.base64head(o.get().getRight()));
+        });
+    }
+
+    private static String getSkinTextureFromMojang(UUID uuid) {
         try {
             String trimmedUUID = uuid.toString().replace("-", "");
             URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"+trimmedUUID+"?unsigned=false");
-            HttpURLConnection c = (HttpURLConnection) url.openConnection();
-            c.connect();
-            String result;
-            try(val is = c.getInputStream()){
-                BufferedReader in = new BufferedReader(new InputStreamReader(is));
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                result = response.toString();
-            }
-            Gson gson = new Gson();
-            JsonObject o = gson.fromJson(result, JsonObject.class);
+//            HttpURLConnection c = (HttpURLConnection) url.openConnection();
+//            c.connect();
+//            String result;
+//            try(val is = c.getInputStream()){
+//                BufferedReader in = new BufferedReader(new InputStreamReader(is));
+//                String inputLine;
+//                StringBuffer response = new StringBuffer();
+//                while ((inputLine = in.readLine()) != null) {
+//                    response.append(inputLine);
+//                }
+//                result = response.toString();
+//            } finally {
+//                c.disconnect();
+//            }
+//            Gson gson = new Gson();
+//            JsonObject o = gson.fromJson(result, JsonObject.class);
+            JsonObject o = new HTTPRequest(url).get().asJson();
             return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
         } catch (Exception e){
             Commons.getInstance().warning(e.getMessage());

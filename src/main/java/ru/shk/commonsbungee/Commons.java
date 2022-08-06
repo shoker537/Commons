@@ -38,6 +38,7 @@ public class Commons extends Plugin implements Listener {
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     private MySQL mysql;
+    @Getter private PlayerLocationReceiver playerLocationReceiver;
 
     @Override
     public void onLoad() {
@@ -77,6 +78,9 @@ public class Commons extends Plugin implements Listener {
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
         getProxy().registerChannel("commons:broadcast");
+        getProxy().registerChannel("commons:location");
+        getProxy().registerChannel("commons:notification");
+        playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
             try {
                 plugin.enable();
@@ -84,6 +88,21 @@ public class Commons extends Plugin implements Listener {
                 e.printStackTrace();
             }
         });
+    }
+
+    public void showAdvancementNotification(ProxiedPlayer p, String header, String footer, String icon){
+        ByteArrayDataOutput o = ByteStreams.newDataOutput();
+        o.writeUTF(p.getUniqueId().toString());
+        o.writeUTF(header);
+        o.writeUTF(footer);
+        o.writeUTF(icon);
+        p.getServer().sendData("commons:notification", o.toByteArray());
+    }
+
+    protected void sendFindPlayer(ProxiedPlayer pp){
+        ByteArrayDataOutput o = ByteStreams.newDataOutput();
+        o.writeUTF(pp.getUniqueId().toString());
+        pp.getServer().sendData("commons:location", o.toByteArray());
     }
 
     public void sendInvUpdate(ProxiedPlayer p){
@@ -102,6 +121,14 @@ public class Commons extends Plugin implements Listener {
                     String cmd = in.readUTF();
                     ProxiedPlayer p = (ProxiedPlayer) e.getReceiver();
                     getProxy().getPluginManager().dispatchCommand(p, cmd);
+                }
+                case "location" -> {
+                    UUID uuid = UUID.fromString(in.readUTF());
+                    String world = in.readUTF();
+                    int x = in.readInt();
+                    int y = in.readInt();
+                    int z = in.readInt();
+                    playerLocationReceiver.receivedLocation(uuid, world, x, y, z);
                 }
             }
             return;
@@ -168,8 +195,6 @@ public class Commons extends Plugin implements Listener {
         getProxy().getScheduler().schedule(this, () -> new Thread(r).start(), delay, period, TimeUnit.SECONDS);
     }
 
-
-
     public void registerEvents(Listener l){
         getProxy().getPluginManager().registerListener(this, l);
     }
@@ -213,12 +238,12 @@ public class Commons extends Plugin implements Listener {
     public String getOnlineState(CachedPlayer cp){
         if(cp.getId()==-1) return ChatColor.RED+"Ошибка: id=-1";
         ProxiedPlayer pp = getProxy().getPlayer(cp.getUuid());
-        if(pp!=null && pp.isConnected() && !isVanished(cp.getUuid())) return ChatColor.GREEN+"Онлайн";
+        if(pp!=null && pp.isConnected() && !isVanished(cp.getUuid())) return ChatColor.GREEN+"Онлайн"+ChatColor.WHITE+" на "+pp.getServer().getInfo().getName();
         ResultSet rs = mysql.Query().SELECT("lastQuit").FROM("masuite_players").WHERE("id="+cp.getId()).LIMIT(1).execute();
         try {
             if(rs.next()){
                 long a = rs.getLong(1)*1000;
-                return ChatColor.RED+" Заходил(а) "+ formatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(a), ZoneId.of("Europe/Moscow")));
+                return ChatColor.RED+"Заходил "+ formatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(a), ZoneId.of("Europe/Moscow")));
             }
         } catch (SQLException e) {
             e.printStackTrace();

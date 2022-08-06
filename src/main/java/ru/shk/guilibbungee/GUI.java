@@ -36,6 +36,7 @@ public class GUI extends Inventory {
     }
 
     public void clear(int itemSlot){
+        removeItem(itemSlot);
         item(itemSlot, new ItemStack(ItemType.AIR));
         slotActions.remove(itemSlot);
         update();
@@ -44,7 +45,7 @@ public class GUI extends Inventory {
     public void clear(){
         slotActions.clear();
         universalAction = inventoryClick -> {};
-        new HashMap<>(items()).forEach((integer, itemStack) -> item(integer, new ItemStack(ItemType.AIR)));
+        new HashMap<>(items()).forEach((integer, itemStack) -> removeItem(integer));
     }
 
     @Deprecated
@@ -106,9 +107,12 @@ public class GUI extends Inventory {
     }
 
     public void update(){
-        if(!open) return;
+        if(!open) {
+//            ProxyServer.getInstance().getLogger().warning(ChatColor.RED+"Skipped update due to GUI is not open yet");
+            return;
+        }
         if(pp==null) {
-            ProxyServer.getInstance().getLogger().warning("Tried to update an inventory when the viewer is null!");
+//            ProxyServer.getInstance().getLogger().warning("GUI is open, but player is null");
             return;
         }
         int windowId = -1;

@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class PlayerLocationReceiver {
     public HashMap<UUID, Coordinates> receivedCoordinates = new HashMap<>();
-    public ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    public ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     private final Commons pl;
     private int awaiting = 0;
 
