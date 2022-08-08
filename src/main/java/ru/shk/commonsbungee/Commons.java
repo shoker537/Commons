@@ -13,6 +13,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import ru.shk.commons.utils.CustomHead;
+import ru.shk.commonsbungee.cmd.ReloadChildPlugins;
 import ru.shk.guilibbungee.GUILib;
 import ru.shk.mysql.database.MySQL;
 
@@ -88,6 +89,7 @@ public class Commons extends Plugin implements Listener {
                 e.printStackTrace();
             }
         });
+        getProxy().getPluginManager().registerCommand(this, new ReloadChildPlugins());
     }
 
     public void showAdvancementNotification(ProxiedPlayer p, String header, String footer, String icon){
@@ -96,6 +98,7 @@ public class Commons extends Plugin implements Listener {
         o.writeUTF(header);
         o.writeUTF(footer);
         o.writeUTF(icon);
+        if(p.getServer()==null) return;
         p.getServer().sendData("commons:notification", o.toByteArray());
     }
 

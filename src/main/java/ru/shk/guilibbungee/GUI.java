@@ -95,6 +95,7 @@ public class GUI extends Inventory {
 
     @Override
     public Inventory onClose(Consumer<InventoryClose> consumer) {
+        ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
         val b = super.onClose(consumer);
         GUILib.getInstance().getGuis().remove(pp);
         return b;
@@ -106,15 +107,7 @@ public class GUI extends Inventory {
         player.closeInventory();
     }
 
-    public void update(){
-        if(!open) {
-//            ProxyServer.getInstance().getLogger().warning(ChatColor.RED+"Skipped update due to GUI is not open yet");
-            return;
-        }
-        if(pp==null) {
-//            ProxyServer.getInstance().getLogger().warning("GUI is open, but player is null");
-            return;
-        }
+    private int getInvId(){
         int windowId = -1;
         ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
         for (Integer id : player.registeredInventories().keySet()) {
@@ -123,6 +116,19 @@ public class GUI extends Inventory {
                 break;
             }
         }
+        return windowId;
+    }
+
+    public void update(){
+        if(!open) {
+            return;
+        }
+        if(pp==null) {
+            return;
+        }
+        ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
+        int windowId = getInvId();
+        ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
         if(windowId==-1) {
             ProxyServer.getInstance().getPlayer(pp).sendMessage(ChatColor.RED+"WindowId not found. GUI not registered yet?");
             return;
