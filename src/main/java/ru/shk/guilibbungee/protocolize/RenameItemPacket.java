@@ -8,6 +8,7 @@ import dev.simplix.protocolize.api.util.ProtocolUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.Accessors;
+import net.md_5.bungee.api.ProxyServer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -22,8 +23,8 @@ import static dev.simplix.protocolize.api.util.ProtocolVersions.*;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(fluent = true)
 public class RenameItemPacket extends AbstractPacket {
+
     public static final List<ProtocolIdMapping> MAPPINGS = List.of(
-            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_17, MINECRAFT_1_18_2, 0x20),
             AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_19, MINECRAFT_1_19, 0x22),
             AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_19_1, MINECRAFT_LATEST, 0x23)
     );
