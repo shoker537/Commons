@@ -7,10 +7,8 @@ import dev.simplix.protocolize.api.listener.AbstractPacketListener;
 import dev.simplix.protocolize.api.listener.PacketReceiveEvent;
 import dev.simplix.protocolize.api.listener.PacketSendEvent;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
-import dev.simplix.protocolize.api.util.ProtocolUtil;
 import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import ru.shk.commonsbungee.ItemStackBuilder;
 import ru.shk.guilibbungee.protocolize.RenameItemPacket;
@@ -39,6 +37,7 @@ public class TextInputGUI extends Inventory {
             public void packetReceive(PacketReceiveEvent<RenameItemPacket> event) {
                 if(!event.player().uniqueId().equals(player.getUniqueId())) return;
                 text = event.packet().itemName();
+                event.cancelled(true);
             }
 
             @Override

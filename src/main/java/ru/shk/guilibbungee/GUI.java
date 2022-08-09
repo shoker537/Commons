@@ -29,6 +29,7 @@ public class GUI extends Inventory {
     @Getter private Plugin owner;
     private UUID pp;
     @Getter private boolean open = false;
+    private int state = 0;
 
     public GUI(Plugin pl, String name, InventoryType type){
         this(name, type);
@@ -120,6 +121,7 @@ public class GUI extends Inventory {
     }
 
     public void update(){
+        state++;
         try {
             if(!open) {
                 return;
@@ -134,7 +136,7 @@ public class GUI extends Inventory {
                 p.sendMessage(ChatColor.RED+"WindowId not found. GUI not registered yet?");
                 return;
             }
-            this.items().forEach((integer, itemStack) -> player.sendPacket(new SetSlot((byte) windowId, (short) ((int)integer), itemStack, 0)));
+            this.items().forEach((integer, itemStack) -> player.sendPacket(new SetSlot((byte) windowId, (short) ((int)integer), itemStack, state)));
         } catch (Throwable t){
             t.printStackTrace();
         }
