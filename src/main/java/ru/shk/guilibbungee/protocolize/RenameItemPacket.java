@@ -8,7 +8,6 @@ import dev.simplix.protocolize.api.util.ProtocolUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.Accessors;
-import net.md_5.bungee.api.ProxyServer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

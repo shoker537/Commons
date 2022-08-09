@@ -37,6 +37,7 @@ public class TextInputGUI extends Inventory {
         listener = new AbstractPacketListener<>(RenameItemPacket.class, Direction.UPSTREAM, 0) {
             @Override
             public void packetReceive(PacketReceiveEvent<RenameItemPacket> event) {
+                if(!event.player().uniqueId().equals(player.getUniqueId())) return;
                 text = event.packet().itemName();
             }
 
