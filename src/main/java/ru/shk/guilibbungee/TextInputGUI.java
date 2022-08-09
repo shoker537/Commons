@@ -14,12 +14,13 @@ import java.util.function.Consumer;
 public class TextInputGUI extends Inventory {
     public TextInputGUI(ProxiedPlayer player, String title, String originalName, List<String> description, Consumer<String> result) {
         super(InventoryType.ANVIL);
-        title(title).item(0, new ItemStackBuilder(ItemType.PAPER).displayName(originalName).lore(description).build()).item(2, new ItemStackBuilder(ItemType.PAPER).displayName("").build());
+        title(title).item(0, new ItemStackBuilder(ItemType.PAPER).displayName(originalName).lore(description).build());
         onClick(click -> {
             click.cancelled(true);
             if(click.slot()==2){
-                String n = item(0).displayName(true);
+                String n = click.clickedItem().displayName(true);
                 if(n.length()==0) return;
+                close(player);
                 result.accept(n);
             }
         });
@@ -30,5 +31,10 @@ public class TextInputGUI extends Inventory {
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
         player.openInventory(this);
+    }
+
+    private static void close(ProxiedPlayer p){
+        ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
+        player.closeInventory();
     }
 }

@@ -120,24 +120,23 @@ public class GUI extends Inventory {
     }
 
     public void update(){
-        if(!open) {
-            return;
-        }
-        if(pp==null) {
-            return;
-        }
-        ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
-        int windowId = getInvId();
-        ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
-        if(windowId==-1) {
-            ProxyServer.getInstance().getPlayer(pp).sendMessage(ChatColor.RED+"WindowId not found. GUI not registered yet?");
-            return;
-        }
-        int finalWindowId = windowId;
         try {
-            this.items().forEach((integer, itemStack) -> player.sendPacket(new SetSlot((byte) finalWindowId, (short) ((int)integer), itemStack, 0)));
+            if(!open) {
+                return;
+            }
+            if(pp==null) {
+                return;
+            }
+            ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
+            int windowId = getInvId();
+            ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
+            if(windowId==-1) {
+                p.sendMessage(ChatColor.RED+"WindowId not found. GUI not registered yet?");
+                return;
+            }
+            this.items().forEach((integer, itemStack) -> player.sendPacket(new SetSlot((byte) windowId, (short) ((int)integer), itemStack, 0)));
         } catch (Throwable t){
-            ProxyServer.getInstance().getLogger().warning(t.getMessage());
+            t.printStackTrace();
         }
     }
 }

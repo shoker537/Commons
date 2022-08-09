@@ -203,12 +203,12 @@ public class ItemStackBuilder {
         return item;
     }
 
-    private Object stringToComponent(String s){
-        return new BaseComponent[]{new TextComponent(ChatColor.WHITE+s)};
+    public static Object stringToComponent(String s){
+        return new BaseComponent[]{new TextComponent(s)};
     }
 
-    private List<Object> stringsToComponentList(List<String> list){
-        return list.stream().map(this::stringToComponent).toList();
+    public static List<Object> stringsToComponentList(List<String> list){
+        return list.stream().map(s -> ChatColor.WHITE+s).map(ItemStackBuilder::stringToComponent).toList();
     }
 
 }
