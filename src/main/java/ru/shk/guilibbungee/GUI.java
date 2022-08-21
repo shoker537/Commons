@@ -96,9 +96,13 @@ public class GUI extends Inventory {
 
     @Override
     public Inventory onClose(Consumer<InventoryClose> consumer) {
-        ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
+//        ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
         val b = super.onClose(consumer);
-        GUILib.getInstance().getGuis().remove(pp);
+        try {
+            GUILib.getInstance().getGuis().remove(pp);
+        } catch (Throwable t){
+            t.printStackTrace();
+        }
         return b;
     }
 

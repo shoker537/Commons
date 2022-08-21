@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 @Getter
 public class GUIPageGenerator {
+    @Getter private static final Consumer<InventoryClick> EMPTY_ACTION = click -> {};
     private final int slotOffset;
     @Setter private Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator;
     @Setter private Function<Integer, Boolean> pageExistsCheck;
@@ -60,7 +61,7 @@ public class GUIPageGenerator {
             } else {
                 for (int i = 0; i < generated.size(); i++) {
                     val pair = generated.get(i);
-                    gui.item(slotOffset+i, pair.getKey(), pair.getRight());
+                    gui.item(slotOffset+i, pair.getKey(), pair.getRight()==null?EMPTY_ACTION:pair.getRight());
                 }
             }
         } else {
