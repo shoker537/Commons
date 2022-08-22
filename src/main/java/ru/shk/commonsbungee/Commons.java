@@ -232,7 +232,13 @@ public class Commons extends Plugin implements Listener {
 
     @Override
     public void onDisable() {
-        threadPool.shutdown();
+        info("Waiting for tasks to complete...");
+        try {
+            threadPool.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        info("Tasks completed.");
     }
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy hh:mm");
