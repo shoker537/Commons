@@ -3,7 +3,6 @@ package ru.shk.commons.utils.nms.entity;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.world.entity.EntityLiving;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -14,7 +13,6 @@ import ru.shk.commons.utils.nms.NMSItemSlot;
 import ru.shk.commons.utils.nms.PacketUtil;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

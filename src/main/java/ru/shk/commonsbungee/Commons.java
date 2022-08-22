@@ -42,7 +42,7 @@ public class Commons extends Plugin implements Listener {
     @Getter private PlayerLocationReceiver playerLocationReceiver;
 
     @Override
-    public void onLoad() {
+    public void onLoad(){
         instance = this;
         info(" ");
         info("&b            shoker'&fs &bcommon&fs");
@@ -216,7 +216,6 @@ public class Commons extends Plugin implements Listener {
     public void asyncRepeating(Plugin plugin, Runnable r, int delay, int period){
         getProxy().getScheduler().schedule(plugin, () -> new Thread(r).start(), delay, period, TimeUnit.SECONDS);
     }
-
 
     public void info(String log){
         getLogger().info(colorize(log));
