@@ -1,5 +1,7 @@
 **shoker's commons** is an API to make my life easier. And maybe even yours ;)
 
+![Latest version](https://img.shields.io/nexus/r/ru.shk/Commons?nexusVersion=3&server=https%3A%2F%2Fnexus.shoker.su&style=for-the-badge&label=Commons)
+
 Compiled with Java 17
 
 Modules which use NMS support 1.17.1, 1.18.1 and 1.18.2
