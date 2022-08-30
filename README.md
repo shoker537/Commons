@@ -1,5 +1,7 @@
 **shoker's commons** is an API to make my life easier. And maybe even yours ;)
 
+**Mostly used by me for private networks.**
+
 ![Latest version](https://img.shields.io/nexus/r/ru.shk/Commons?nexusVersion=3&server=https%3A%2F%2Fnexus.shoker.su&style=for-the-badge&label=Commons)
 
 Compiled with Java 17
@@ -117,7 +119,7 @@ gui.open(player);
 ```java
 new GUI(plugin, 27, "&cSelect a player")
         .addItem(14, new ItemStackBuilder(Material.PLAYER_HEAD).skullOwner(Bukkit.getOfflinePlayer("shoker137")))
-        .withUniversalAction((type, slot, itemStack) -> player.sendMessage("You clicked at "+slot));
+        .withUniversalAction((type, slot, itemStack) -> player.sendMessage("You clicked at "+slot))
         .open(player);
 ```
 
@@ -130,9 +132,66 @@ gui.setItemRaw(2, new ItemStack(Material.PAPER));
 
 Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
 ```java
-new GUI("&cHello", InventoryType.GENERIC_9X5)
+new GUI(plugin, "&cTitle", InventoryType.GENERIC_9X5)
 .item(12, new ItemStack(ItemType.ALLIUM), this::action)
 .open(player);
+```
+
+### Page-generator
+If you need to make a GUI with pages, use GUIPageGenerator. 
+
+It can be used as a new instance or you can make your own class and extend it with GUIPageGenerator:
+```java
+public class FriendsGUI extends GUI {
+    public FriendsGUI(Plugin plugin, ProxiedPlayer player){
+        super(plugin, "&eYour BROs", InventoryType.GENERIC_9X5);
+        new FriendsPageGenerator(player, this);
+    }
+}
+
+public class FriendsPageGenerator extends GUIPageGenerator {
+    private final List<Friend> friends;
+    private final ProxiedPlayer player;
+    
+    public FriendsPageGenerator(ProxiedPlayer player, MyAwesomeGUI gui) {
+        super(player,
+                gui,
+                0, // How many lines to skip (0 if you want the generator to work from the first slot)
+                5, // Count of lines for generation items (the entries which the page should show)
+                new ItemStackBuilder(ItemType.RED_STAINED_GLASS).displayName("&cNo friends found :(").build(), // The item shown when the page is empty
+                22, // The slot for nothing-found item
+                new ItemStackBuilder(ItemType.YELLOW_STAINED_GLASS_PANE).build() // The item which covers the last line of the GUI, it is a 'system' line with controls of a page (prev/next page buttons)
+                );
+        // Receive a list of entries the page should show
+        friends = FriendsPlugin.getFriends(player.getUniqueId());
+        // Now we need to set a function which checks if next or previous page exists to show buttons or not:
+        setPageExistsCheck(page -> {
+            if(page<0) return false; // Disabling 'back' on the first page, means the first opened page is the leftmost
+            return page*getCountOfGeneratedItems()<friends.size();
+        });
+        // Now a function which generates a list of entries to show on a specific page
+        setPageGenerator(page -> {
+            List<Pair<ItemStack, Consumer<InventoryClick>>> items = new ArrayList<>();
+            
+            friends.stream().skip(page* 27L).limit(27).forEachOrdered(friend -> {
+                items.add(Pair.of(new ItemStackBuilder(ItemType.PLAYER_HEAD).headOwner(friend.getName()).build(), null)); // null if no action required or a click consumer
+            });
+            
+            return items;
+        });
+        generatePage();
+    }
+    
+    @Override
+    public void fillBotomPanes(){
+        super.fillBottomPanes();
+        // Here you can override items on the last (system) line of the GUI (where prev/next buttons appear)
+        // Note that prev/next buttons take first and the last slots on this line, so you should not use them in any way
+        item(49, new ItemStackBuilder(ItemType.BARRIER).displayName("Close"), click -> {
+            getGui().close(player);
+        });
+    }
+}
 ```
 
 # Utility classes (spigot-side)
