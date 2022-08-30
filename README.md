@@ -153,7 +153,7 @@ public class FriendsPageGenerator extends GUIPageGenerator {
     private final List<Friend> friends;
     private final ProxiedPlayer player;
     
-    public FriendsPageGenerator(ProxiedPlayer player, MyAwesomeGUI gui) {
+    public FriendsPageGenerator(ProxiedPlayer player, FriendsGUI gui) {
         super(player,
                 gui,
                 0, // How many lines to skip (0 if you want the generator to work from the first slot)
