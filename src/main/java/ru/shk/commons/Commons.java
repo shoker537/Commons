@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -177,7 +178,6 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        pool.shutdown();
         plugins.forEach(plugin -> {
             try {
                 plugin.disable();
@@ -186,6 +186,13 @@ public final class Commons extends JavaPlugin {
             }
         });
         plugins.clear();
+        info("Waiting for tasks to complete...");
+        try {
+            pool.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        info("Tasks completed.");
     }
 
     public void showAdvancementNotification(Player p, String header, String footer, String icon){
@@ -213,7 +220,7 @@ public final class Commons extends JavaPlugin {
 
     @Nullable
     public ItemStackBuilder getCustomHead(String key){
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("key="+key).LIMIT(1).execute();
+        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("key='"+key+"'").LIMIT(1).execute();
         try {
             if(rs.next()){
                 CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
