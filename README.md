@@ -183,7 +183,7 @@ public class FriendsPageGenerator extends GUIPageGenerator {
     }
     
     @Override
-    public void fillBotomPanes(){
+    public void fillBottomPanes(){
         super.fillBottomPanes();
         // Here you can override items on the last (system) line of the GUI (where prev/next buttons appear)
         // Note that prev/next buttons take first and the last slots on this line, so you should not use them in any way
