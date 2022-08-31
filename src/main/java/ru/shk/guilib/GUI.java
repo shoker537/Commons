@@ -106,6 +106,9 @@ public class GUI {
         if(inv==null) throw new IllegalStateException("Inventory is not open yet!");
         new ArrayList<>(inv.getViewers()).forEach(HumanEntity::closeInventory);
     }
+    public void close(Player p){
+        p.closeInventory();
+    }
     public void clickedSlot(ClickType type, int slot, ItemStack item){
         if(slotActions.size()!=0){
             if(slotActions.containsKey(slot)) {

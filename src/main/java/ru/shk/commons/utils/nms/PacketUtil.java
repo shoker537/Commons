@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
+import ru.shk.commons.utils.nms.entity.PacketEntity;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class PacketUtil {
+    public static List<PacketEntity<?>> entitiesToTick = new ArrayList<>();
 
     private static final Version versionClass;
     static {
@@ -30,6 +32,18 @@ public class PacketUtil {
             versionClass1 = null;
         }
         versionClass = versionClass1;
+
+        Commons.getInstance().asyncRepeating(() -> {
+            if(entitiesToTick.size()==0) return;
+            entitiesToTick.removeIf(packetEntity -> !packetEntity.isValid());
+            entitiesToTick.forEach(packetEntity -> {
+                try {
+                    if(packetEntity.isTicking()) packetEntity.tick();
+                } catch (Throwable t){
+                    Commons.getInstance().sync(t::printStackTrace);
+                }
+            });
+        }, 1,1);
     }
 
     public static void createAndSendTeam(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {

@@ -4,12 +4,12 @@ import java.util.Properties
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.3.5"
+  id("io.papermc.paperweight.userdev") version "1.3.8"
   id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "ru.shk"
-version = "1.3.46"
+version = "1.3.48"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -68,7 +68,7 @@ repositories {
 }
 
 dependencies {
-  paperDevBundle("1.18.2-R0.1-SNAPSHOT")
+  paperDevBundle("1.19.2-R0.1-SNAPSHOT")
   compileOnly(files("D:/Libraries/spigot-1.17.1.jar"))
   implementation("org.apache.commons:commons-lang3:3.12.0")
   compileOnly(files("D:/Libraries/worldedit-bukkit-7.3.0.jar"))
@@ -101,10 +101,7 @@ tasks {
   }
 
   compileJava {
-    options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
-
-    // Set the release flag. This configures what version bytecode the compiler will emit, as well as what JDK APIs are usable.
-    // See https://openjdk.java.net/jeps/247 for more information.
+    options.encoding = Charsets.UTF_8.name()
     options.release.set(17)
   }
   javadoc {

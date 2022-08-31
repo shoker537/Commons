@@ -220,7 +220,7 @@ public final class Commons extends JavaPlugin {
 
     @Nullable
     public ItemStackBuilder getCustomHead(String key){
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("key='"+key+"'").LIMIT(1).execute();
+        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute();
         try {
             if(rs.next()){
                 CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
