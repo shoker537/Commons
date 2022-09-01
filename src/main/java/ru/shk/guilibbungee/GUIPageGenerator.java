@@ -75,7 +75,10 @@ public class GUIPageGenerator {
     }
 
     public void clear(){
-        for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) gui.item(i, backgroundItem);
+        for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) {
+            gui.clear(i);
+            gui.item(i, backgroundItem);
+        }
     }
 
     public void fillBottomPanes(){
