@@ -31,6 +31,9 @@ public class GUIPageGenerator {
     private final ItemStack fillerItem;
     @Setter private int currentPage = 0;
     private final ProxiedPlayer viewer;
+    @Setter private ItemStack leftButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build();
+    @Setter private ItemStack rightButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b>> Дальше").build();
+    @Setter private ItemStack backgroundItem = new ItemStack(ItemType.AIR);
 
     public GUIPageGenerator(ProxiedPlayer viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
         this(viewer,gui, skipLinesCount, linesCountOfGeneratedItems, nothingItem, nothingSlot, fillerItem);
@@ -72,7 +75,7 @@ public class GUIPageGenerator {
     }
 
     public void clear(){
-        for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) gui.clear(i);
+        for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) gui.item(i, backgroundItem);
     }
 
     public void fillBottomPanes(){
@@ -83,8 +86,8 @@ public class GUIPageGenerator {
         fillBottomPanes();
         boolean previous = pageExistsCheck.apply(currentPage-1);
         boolean next = pageExistsCheck.apply(currentPage+1);
-        if(next) gui.item(firstButtonsLineSlot+8, new ItemStackBuilder(ItemType.PAPER).displayName("&b>> Дальше").build(), inventoryClick -> switchPage(true));
-        if(previous) gui.item(firstButtonsLineSlot, new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build(), inventoryClick -> switchPage(false));
+        if(next) gui.item(firstButtonsLineSlot+8, rightButton, inventoryClick -> switchPage(true));
+        if(previous) gui.item(firstButtonsLineSlot, leftButton, inventoryClick -> switchPage(false));
     }
 
     public void switchPage(boolean next){
