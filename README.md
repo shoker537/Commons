@@ -6,7 +6,7 @@
 
 Compiled with Java 17
 
-Modules which use NMS support 1.17.1, 1.18.1 and 1.18.2
+Modules which use NMS support 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2
 
 # Usage
 
