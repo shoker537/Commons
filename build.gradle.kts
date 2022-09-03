@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.50"
+version = "1.3.52"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -65,6 +65,9 @@ repositories {
         password = "KQBVXvQh7fedYNU"
     }
   }
+  maven {
+    url = URI.create("https://simonsator.de/repo")
+  }
 }
 
 dependencies {
@@ -79,6 +82,7 @@ dependencies {
   implementation(files("D:/Libraries/anvilgui.jar"))
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   compileOnly("com.mojang:authlib:1.5.21")
+  compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
 
   implementation("org.projectlombok:lombok:1.18.22")
   annotationProcessor("org.projectlombok:lombok:1.18.22")

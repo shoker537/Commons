@@ -40,6 +40,7 @@ public class Commons extends Plugin implements Listener {
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     private MySQL mysql;
     @Getter private PlayerLocationReceiver playerLocationReceiver;
+    @Getter private PAFManager pafManager;
 
     @Override
     public void onLoad(){
@@ -90,6 +91,7 @@ public class Commons extends Plugin implements Listener {
             }
         });
         getProxy().getPluginManager().registerCommand(this, new ReloadChildPlugins());
+        if(getProxy().getPluginManager().getPlugin("PartyAndFriends")!=null) pafManager = new PAFManager(this);
     }
 
     public void showAdvancementNotification(ProxiedPlayer p, String header, String footer, String icon){
@@ -120,6 +122,9 @@ public class Commons extends Plugin implements Listener {
             ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
             String type = in.readUTF();
             switch (type){
+                case "CPAF" -> {
+                    if(pafManager!=null) async(() -> pafManager.acceptPluginMessage((ProxiedPlayer) e.getReceiver(),in));
+                }
                 case "executeAtBungee" -> {
                     String cmd = in.readUTF();
                     ProxiedPlayer p = (ProxiedPlayer) e.getReceiver();

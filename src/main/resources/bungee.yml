@@ -5,3 +5,5 @@ main: ru.shk.commonsbungee.Commons
 depends:
   - Protocolize
   - MySQLAPI
+softDepends:
+  - PartyAndFriends

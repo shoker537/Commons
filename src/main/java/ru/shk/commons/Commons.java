@@ -42,6 +42,7 @@ public final class Commons extends JavaPlugin {
     private MySQL mysql;
     private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     @Getter@Nullable private WorldEditManager worldEditManager;
+    @Getter private PAFManager pafManager;
 
     @Override
     public void onLoad() {
@@ -141,6 +142,7 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
+        pafManager = new PAFManager(this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
         getServer().getMessenger().registerIncomingPluginChannel(this, "commons:location", (s, player, bytes) -> {
             async(() -> {
