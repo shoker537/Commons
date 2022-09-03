@@ -43,8 +43,14 @@ public class ConfirmationGUI extends GUI {
 
     @Override
     public void open(Player p) {
-        addItem(12, new ItemStackBuilder(noItem).displayName(noName).disableFlags(), whenNo);
-        addItem(14, new ItemStackBuilder(yesItem).displayName(yesName).disableFlags(), whenYes);
+        addItem(12, new ItemStackBuilder(noItem).displayName(noName).disableFlags(), () -> {
+            close();
+            whenNo.run();
+        });
+        addItem(14, new ItemStackBuilder(yesItem).displayName(yesName).disableFlags(), () -> {
+            close();
+            whenYes.run();
+        });
         super.open(p);
     }
 }
