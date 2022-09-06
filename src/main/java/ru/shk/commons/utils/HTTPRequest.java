@@ -9,11 +9,18 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 public class HTTPRequest {
     private final URL url;
     private String result;
     private static final Gson gson = new Gson();
+    private int timeout = 5;
+
+    public HTTPRequest timeout(int seconds){
+        this.timeout = seconds;
+        return this;
+    }
 
     @SneakyThrows
     public HTTPRequest(String url){
@@ -30,6 +37,7 @@ public class HTTPRequest {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(url.toURI())
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .timeout(Duration.ofSeconds(timeout))
                     .build();
 
             HttpResponse<String> response = client.send(request,
@@ -47,8 +55,8 @@ public class HTTPRequest {
             client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(url.toURI())
+                    .timeout(Duration.ofSeconds(timeout))
                     .build();
-
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             result = response.body();
         } catch (Throwable t){
