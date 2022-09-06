@@ -33,7 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Commons extends Plugin implements Listener {
-    private ThreadPoolExecutor threadPool;
+    @Getter private ThreadPoolExecutor threadPool;
     @Getter private static Commons instance;
     @Getter private boolean isProtocolizeInstelled = false;
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
@@ -75,7 +75,8 @@ public class Commons extends Plugin implements Listener {
         } else {
             mysql = new MySQL("shield_bungee");
         }
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(30);
+        threadPool.setKeepAliveTime(5, TimeUnit.SECONDS);
 
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
@@ -246,7 +247,7 @@ public class Commons extends Plugin implements Listener {
         info("Tasks completed.");
     }
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy hh:mm");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
 
     public String getOnlineState(CachedPlayer cp){
         if(cp.getId()==-1) return ChatColor.RED+"Ошибка: id=-1";

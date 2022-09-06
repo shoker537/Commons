@@ -6,11 +6,7 @@ import com.google.common.io.ByteStreams;
 import com.sk89q.worldedit.WorldEdit;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
-import net.minecraft.network.EnumProtocol;
-import net.minecraft.network.protocol.EnumProtocolDirection;
-import net.minecraft.network.protocol.game.ServerboundRenameItemPacket;
 import org.bukkit.*;
-import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -40,12 +36,13 @@ public final class Commons extends JavaPlugin {
     private final List<Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     private MySQL mysql;
-    private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private PAFManager pafManager;
 
     @Override
     public void onLoad() {
+        pool.setKeepAliveTime(5, TimeUnit.SECONDS);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -174,7 +171,7 @@ public final class Commons extends JavaPlugin {
             String header = in.readUTF();
             String footer = in.readUTF();
             String icon = in.readUTF();
-            showAdvancementNotification(p, header, footer, icon);
+//            showAdvancementNotification(p, header, footer, icon);
         });
     }
 
