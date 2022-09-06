@@ -32,15 +32,14 @@ public class GUI extends Inventory {
     private final HashMap<Integer, Consumer<InventoryClick>> slotActions = new HashMap<>();
     private Consumer<InventoryClick> universalAction = inventoryClick -> {};
     private Consumer<InventoryClose> closeConsumer = null;
-    @Getter private Plugin owner;
+    @Getter private final Plugin owner;
     private UUID pp;
     @Getter private boolean open = false;
     private int state = 0;
     private int windowId = -1;
 
     public GUI(Plugin pl, String name, InventoryType type){
-        this(name, type);
-        this.owner = pl;
+        this(pl, name, type, true);
         super.onClose(close -> {
             try {
                 GUILib.getInstance().getGuis().remove(pp);
@@ -48,6 +47,22 @@ public class GUI extends Inventory {
                 t.printStackTrace();
             }
             if(closeConsumer!=null) closeConsumer.accept(close);
+        });
+    }
+
+    public GUI(Plugin pl, String name, InventoryType type, boolean autoColorizeTitle){
+        super(type);
+        this.owner = pl;
+        title(autoColorizeTitle?Commons.getInstance().colorize(name):name);
+        super.onClick(inventoryClick-> {
+            inventoryClick.cancelled(true);
+            if(inventoryClick.clickType()==ClickType.SHIFT_LEFT_CLICK || inventoryClick.clickType()==ClickType.SHIFT_RIGHT_CLICK) {
+                Commons.getInstance().async(() -> {
+                    ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
+                    Commons.getInstance().sendInvUpdate(p);
+                });
+            }
+            slotActions.getOrDefault(inventoryClick.slot(), universalAction).accept(inventoryClick);
         });
     }
 
@@ -62,22 +77,6 @@ public class GUI extends Inventory {
         slotActions.clear();
         universalAction = inventoryClick -> {};
         new HashMap<>(items()).forEach((integer, itemStack) -> removeItem(integer));
-    }
-
-    @Deprecated
-    public GUI(String name, InventoryType type) {
-        super(type);
-        title(Commons.getInstance().colorize(name));
-        super.onClick(inventoryClick-> {
-            inventoryClick.cancelled(true);
-            if(inventoryClick.clickType()==ClickType.SHIFT_LEFT_CLICK || inventoryClick.clickType()==ClickType.SHIFT_RIGHT_CLICK) {
-                Commons.getInstance().async(() -> {
-                    ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
-                    Commons.getInstance().sendInvUpdate(p);
-                });
-            }
-            slotActions.getOrDefault(inventoryClick.slot(), universalAction).accept(inventoryClick);
-        });
     }
 
     @Override
