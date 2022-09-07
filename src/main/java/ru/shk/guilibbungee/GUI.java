@@ -56,12 +56,10 @@ public class GUI extends Inventory {
         title(autoColorizeTitle?Commons.getInstance().colorize(name):name);
         super.onClick(inventoryClick-> {
             inventoryClick.cancelled(true);
-            if(inventoryClick.clickType()==ClickType.SHIFT_LEFT_CLICK || inventoryClick.clickType()==ClickType.SHIFT_RIGHT_CLICK) {
-                Commons.getInstance().async(() -> {
-                    ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
-                    Commons.getInstance().sendInvUpdate(p);
-                });
-            }
+            Commons.getInstance().async(() -> {
+                ProxiedPlayer p = ProxyServer.getInstance().getPlayer(pp);
+                Commons.getInstance().sendInvUpdate(p);
+            });
             slotActions.getOrDefault(inventoryClick.slot(), universalAction).accept(inventoryClick);
         });
     }
