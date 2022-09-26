@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.53"
+version = "1.3.54-beta3"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -61,8 +61,8 @@ repositories {
   maven {
     url = URI.create("https://nexus.shoker.su/repository/maven-shield/")
     credentials {
-        username = "shield"
-        password = "KQBVXvQh7fedYNU"
+      username = "${nexusRepository["user"]}"
+      password = "${nexusRepository["password"]}"
     }
   }
   maven {
@@ -71,11 +71,11 @@ repositories {
 }
 
 dependencies {
-  paperDevBundle("1.19.2-R0.1-SNAPSHOT")
+  paperDevBundle("1.19.2-R0.1-20220926.081544-62")
   compileOnly(files("D:/Libraries/spigot-1.17.1.jar"))
   implementation("org.apache.commons:commons-lang3:3.12.0")
-  compileOnly(files("D:/Libraries/worldedit-bukkit-7.3.0.jar"))
-  compileOnly(files("D:/Libraries/worldedit-core-7.3.0.jar"))
+  compileOnly(files("D:/Libraries/worldedit-bukkit.jar"))
+  compileOnly(files("D:/Libraries/worldedit-core.jar"))
   implementation("commons-io:commons-io:2.11.0")
 //  compileOnly("dev.simplix:protocolize-api:2.2.2")
   compileOnly(files("D:/Libraries/protocolize.jar"))
@@ -104,7 +104,6 @@ tasks {
     dependsOn(reobfJar)
     dependsOn(shadowJar)
   }
-
   compileJava {
     options.encoding = Charsets.UTF_8.name()
     options.release.set(17)

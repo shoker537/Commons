@@ -3,6 +3,7 @@ package ru.shk.commonsbungee;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.google.gson.JsonObject;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
@@ -12,12 +13,22 @@ import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
+import ru.shk.commons.sockets.SocketMessageListener;
+import ru.shk.commons.sockets.low.SocketManager;
+import ru.shk.commons.sockets.low.SocketMessageType;
+import ru.shk.commons.sockets.low.SocketServerInfo;
 import ru.shk.commons.utils.CustomHead;
+import ru.shk.commons.utils.HTTPRequest;
+import ru.shk.commons.sockets.low.ServerType;
 import ru.shk.commonsbungee.cmd.ReloadChildPlugins;
+import ru.shk.configapibungee.Config;
 import ru.shk.guilibbungee.GUILib;
 import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -41,9 +52,12 @@ public class Commons extends Plugin implements Listener {
     private MySQL mysql;
     @Getter private PlayerLocationReceiver playerLocationReceiver;
     @Getter private PAFManager pafManager;
+    @Getter private SocketManager socketManager;
+    private Config config;
 
     @Override
     public void onLoad(){
+        SocketManager.serverType = ServerType.BUNGEE;
         instance = this;
         info(" ");
         info("&b            shoker'&fs &bcommon&fs");
@@ -70,6 +84,29 @@ public class Commons extends Plugin implements Listener {
 
     @Override
     public void onEnable() {
+        config = new Config(getDataFolder(), true);
+        if(!config.contains("sockets.enable")) config.setAndSave("sockets.enable", false);
+        if(!config.contains("sockets.server-port")) config.setAndSave("sockets.server-port", 3000);
+        if(config.getBoolean("sockets.enable")) {
+            socketManager = new SocketManager(config.getInt("sockets.server-port"), s -> getLogger().info(colorize(s)));
+            socketManager.getSocketThread().start();
+            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
+                @Override
+                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
+                    try {
+                        getLogger().warning(" TPS on "+server+" is "+data.readUTF());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            asyncRepeating(() -> socketManager.getBackendServers().forEach(socketServerInfo -> {
+                if(!socketServerInfo.getName().equals("BungeeCord")) {
+                    getLogger().warning("Sending TPS request to "+socketServerInfo.getName()+" at "+socketServerInfo.getAddress().getPort());
+                    socketManager.sendData(socketServerInfo, "TPS", List.of());
+                }
+            }), 10,10);
+        }
         if(getProxy().getPluginManager().getPlugin("MySQLAPI")==null){
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {
@@ -103,6 +140,35 @@ public class Commons extends Plugin implements Listener {
         o.writeUTF(icon);
         if(p.getServer()==null) return;
         p.getServer().sendData("commons:notification", o.toByteArray());
+    }
+
+    @Nullable
+    public String getSkinTexture(CachedPlayer cp){
+        ResultSet rs = mysql.Query("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;");
+        try {
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        String texture = getSkinTextureFromMojang(cp.getUuid());
+        if(texture==null) return null;
+        mysql.Update("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
+        return texture;
+    }
+
+    private static String getSkinTextureFromMojang(UUID uuid) {
+        try {
+            String trimmedUUID = uuid.toString().replace("-", "");
+            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"+trimmedUUID+"?unsigned=false");
+            JsonObject o = new HTTPRequest(url).get().asJson();
+            return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
+        } catch (Exception e){
+            Commons.getInstance().warning(e.getMessage());
+            return null;
+        }
     }
 
     protected void sendFindPlayer(ProxiedPlayer pp){

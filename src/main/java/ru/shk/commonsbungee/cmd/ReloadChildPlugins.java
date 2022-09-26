@@ -15,7 +15,7 @@ public class ReloadChildPlugins extends Command {
     public void execute(CommandSender sender, String[] args) {
         sender.sendMessage(ChatColor.GREEN+"> Reloading all children plugins...");
         ProxyServer.getInstance().getPluginManager().getPlugins().stream().filter(plugin -> plugin.getDescription().getDepends().contains("Commons")).forEach(plugin -> {
-            ProxyServer.getInstance().getPluginManager().dispatchCommand(sender, "bsu reloadplugin "+plugin.getDescription().getName());
+            ProxyServer.getInstance().getPluginManager().dispatchCommand(sender, "bsu reloadplugin "+plugin.getDescription().getName()+" -f");
         });
         sender.sendMessage(ChatColor.GREEN+"> Reloading done!");
     }

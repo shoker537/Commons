@@ -24,7 +24,7 @@ public class Notification {
         this.header = header;
         this.footer = footer;
         do {
-            id = new NamespacedKey(Commons.getInstance(), "commons" + (ThreadLocalRandom.current().nextInt(100)));
+            id = new NamespacedKey(Commons.getInstance(), "commons" + (ThreadLocalRandom.current().nextInt(1000)));
         } while (Bukkit.getAdvancement(id)!=null);
     }
 
@@ -34,7 +34,7 @@ public class Notification {
         Commons.getInstance().syncLater(() -> {
             revoke(player);
             unregister();
-        }, 2);
+        }, 20);
     }
 
     private void register() {

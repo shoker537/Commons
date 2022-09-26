@@ -57,6 +57,8 @@ public class GUIPageGenerator {
 
     public void generatePage(){
         clear();
+        addButtonsLine();
+        gui.update();
         if(pageExistsCheck.apply(currentPage)){
             val generated = pageGenerator.apply(currentPage);
             if(generated.size()==0){
@@ -70,7 +72,6 @@ public class GUIPageGenerator {
         } else {
             gui.item(nothingSlot, nothingItem);
         }
-        addButtonsLine();
         gui.update();
     }
 

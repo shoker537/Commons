@@ -97,18 +97,14 @@ public class ItemStackBuilder {
      * If a skin texture is not cached, makes request to Mojang web API.
      *    **/
     public ItemStackBuilder headOwnerBlockingThread(CachedPlayer player){
-        Optional<Pair<CachedPlayer,String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
-        if(o.isEmpty()) return headOwner(player.getName());
-        String texture = getSkinTextureFromMojang(player.getUuid());
+        String texture = getPlayerHead(player);
         if(texture==null) return headOwner(player.getName());
-        headsCache.add(Pair.of(player, texture));
-        while (headsCache.size()>300) headsCache.remove(0);
         return base64head(texture);
     }
 
     /**
      * The most right way to get player head in asynchronous way.<br>
-     * If a skin texture is not cached, makes request to Mojang web API.
+     * If a skin texture is not cached, searches in database, or if there's no cached texture makes request to Mojang web API.
      *    **/
     public static void getPlayerHead(CachedPlayer player, Consumer<ItemStackBuilder> consumer){
         ItemStackBuilder b = new ItemStackBuilder(ItemType.PLAYER_HEAD);
@@ -116,12 +112,13 @@ public class ItemStackBuilder {
             Optional<Pair<CachedPlayer, String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
             if(o.isEmpty()){
                 mojangRequestThreadPool.submit(() -> {
-                    String texture = getSkinTextureFromMojang(player.getUuid());
+                    String texture = Commons.getInstance().getSkinTexture(player);
                     if(texture==null) {
                         consumer.accept(b.headOwner(player.getName()));
                         return;
                     }
                     headsCache.add(Pair.of(player, texture));
+                    while (headsCache.size()>300) headsCache.remove(0);
                     consumer.accept(b.base64head(texture));
                 });
                 return;
@@ -130,32 +127,16 @@ public class ItemStackBuilder {
         });
     }
 
-    private static String getSkinTextureFromMojang(UUID uuid) {
-        try {
-            String trimmedUUID = uuid.toString().replace("-", "");
-            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"+trimmedUUID+"?unsigned=false");
-//            HttpURLConnection c = (HttpURLConnection) url.openConnection();
-//            c.connect();
-//            String result;
-//            try(val is = c.getInputStream()){
-//                BufferedReader in = new BufferedReader(new InputStreamReader(is));
-//                String inputLine;
-//                StringBuffer response = new StringBuffer();
-//                while ((inputLine = in.readLine()) != null) {
-//                    response.append(inputLine);
-//                }
-//                result = response.toString();
-//            } finally {
-//                c.disconnect();
-//            }
-//            Gson gson = new Gson();
-//            JsonObject o = gson.fromJson(result, JsonObject.class);
-            JsonObject o = new HTTPRequest(url).get().asJson();
-            return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
-        } catch (Exception e){
-            Commons.getInstance().warning(e.getMessage());
-            return null;
+    private static String getPlayerHead(CachedPlayer player){
+        Optional<Pair<CachedPlayer, String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
+        if(o.isEmpty()){
+            String texture = Commons.getInstance().getSkinTexture(player);
+            if(texture==null) return null;
+            headsCache.add(Pair.of(player, texture));
+            while (headsCache.size()>300) headsCache.remove(0);
+            return texture;
         }
+        return o.get().getRight();
     }
 
     public ItemStackBuilder base64head(String texture){

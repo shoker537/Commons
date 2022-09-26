@@ -6,6 +6,7 @@ import com.google.common.io.ByteStreams;
 import com.sk89q.worldedit.WorldEdit;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -14,6 +15,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.shk.commons.sockets.SocketMessageListener;
+import ru.shk.commons.sockets.low.ServerType;
+import ru.shk.commons.sockets.low.SocketManager;
+import ru.shk.commons.sockets.low.SocketMessageType;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
@@ -22,7 +27,10 @@ import ru.shk.guilib.GUILib;
 import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
+import java.io.DataInputStream;
+import java.net.InetSocketAddress;
 import java.sql.ResultSet;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,9 +47,12 @@ public final class Commons extends JavaPlugin {
     private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private PAFManager pafManager;
+    @Getter private SocketManager socketManager;
+    private Config config;
 
     @Override
     public void onLoad() {
+        SocketManager.serverType = ServerType.SPIGOT;
         pool.setKeepAliveTime(5, TimeUnit.SECONDS);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
@@ -115,6 +126,29 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        config = new Config(getDataFolder(), true);
+        if(!config.contains("sockets.enable")) config.setValue("sockets.enable", false);
+        if(!config.contains("sockets.auto-find-port")) config.setValue("sockets.auto-find-port", true);
+        if(!config.contains("sockets.server-port")) config.setValue("sockets.server-port", 3001);
+        if(!config.contains("sockets.bungee-socket-ip")) config.setValue("sockets.bungee-socket-ip", "127.0.0.1");
+        if(!config.contains("sockets.bungee-socket-port")) config.setValue("sockets.bungee-socket-port", 3000);
+        if(config.getBoolean("sockets.enable")) {
+            socketManager = new SocketManager(
+                    config.getBoolean("sockets.auto-find-port")?-1:config.getInt("sockets.server-port"),
+                    s -> sync(() -> getServer().getConsoleSender().sendMessage(colorize(s))),
+                    new InetSocketAddress(config.getString("sockets.bungee-socket-ip"), config.getInt("sockets.bungee-socket-port"))
+            );
+            socketManager.getSocketThread().start();
+
+            // TEST
+            DecimalFormat f = new DecimalFormat("##.#");
+            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
+                @Override
+                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
+                    manager.sendToBungee("TPS", List.of(f.format(MinecraftServer.getServer().recentTps[0]).toString()));
+                }
+            });
+        }
         getServer().getPluginManager().registerEvents(new Events(), this);
         if(Bukkit.getPluginManager().getPlugin("MySQLAPI")==null){
             warning("&cMySQLAPI not loaded! &rSome features may be not available.");
@@ -177,6 +211,15 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(socketManager!=null){
+            socketManager.sendToBungee(SocketMessageType.UNREGISTER, List.of());
+            try {
+                socketManager.getSocketThread().getSendQueue().awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            socketManager.close();
+        }
         plugins.forEach(plugin -> {
             try {
                 plugin.disable();

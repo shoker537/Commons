@@ -34,12 +34,12 @@ public class HTTPRequest {
     public HTTPRequest post(JsonObject body){
         try {
             HttpClient client = HttpClient.newHttpClient();
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(url.toURI())
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .timeout(Duration.ofSeconds(timeout))
                     .build();
-
             HttpResponse<String> response = client.send(request,
                     HttpResponse.BodyHandlers.ofString());
             result = response.body();
