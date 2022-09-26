@@ -1,0 +1,9 @@
+name: Commons
+version: "${version}"
+author: shoker137
+main: ru.shk.commonsbungee.Commons
+depends:
+  - Protocolize
+  - MySQLAPI
+softDepends:
+  - PartyAndFriends
