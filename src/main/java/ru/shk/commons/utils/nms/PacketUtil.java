@@ -1,9 +1,8 @@
 package ru.shk.commons.utils.nms;
 
 import com.mojang.datafixers.util.Pair;
-import lombok.SneakyThrows;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.world.entity.EnumItemSlot;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -108,24 +107,11 @@ public class PacketUtil {
         versionClass.destroyEntity(p, entity);
     }
 
-    public static void equipEntity(Player p, Object entity, HashMap<NMSItemSlot, org.bukkit.inventory.ItemStack> items){
-        List<Pair<EnumItemSlot, ItemStack>> list = new ArrayList<>();
+    public static void equipEntity(Player p, Object entity, HashMap<ItemSlot, org.bukkit.inventory.ItemStack> items){
+        List<Pair<EquipmentSlot, ItemStack>> list = new ArrayList<>();
         if(items==null) return;
-//        if(!items.containsKey(NMSItemSlot.HEAD)) items.put(NMSItemSlot.HEAD, new org.bukkit.inventory.ItemStack(Material.AIR));
-//        if(!items.containsKey(NMSItemSlot.CHEST)) items.put(NMSItemSlot.CHEST, new org.bukkit.inventory.ItemStack(Material.AIR));
-//        if(!items.containsKey(NMSItemSlot.LEGGINGS)) items.put(NMSItemSlot.LEGGINGS, new org.bukkit.inventory.ItemStack(Material.AIR));
-//        if(!items.containsKey(NMSItemSlot.BOOTS)) items.put(NMSItemSlot.BOOTS, new org.bukkit.inventory.ItemStack(Material.AIR));
-        items.forEach((slot, itemStack) -> list.add(new Pair<>(asEnumItemSlot(slot), asNMSCopy(itemStack))));
+        items.forEach((slot, itemStack) -> list.add(new Pair<>(slot.getNmsSlot(), asNMSCopy(itemStack))));
         versionClass.equipEntity(p, entity, list);
-    }
-
-    private static EnumItemSlot asEnumItemSlot(NMSItemSlot slot){
-        return switch (slot){
-            case HEAD -> EnumItemSlot.f;
-            case CHEST -> EnumItemSlot.e;
-            case LEGGINGS -> EnumItemSlot.d;
-            case BOOTS -> EnumItemSlot.c;
-        };
     }
 
     public static void playTotemAnimation(Player p){

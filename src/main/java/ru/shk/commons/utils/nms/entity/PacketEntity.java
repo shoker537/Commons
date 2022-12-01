@@ -2,13 +2,13 @@ package ru.shk.commons.utils.nms.entity;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
-import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.chat.Component;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.nms.FieldMappings;
-import ru.shk.commons.utils.nms.NMSItemSlot;
+import ru.shk.commons.utils.nms.ItemSlot;
 import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.ReflectionUtil;
 
@@ -19,7 +19,7 @@ import java.util.List;
 public class PacketEntity<T extends PacketEntity> {
     protected List<Player> receivers = new ArrayList<>();
     protected Object entity;
-    @Getter protected HashMap<NMSItemSlot, ItemStack> equipment;
+    @Getter protected HashMap<ItemSlot, ItemStack> equipment;
     protected boolean isSpawned = false;
     @Getter private boolean isTicking = false;
     @Getter private boolean isValid = true;
@@ -44,7 +44,7 @@ public class PacketEntity<T extends PacketEntity> {
         return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCZ.getField());
     }
 
-    public T equip(NMSItemSlot slot, ItemStack item){
+    public T equip(ItemSlot slot, ItemStack item){
         if(equipment==null) equipment = new HashMap<>();
         equipment.put(slot, item);
         if(isSpawned) equipment();
@@ -63,7 +63,7 @@ public class PacketEntity<T extends PacketEntity> {
     }
     @SneakyThrows
     public T displayName(String name){
-        ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAME.getField(),IChatBaseComponent.a(Commons.colorizeWithHex(name)));
+        ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAME.getField(), Component.literal(Commons.colorizeWithHex(name)));
         if(isSpawned) metadata();
         return (T) this;
     }

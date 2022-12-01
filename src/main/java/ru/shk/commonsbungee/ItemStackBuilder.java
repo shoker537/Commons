@@ -1,6 +1,5 @@
 package ru.shk.commonsbungee;
 
-import com.google.gson.JsonObject;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
@@ -12,11 +11,12 @@ import net.querz.nbt.tag.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.shk.commons.utils.HTTPRequest;
 import ru.shk.configapibungee.Config;
 
-import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;

@@ -52,7 +52,7 @@ public class WorldEditManager {
     }
 
     public void saveSchematic(Clipboard clipboard, File file) throws IOException {
-        try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_V3_SCHEMATIC.getWriter(new FileOutputStream(file))) {
+        try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getWriter(new FileOutputStream(file))) {
             writer.write(clipboard);
         }
     }

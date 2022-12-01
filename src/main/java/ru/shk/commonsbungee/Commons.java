@@ -8,18 +8,23 @@ import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import ru.shk.commons.sockets.SocketMessageListener;
+import ru.shk.commons.sockets.low.ServerType;
 import ru.shk.commons.sockets.low.SocketManager;
 import ru.shk.commons.sockets.low.SocketMessageType;
-import ru.shk.commons.sockets.low.SocketServerInfo;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.HTTPRequest;
-import ru.shk.commons.sockets.low.ServerType;
+import ru.shk.commons.utils.TextComponentBuilder;
+import ru.shk.commonsbungee.cmd.CommonsCmd;
+import ru.shk.commonsbungee.cmd.CommonsTp;
 import ru.shk.commonsbungee.cmd.ReloadChildPlugins;
 import ru.shk.configapibungee.Config;
 import ru.shk.guilibbungee.GUILib;
@@ -39,12 +44,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Commons extends Plugin implements Listener {
     @Getter private ThreadPoolExecutor threadPool;
+    private ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     @Getter private static Commons instance;
     @Getter private boolean isProtocolizeInstelled = false;
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
@@ -54,6 +61,9 @@ public class Commons extends Plugin implements Listener {
     @Getter private PAFManager pafManager;
     @Getter private SocketManager socketManager;
     private Config config;
+
+    private final List<Integer> tpInProcess = new ArrayList<>();
+    private int lastTpId = 0;
 
     @Override
     public void onLoad(){
@@ -112,13 +122,14 @@ public class Commons extends Plugin implements Listener {
         } else {
             mysql = new MySQL("shield_bungee");
         }
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(30);
-        threadPool.setKeepAliveTime(5, TimeUnit.SECONDS);
-
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+        threadPool.setKeepAliveTime(15, TimeUnit.SECONDS);
+        teleportService.setKeepAliveTime(15, TimeUnit.SECONDS);
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
         getProxy().registerChannel("commons:broadcast");
         getProxy().registerChannel("commons:location");
+        getProxy().registerChannel("commons:generic");
         getProxy().registerChannel("commons:notification");
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
@@ -129,17 +140,84 @@ public class Commons extends Plugin implements Listener {
             }
         });
         getProxy().getPluginManager().registerCommand(this, new ReloadChildPlugins());
+        getProxy().getPluginManager().registerCommand(this, new CommonsCmd());
+        getProxy().getPluginManager().registerCommand(this, new CommonsTp());
         if(getProxy().getPluginManager().getPlugin("PartyAndFriends")!=null) pafManager = new PAFManager(this);
     }
 
+    public void teleport(ProxiedPlayer from, ProxiedPlayer to){
+        async(() -> {
+            if(from.getServer().getInfo().equals(to.getServer().getInfo())){
+                teleportAndWaitForFeedback(from, to);
+            } else {
+                from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponentBuilder("Соединяем с сервером...").withColor(ChatColor.YELLOW).build());
+                from.connect(to.getServer().getInfo(), (result, error) -> {
+                    if(result){
+                        teleportAndWaitForFeedback(from, to);
+                    } else {
+                        from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponentBuilder("Ошибка соединения с сервером. Пробуем ещё...").withColor(ChatColor.GOLD).build());
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        from.connect(to.getServer().getInfo(), (result1, error1) -> {
+                            if(result1){
+                                teleportAndWaitForFeedback(from, to);
+                            } else {
+                                from.sendMessage(new TextComponentBuilder("Error while teleporting: "+error1.getClass().getSimpleName()+" - "+error1.getMessage()).withColor(ChatColor.RED).build());
+                                from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponentBuilder("Не удалось соединить вас с сервером.").withColor(ChatColor.RED).build());
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    private void teleportAndWaitForFeedback(ProxiedPlayer from, ProxiedPlayer to){
+        teleportService.submit(() -> {
+            lastTpId++;
+            if(lastTpId==10000) lastTpId=1;
+            int selectedTpId = lastTpId;
+            tpInProcess.add(selectedTpId);
+            int times = 0;
+            boolean first = true;
+            do {
+                times++;
+                if(times==5){
+                    getLogger().warning("Не удалось подтвердить телепортацию: сервер не отправил ответ, время ожидания ответа истекло.");
+                    return;
+                }
+                from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW+"Телепортируем..."));
+                try {
+                    Thread.sleep(first?1000:3000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                first = false;
+                sendTeleportToServer(selectedTpId, from, to);
+            } while (tpInProcess.contains(selectedTpId));
+        });
+    }
+
+    private void sendTeleportToServer(int tpId, ProxiedPlayer who, ProxiedPlayer to){
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("tp");
+        out.writeInt(tpId);
+        out.writeUTF(who.getUniqueId().toString());
+        out.writeUTF(to.getUniqueId().toString());
+        to.getServer().sendData("commons:generic", out.toByteArray());
+    }
+
     public void showAdvancementNotification(ProxiedPlayer p, String header, String footer, String icon){
-        ByteArrayDataOutput o = ByteStreams.newDataOutput();
-        o.writeUTF(p.getUniqueId().toString());
-        o.writeUTF(header);
-        o.writeUTF(footer);
-        o.writeUTF(icon);
-        if(p.getServer()==null) return;
-        p.getServer().sendData("commons:notification", o.toByteArray());
+//        ByteArrayDataOutput o = ByteStreams.newDataOutput();
+//        o.writeUTF(p.getUniqueId().toString());
+//        o.writeUTF(header);
+//        o.writeUTF(footer);
+//        o.writeUTF(icon);
+//        if(p.getServer()==null) return;
+//        p.getServer().sendData("commons:notification", o.toByteArray());
     }
 
     @Nullable
@@ -204,6 +282,10 @@ public class Commons extends Plugin implements Listener {
                     int y = in.readInt();
                     int z = in.readInt();
                     playerLocationReceiver.receivedLocation(uuid, world, x, y, z);
+                }
+                case "tpFeedback" -> {
+                    int teleportId = in.readInt();
+                    tpInProcess.removeIf(integer -> integer==teleportId);
                 }
             }
             return;

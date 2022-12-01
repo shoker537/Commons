@@ -6,6 +6,8 @@ import com.google.common.io.ByteStreams;
 import com.sk89q.worldedit.WorldEdit;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
@@ -46,14 +48,14 @@ public final class Commons extends JavaPlugin {
     private MySQL mysql;
     private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
     @Getter@Nullable private WorldEditManager worldEditManager;
-    @Getter private PAFManager pafManager;
     @Getter private SocketManager socketManager;
+    @Getter private PAFManager pafManager;
     private Config config;
 
     @Override
     public void onLoad() {
         SocketManager.serverType = ServerType.SPIGOT;
-        pool.setKeepAliveTime(5, TimeUnit.SECONDS);
+        pool.setKeepAliveTime(15, TimeUnit.SECONDS);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -198,15 +200,73 @@ public final class Commons extends JavaPlugin {
             p.updateInventory();
         });
         getServer().getMessenger().registerIncomingPluginChannel(this, "commons:notification", (s, player, bytes) -> {
-            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-            String uuid = in.readUTF();
-            Player p = Bukkit.getPlayer(UUID.fromString(uuid));
-            if(p==null || !p.isOnline()) return;
-            String header = in.readUTF();
-            String footer = in.readUTF();
-            String icon = in.readUTF();
+//            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
+//            String uuid = in.readUTF();
+//            Player p = Bukkit.getPlayer(UUID.fromString(uuid));
+//            if(p==null || !p.isOnline()) return;
+//            String header = in.readUTF();
+//            String footer = in.readUTF();
+//            String icon = in.readUTF();
 //            showAdvancementNotification(p, header, footer, icon);
         });
+        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:generic", (channel, player, message) -> {
+            async(() -> {
+                try {
+                    ByteArrayDataInput in = ByteStreams.newDataInput(message);
+                    String type = in.readUTF();
+                    switch (type){
+                        case "tp" -> {
+                            int teleportId = in.readInt();
+                            String who = in.readUTF();
+                            String to = in.readUTF();
+                            Player p1;
+                            int tries = 0;
+                            do {
+                                tries++;
+                                if(tries==6) {
+                                    sync(() -> getLogger().warning("Player teleportation timed out - the first player is not on the server."));
+                                    return;
+                                }
+                                p1 = Bukkit.getPlayer(UUID.fromString(who));
+                                if(p1==null){
+                                    try {
+                                        Thread.sleep(2000);
+                                    } catch (InterruptedException e) {}
+                                }
+                            } while (p1==null);
+                            Player p2 = Bukkit.getPlayer(UUID.fromString(to));
+                            if(p2==null) {
+                                sync(() -> getLogger().warning("Tried to teleport player, but the second player is offline: "+to));
+                                return;
+                            }
+                            Player finalP = p1;
+                            sync(() -> finalP.teleport(p2));
+                            p1.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Телепортирован!"));
+                            sendTeleportFeedback(teleportId);
+                        }
+                    }
+                } catch (Throwable t){
+                    sync(t::printStackTrace);
+                }
+            });
+        });
+    }
+
+    private void sendTeleportFeedback(int id){
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("tpFeedback");
+        out.writeInt(id);
+        int tries = 0;
+        while (Bukkit.getOnlinePlayers().size()==0) {
+            tries++;
+            if(tries==5) return;
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        Bukkit.getOnlinePlayers().iterator().next().sendPluginMessage(this, "BungeeCord", out.toByteArray());
     }
 
     @Override
@@ -230,7 +290,7 @@ public final class Commons extends JavaPlugin {
         plugins.clear();
         info("Waiting for tasks to complete...");
         try {
-            pool.awaitTermination(5, TimeUnit.SECONDS);
+            pool.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -238,7 +298,7 @@ public final class Commons extends JavaPlugin {
     }
 
     public void showAdvancementNotification(Player p, String header, String footer, String icon){
-        new Notification(header, footer, "minecraft:"+icon).show(p);
+//        new Notification(header, footer, "minecraft:"+icon).show(p);
     }
 
     @Nullable

@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,6 +20,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Getter
 public class GUI {
@@ -58,20 +60,33 @@ public class GUI {
     }
 
     public GUI addItem(int slot, ItemStack item){
+        return item(slot, item);
+    }
+    public GUI item(int slot, ItemStack item){
         items.put(slot, item);
+        if(inv!=null) setItemRaw(slot, item);
         return this;
     }
     public GUI addItem(int slot, ItemStackBuilder item){
-        items.put(slot, item.build());
+        return item(slot, item);
+    }
+    public GUI item(int slot, ItemStackBuilder item){
+        item(slot, item.build());
         return this;
     }
     public GUI addItem(int slot, ItemStack item, Runnable clicked){
-        items.put(slot, item);
+        return item(slot, item, clicked);
+    }
+    public GUI item(int slot, ItemStack item, Runnable clicked){
+        item(slot, item);
         slotActions.put(slot, clicked);
         return this;
     }
     public GUI addItem(int slot, ItemStackBuilder item, Runnable clicked){
-        items.put(slot, item.build());
+        return item(slot, item, clicked);
+    }
+    public GUI item(int slot, ItemStackBuilder item, Runnable clicked){
+        item(slot, item.build());
         slotActions.put(slot, clicked);
         return this;
     }
@@ -92,12 +107,12 @@ public class GUI {
     }
     public void clear(int max){
         for (int i = 0; i < max; i++) {
-            inv.setItem(i, null);
+            item(i, (ItemStack) null);
             slotActions.remove(i);
         }
     }
     public void clear(){
-        for (int i = 0; i < slots; i++) inv.setItem(i, null);
+        for (int i = 0; i < slots; i++) item(i, (ItemStack) null);
         slotActions.clear();
         materialActions.clear();
         universalAction = null;

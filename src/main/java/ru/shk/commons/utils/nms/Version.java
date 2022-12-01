@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.EnumItemSlot;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.ScoreboardTeam;
@@ -113,7 +114,7 @@ public abstract class Version {
     }
 
     @SneakyThrows
-    protected void equipEntity(Player p, Object e, List<Pair<EnumItemSlot, ItemStack>> items){
+    protected void equipEntity(Player p, Object e, List<Pair<EquipmentSlot, ItemStack>> items){
         Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment");
         int id = (int) e.getClass().getMethod(FieldMappings.ENTITY_GETID.getField()).invoke(e);
         Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{id, items});

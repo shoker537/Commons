@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.54-beta3"
+version = "1.3.61"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -59,6 +59,12 @@ repositories {
     url = URI.create("https://mvn.exceptionflug.de/repository/exceptionflug-public/")
   }
   maven {
+    url = URI.create("https://maven.enginehub.org/repo/")
+  }
+  maven {
+    url = URI.create("https://repo.dmulloy2.net/repository/public/")
+  }
+  maven {
     url = URI.create("https://nexus.shoker.su/repository/maven-shield/")
     credentials {
       username = "${nexusRepository["user"]}"
@@ -72,15 +78,14 @@ repositories {
 
 dependencies {
   paperDevBundle("1.19.2-R0.1-20220926.081544-62")
-  compileOnly(files("D:/Libraries/spigot-1.17.1.jar"))
+  compileOnly(files("E:/Libraries/spigot-1.17.1.jar"))
   implementation("org.apache.commons:commons-lang3:3.12.0")
-  compileOnly(files("D:/Libraries/worldedit-bukkit.jar"))
-  compileOnly(files("D:/Libraries/worldedit-core.jar"))
+  compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
+  compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
-//  compileOnly("dev.simplix:protocolize-api:2.2.2")
-  compileOnly(files("D:/Libraries/protocolize.jar"))
+  compileOnly("dev.simplix:protocolize-api:2.2.2")
   compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
-  implementation(files("D:/Libraries/anvilgui.jar"))
+  implementation("net.wesjd:anvilgui:1.5.3-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   compileOnly("com.mojang:authlib:1.5.21")
   compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
@@ -90,16 +95,10 @@ dependencies {
 
   compileOnly("land.shield:PlayerAPI:1.4.0")
   compileOnly("ru.shk:MySQLAPI:2.0.1")
-  compileOnly(files("D:/Libraries/ProtocolLib.jar"))
-  // paperweightDevBundle("com.example.paperfork", "1.18.2-R0.1-SNAPSHOT")
-
-  // You will need to manually specify the full dependency if using the groovy gradle dsl
-  // (paperDevBundle and paperweightDevBundle functions do not work in groovy)
-  // paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.18.2-R0.1-SNAPSHOT")
+  compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
 }
 
 tasks {
-  // Configure reobfJar to run when invoking the build task
   assemble {
     dependsOn(reobfJar)
     dependsOn(shadowJar)

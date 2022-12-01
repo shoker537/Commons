@@ -30,7 +30,7 @@ public class GUIPageGenerator {
     private final int firstButtonsLineSlot;
     private final ItemStack fillerItem;
     @Setter private int currentPage = 0;
-    private final ProxiedPlayer viewer;
+    @Getter private final ProxiedPlayer viewer;
     @Setter private ItemStack leftButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build();
     @Setter private ItemStack rightButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b>> Дальше").build();
     @Setter private ItemStack backgroundItem = new ItemStack(ItemType.AIR);
