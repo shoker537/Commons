@@ -177,6 +177,7 @@ public class Commons extends Plugin implements Listener {
 
     private void teleportAndWaitForFeedback(ProxiedPlayer from, ProxiedPlayer to){
         teleportService.submit(() -> {
+            from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW+"Телепортируем..."));
             lastTpId++;
             if(lastTpId==10000) lastTpId=1;
             int selectedTpId = lastTpId;
@@ -185,13 +186,12 @@ public class Commons extends Plugin implements Listener {
             boolean first = true;
             do {
                 times++;
-                if(times==5){
+                if(times==4){
                     getLogger().warning("Не удалось подтвердить телепортацию: сервер не отправил ответ, время ожидания ответа истекло.");
                     return;
                 }
-                from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW+"Телепортируем..."));
                 try {
-                    Thread.sleep(first?1000:3000);
+                    Thread.sleep(first?3000:4000);
                 } catch (InterruptedException e) {
                     return;
                 }

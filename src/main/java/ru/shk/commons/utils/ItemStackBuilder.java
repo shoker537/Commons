@@ -137,6 +137,11 @@ public class ItemStackBuilder {
         return this;
     }
 
+    public ItemStackBuilder customModelData(int number){
+        meta.setCustomModelData(number);
+        return this;
+    }
+
     public ItemStackBuilder leatherColor(Color color){
         LeatherArmorMeta meta = (LeatherArmorMeta) this.meta;
         meta.setColor(color);

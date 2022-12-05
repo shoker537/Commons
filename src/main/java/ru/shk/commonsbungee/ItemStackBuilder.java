@@ -74,6 +74,7 @@ public class ItemStackBuilder {
         item.displayName(stringToComponent(Commons.getInstance().colorize(name)));
         return this;
     }
+
     public ItemStackBuilder headOwner(String player){
         Optional<Pair<CachedPlayer,String>> o = headsCache.stream().filter(pair -> pair.getLeft().getName().equalsIgnoreCase(player)).findAny();
         if(o.isPresent()) return base64head(o.get().getRight());

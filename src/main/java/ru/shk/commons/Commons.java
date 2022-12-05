@@ -47,6 +47,7 @@ public final class Commons extends JavaPlugin {
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     private MySQL mysql;
     private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+    private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private SocketManager socketManager;
     @Getter private PAFManager pafManager;
@@ -199,56 +200,44 @@ public final class Commons extends JavaPlugin {
             if(p==null || !p.isOnline()) return;
             p.updateInventory();
         });
-        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:notification", (s, player, bytes) -> {
-//            ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-//            String uuid = in.readUTF();
-//            Player p = Bukkit.getPlayer(UUID.fromString(uuid));
-//            if(p==null || !p.isOnline()) return;
-//            String header = in.readUTF();
-//            String footer = in.readUTF();
-//            String icon = in.readUTF();
-//            showAdvancementNotification(p, header, footer, icon);
-        });
         getServer().getMessenger().registerIncomingPluginChannel(this, "commons:generic", (channel, player, message) -> {
-            async(() -> {
-                try {
-                    ByteArrayDataInput in = ByteStreams.newDataInput(message);
-                    String type = in.readUTF();
-                    switch (type){
-                        case "tp" -> {
-                            int teleportId = in.readInt();
-                            String who = in.readUTF();
-                            String to = in.readUTF();
-                            Player p1;
-                            int tries = 0;
-                            do {
-                                tries++;
-                                if(tries==6) {
-                                    sync(() -> getLogger().warning("Player teleportation timed out - the first player is not on the server."));
-                                    return;
-                                }
-                                p1 = Bukkit.getPlayer(UUID.fromString(who));
-                                if(p1==null){
-                                    try {
-                                        Thread.sleep(2000);
-                                    } catch (InterruptedException e) {}
-                                }
-                            } while (p1==null);
-                            Player p2 = Bukkit.getPlayer(UUID.fromString(to));
-                            if(p2==null) {
-                                sync(() -> getLogger().warning("Tried to teleport player, but the second player is offline: "+to));
+            try {
+                ByteArrayDataInput in = ByteStreams.newDataInput(message);
+                String type = in.readUTF();
+                switch (type){
+                    case "tp" -> teleportService.submit(() -> {
+                        int teleportId = in.readInt();
+                        String who = in.readUTF();
+                        String to = in.readUTF();
+                        Player p1;
+                        int tries = 0;
+                        do {
+                            tries++;
+                            if(tries==6) {
+                                sync(() -> getLogger().warning("Player teleportation timed out - the first player is not on the server."));
                                 return;
                             }
-                            Player finalP = p1;
-                            sync(() -> finalP.teleport(p2));
-                            p1.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Телепортирован!"));
-                            sendTeleportFeedback(teleportId);
+                            p1 = Bukkit.getPlayer(UUID.fromString(who));
+                            if(p1==null){
+                                try {
+                                    Thread.sleep(2000);
+                                } catch (InterruptedException e) {}
+                            }
+                        } while (p1==null);
+                        Player p2 = Bukkit.getPlayer(UUID.fromString(to));
+                        if(p2==null) {
+                            sync(() -> getLogger().warning("Tried to teleport player, but the second player is offline: "+to));
+                            return;
                         }
-                    }
-                } catch (Throwable t){
-                    sync(t::printStackTrace);
+                        Player finalP = p1;
+                        sync(() -> finalP.teleport(p2));
+                        p1.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Телепортирован!"));
+                        sendTeleportFeedback(teleportId);
+                    });
                 }
-            });
+            } catch (Throwable t){
+                sync(t::printStackTrace);
+            }
         });
     }
 
