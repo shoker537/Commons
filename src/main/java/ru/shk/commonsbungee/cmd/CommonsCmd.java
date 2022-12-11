@@ -15,5 +15,6 @@ public class CommonsCmd extends Command {
         sender.sendMessage(Commons.getInstance().colorize(" &bThreadPool active count: &f"+Commons.getInstance().getThreadPool().getActiveCount()));
         sender.sendMessage(Commons.getInstance().colorize(" &bThreadPool queue count: &f"+Commons.getInstance().getThreadPool().getQueue().size()));
         sender.sendMessage(Commons.getInstance().colorize(" &bThreadPool size: &f"+Commons.getInstance().getThreadPool().getPoolSize()));
+        sender.sendMessage(Commons.getInstance().colorize(" &bThreadPool maxSize: &f"+Commons.getInstance().getThreadPool().getMaximumPoolSize()));
     }
 }

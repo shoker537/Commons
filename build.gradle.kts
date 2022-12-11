@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.62"
+version = "1.3.65"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -93,7 +93,7 @@ dependencies {
   implementation("org.projectlombok:lombok:1.18.22")
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
-  compileOnly("land.shield:PlayerAPI:1.4.0")
+  compileOnly("land.shield:PlayerAPI:1.5.1")
   compileOnly("ru.shk:MySQLAPI:2.0.1")
   compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
 }
