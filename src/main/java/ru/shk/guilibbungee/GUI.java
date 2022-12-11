@@ -40,6 +40,7 @@ public class GUI extends Inventory {
 
     public GUI(Plugin pl, String name, InventoryType type){
         this(pl, name, type, true);
+
         super.onClose(close -> {
             try {
                 GUILib.getInstance().getGuis().remove(pp);
@@ -129,6 +130,12 @@ public class GUI extends Inventory {
             }
         }
         return windowId;
+    }
+
+    public void reopen(ProxiedPlayer player){
+        if(!isOpen()) return;
+        close(player);
+        open(player);
     }
 
     public void update(){
