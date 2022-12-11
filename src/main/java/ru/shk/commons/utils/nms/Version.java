@@ -160,9 +160,21 @@ public abstract class Version {
         team.getClass().getMethod(FieldMappings.SCOREBOARDTEAM_SETCOLLISIONMODE.getField(), ScoreboardTeamBase.EnumTeamPush.class).invoke(team, ScoreboardTeamBase.EnumTeamPush.c);
     }
 
-    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    @SneakyThrows
+    protected void setCanSeeFriendlyInvisible(ScoreboardTeam team){
+        team.getClass().getMethod(FieldMappings.SCOREBOARDTEAM_SETCANSEEFRIENDLYINVISIBLE.getField(), boolean.class).invoke(team, true);
+    }
+
+    @SneakyThrows
+    protected void setFriendlyFire(ScoreboardTeam team, boolean friendlyFire){
+        team.getClass().getMethod(FieldMappings.SCOREBOARDTEAM_SETFRIENDLYFIRE.getField(), boolean.class).invoke(team, friendlyFire);
+    }
+
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, boolean friendlyFire, boolean seeFriendlyInvisible, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ScoreboardTeam t = new ScoreboardTeam(new net.minecraft.world.scores.Scoreboard(), name);
         if(!collideTeammates) disableTeammatesCollision(t);
+        if(seeFriendlyInvisible) setCanSeeFriendlyInvisible(t);
+        setFriendlyFire(t, friendlyFire);
         t.getClass().getMethod("b", IChatBaseComponent.class).invoke(t, IChatBaseComponent.a(prefix));
         t.getClass().getMethod("c", IChatBaseComponent.class).invoke(t, IChatBaseComponent.a(suffix));
         if(color!=null) t.getClass().getMethod("a", EnumChatFormat.class).invoke(t, EnumChatFormat.valueOf(color.name()));
@@ -171,6 +183,10 @@ public abstract class Version {
             e.addAll(entries);
         }
         return PacketPlayOutScoreboardTeam.a(t, createTeamOrUpdate);
+    }
+
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return createScoreboardTeamPacket(createTeamOrUpdate, true, true, false, name, prefix, suffix, color, entries);
     }
 
     protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {

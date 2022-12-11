@@ -45,12 +45,24 @@ public class PacketUtil {
         }, 1,1);
     }
 
+    /**
+    *  @param createTeamOrUpdate true - create, false - update
+    */
     public static void createAndSendTeam(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
         for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate, true,name, prefix, suffix, color, entries));
     }
 
+    /**
+     *  @param createTeamOrUpdate true - create, false - update
+     */
     public static void createAndSendTeam(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
         for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,collideTeammates,name, prefix, suffix, color, entries));
+    }
+    /**
+     *  @param createTeamOrUpdate true - create, false - update
+     */
+    public static void createAndSendTeam(boolean createTeamOrUpdate, boolean collideTeammates, boolean friendlyFire, boolean canSeeFriendlyInvisible, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,collideTeammates,friendlyFire, canSeeFriendlyInvisible, name, prefix, suffix, color, entries));
     }
 
     public static void removeTeamPacket(String team, Player... toSend) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {

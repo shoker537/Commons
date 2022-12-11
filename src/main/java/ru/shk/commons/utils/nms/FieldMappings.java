@@ -19,6 +19,8 @@ public enum FieldMappings {
     ARMORSTAND_SETHEADPOSE("setHeadPose", "a", "a"),
     ARMORSTAND_SETSMALL("setSmall", "a", "a"),
     SCOREBOARDTEAM_SETCOLLISIONMODE("setCollisionRule", "a", "a"),
+    SCOREBOARDTEAM_SETCANSEEFRIENDLYINVISIBLE("setCanSeeFriendlyInvisibles", "b", "b"),
+    SCOREBOARDTEAM_SETFRIENDLYFIRE("setAllowFriendlyFire", "a", "a"),
 
     BLOCKBASE_GETMAPCOLOR("s", "t", "s"),
 
