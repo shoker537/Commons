@@ -44,14 +44,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class Commons extends Plugin implements Listener {
     @Getter private ThreadPoolExecutor threadPool;
-    private ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    private ThreadPoolExecutor teleportService;
+    private final HashMap<UUID, Future<?>> runningTeleports = new HashMap<>();
     @Getter private static Commons instance;
     @Getter private boolean isProtocolizeInstelled = false;
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
@@ -74,7 +72,7 @@ public class Commons extends Plugin implements Listener {
         info("&f                   v"+getDescription().getVersion());
         info(" ");
         if(getProxy().getPluginManager().getPlugin("Protocolize")==null) {
-            warning("Protocolize not found! &fSome API features may be unavailable.");
+            warning("Protocolize not found! &fSome API features are unavailable.");
         } else {
             isProtocolizeInstelled = true;
         }
@@ -122,8 +120,9 @@ public class Commons extends Plugin implements Listener {
         } else {
             mysql = new MySQL("shield_bungee");
         }
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
         threadPool.setKeepAliveTime(15, TimeUnit.SECONDS);
+        teleportService = new ThreadPoolExecutor(1, 5, 10L, TimeUnit.SECONDS, new SynchronousQueue<>());
         teleportService.setKeepAliveTime(15, TimeUnit.SECONDS);
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
@@ -131,6 +130,21 @@ public class Commons extends Plugin implements Listener {
         getProxy().registerChannel("commons:location");
         getProxy().registerChannel("commons:generic");
         getProxy().registerChannel("commons:notification");
+        syncRepeating(() -> {
+            if(getProxy().getOnlineCount()<100) {
+                if(threadPool.getMaximumPoolSize()!=10) threadPool.setMaximumPoolSize(10);
+                return;
+            }
+            if(getProxy().getOnlineCount()<150) {
+                threadPool.setMaximumPoolSize(15);
+                return;
+            }
+            if(getProxy().getOnlineCount()<200) {
+                threadPool.setMaximumPoolSize(20);
+                return;
+            }
+            threadPool.setMaximumPoolSize(30+Math.min(30, getProxy().getOnlineCount()/40));
+        }, 100, 60);
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
             try {
@@ -176,29 +190,33 @@ public class Commons extends Plugin implements Listener {
     }
 
     private void teleportAndWaitForFeedback(ProxiedPlayer from, ProxiedPlayer to){
-        teleportService.submit(() -> {
-            from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW+"Телепортируем..."));
-            lastTpId++;
-            if(lastTpId==10000) lastTpId=1;
-            int selectedTpId = lastTpId;
-            tpInProcess.add(selectedTpId);
-            int times = 0;
-            boolean first = true;
-            do {
-                times++;
-                if(times==4){
-                    getLogger().warning("Не удалось подтвердить телепортацию: сервер не отправил ответ, время ожидания ответа истекло.");
-                    return;
-                }
-                try {
-                    Thread.sleep(first?3000:4000);
-                } catch (InterruptedException e) {
-                    return;
-                }
-                first = false;
-                sendTeleportToServer(selectedTpId, from, to);
-            } while (tpInProcess.contains(selectedTpId));
-        });
+        syncLater(() -> {
+            if(runningTeleports.containsKey(from.getUniqueId())){
+                runningTeleports.get(from.getUniqueId()).cancel(true);
+            }
+            runningTeleports.put(from.getUniqueId(),
+            teleportService.submit(() -> {
+                from.sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW+"Телепортируем..."));
+                lastTpId++;
+                if(lastTpId==10000) lastTpId=1;
+                int selectedTpId = lastTpId;
+                tpInProcess.add(selectedTpId);
+                int times = 0;
+                do {
+                    times++;
+                    if(times==4){
+                        getLogger().warning("Не удалось подтвердить телепортацию: сервер не отправил ответ, время ожидания ответа истекло.");
+                        return;
+                    }
+                    sendTeleportToServer(selectedTpId, from, to);
+                    try {
+                        Thread.sleep(4000);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                } while (tpInProcess.contains(selectedTpId));
+            }));
+        }, 3);
     }
 
     private void sendTeleportToServer(int tpId, ProxiedPlayer who, ProxiedPlayer to){
