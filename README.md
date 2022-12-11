@@ -6,7 +6,7 @@
 
 Compiled with Java 17
 
-Modules which use NMS support 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2
+Modules which use NMS support 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 (probably 1.19.3)
 
 # Usage
 
@@ -19,7 +19,7 @@ repositories {
     maven { url = 'https://nexus.shoker.su/repository/maven-releases/' }
 }
 dependencies {
-    compileOnly 'ru.shk:Commons:1.3.3'
+    compileOnly 'ru.shk:Commons:1.3.66' // LOOK AT THE LATEST VERSION ON TOP ^^^
 }
 ```
 All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
@@ -27,10 +27,11 @@ All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-re
 # Modules:
 
 - **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
-- **ConfigAPI** - simple config-management interface (spigot side only for now)
+- **ConfigAPI** - simple config-management interface (spigot side only for now). ConfigAPI.getServerName() returns readable name of current server (from 'server-name' in server.properties)
 - **GUILib** - spigot library for creating GUIs
-- **PacketUtil** - simply send packets with no nms* imports (limited functionality for now). Supports 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 versions. Explore all the methods!
+- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Supports 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 versions. Explore all the methods in PacketUtil class!
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
+- **PlayerLocationReceiver** - receives player coordinates from Bungee (Commons.getInstance().getPlayerLocationReceiver())
 
 Be careful at importing the correct Commons class:
 - **ru.shk.commons.Commons** for Spigot plugins
@@ -47,11 +48,14 @@ Be careful at importing the correct Commons class:
 - **info()** sends a message to console (auto colorizing)
 - **warning()** sends a red message to console (auto colorizing)
 - **colorize()** returns a String with translated color codes (&)
+- **colorizeWithHex()** returns a String with translated color codes (&) and hex colors (&#000000)
+- **PAFManager** (Commons.getInstance().getPafManager()) is a PartyAndFriends receiver for parties
+- **WorldEditManager** (Commons.getInstance().getWorldEditManager()) is an early version of worldedit manager to simplify interaction with WorldEdit
 
 ### Threads/Scheduling:
 
 - **sync()** executes a Runnable synchronously
-- **async()** executes a Runnable in a fixed ThreadPool
+- **async()** executes a Runnable in a ThreadPool
 - **syncLater()** executes a Runnable synchronously with delay
 - **asyncLater()** executes a Runnable asynchronously with delay
 - **syncRepeating()** executes a Runnable synchronously with delay and period
@@ -137,6 +141,8 @@ new GUI(plugin, "&cTitle", InventoryType.GENERIC_9X5)
 .open(player);
 ```
 
+Also there's a TextInputGUI class which creates a text-input menu.
+
 ### Page-generator
 If you need to make a GUI with pages, use GUIPageGenerator. 
 
@@ -179,7 +185,7 @@ public class FriendsPageGenerator extends GUIPageGenerator {
             
             return items;
         });
-        generatePage();
+        generatePage(); // You have to call generatePage yourself if you use the constructor without pageExistsCheck and pageGenerator params (like this)
     }
     
     @Override
