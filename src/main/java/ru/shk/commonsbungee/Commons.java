@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Commons extends Plugin implements Listener {
     @Getter private ThreadPoolExecutor threadPool;
@@ -441,5 +443,15 @@ public class Commons extends Plugin implements Listener {
             e.printStackTrace();
         }
         return false;
+    }
+    public static String colorizeWithHex(String message) {
+        Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
+        Matcher matcher = pattern.matcher(message);
+        while (matcher.find()) {
+            String color = message.substring(matcher.start(), matcher.end());
+            message = message.replace(color, ChatColor.of(color.substring(1)) + "");
+            matcher = pattern.matcher(message);
+        }
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 }
