@@ -55,6 +55,11 @@ public class ItemStackBuilder {
         Config.getIfHasInt(section, "amount", this::amount);
     }
 
+    public ItemStackBuilder customModelData(int data){
+        item.nbtData().put("CustomModelData", new IntTag(data));
+        return this;
+    }
+
     public ItemStackBuilder amount(int amount){
         item.amount((byte) amount);
         return this;
