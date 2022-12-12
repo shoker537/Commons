@@ -18,14 +18,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class ItemStackBuilder {
-    private static final ThreadPoolExecutor mojangRequestThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
-    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    private static final ThreadPoolExecutor mojangRequestThreadPool = new ThreadPoolExecutor(1, 3, 10, TimeUnit.SECONDS, new SynchronousQueue<>());
+    private static final ThreadPoolExecutor cacheThreadPool = new ThreadPoolExecutor(2, 5, 60, TimeUnit.SECONDS, new SynchronousQueue<>());
     private final ItemStack item;
-    private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(350);
+    private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(300);
 
     public ItemStackBuilder(ItemStack stack){
         this.item = stack;
@@ -37,7 +39,27 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder(Configuration section){
         ItemType type = ItemType.valueOf(section.getString("type"));
-        item = new ItemStack(type);
+        if(type==ItemType.PLAYER_HEAD) {
+            if(section.contains("custom-head-id")){
+                Object o = section.get("custom-head-id");
+                if(o instanceof Integer i){
+                    item = Commons.getInstance().getCustomHead(i).build();
+                } else if(o instanceof String s){
+                    item = Commons.getInstance().getCustomHead(s).build();
+                } else {
+                    item = new ItemStack(type);
+                    Commons.getInstance().warning("Item has an invalid custom-head-id value: "+o.getClass().getSimpleName()+". Only int/string supported.");
+                }
+            } else {
+                item = new ItemStack(type);
+            }
+        } else {
+            item = new ItemStack(type);
+        }
+        if(type==ItemType.PLAYER_HEAD){
+            Config.getIfHasString(section, "head-owner", this::headOwner);
+            Config.getIfHasString(section, "head-base64", this::base64head);
+        }
         Config.getIfHasString(section, "display-name", this::displayName);
         Config.getIfHasStringList(section, "lore", this::lore);
         Config.getIfHasStringList(section, "enchant", list -> {
@@ -48,11 +70,8 @@ public class ItemStackBuilder {
                 this.enchant(e, level);
             }
         });
-        if(type==ItemType.PLAYER_HEAD) {
-            Config.getIfHasString(section, "head-owner", this::headOwner);
-            Config.getIfHasString(section, "head-base64", this::base64head);
-        }
         Config.getIfHasInt(section, "amount", this::amount);
+        Config.getIfHasInt(section, "custom-model-data", this::customModelData);
     }
 
     public ItemStackBuilder customModelData(int data){

@@ -46,7 +46,23 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder(@NonNull ConfigurationSection section){
         Material type = Material.valueOf(section.getString("type").toUpperCase());
-        stack = new ItemStack(type);
+        if(type==Material.PLAYER_HEAD){
+            if(section.contains("custom-head-id")){
+                Object id = section.get("custom-head-id");
+                if(id instanceof Integer i){
+                    stack = Commons.getInstance().getCustomHead(i).build();
+                } else if(id instanceof String s) {
+                    stack = Commons.getInstance().getCustomHead(s).build();
+                } else {
+                    stack = new ItemStack(type);
+                    Commons.getInstance().warning("Item has an invalid custom-head-id value: "+id.getClass().getSimpleName()+". Only int/string supported.");
+                }
+            } else {
+                stack = new ItemStack(type);
+            }
+        } else {
+            stack = new ItemStack(type);
+        }
         meta();
         Config.getIfHasString(section, "display-name", this::displayName);
         Config.getIfHasStringList(section, "lore", this::lore);
@@ -112,6 +128,7 @@ public class ItemStackBuilder {
             }
         });
         Config.getIfHasInt(section, "amount", this::count);
+        Config.getIfHasInt(section, "custom-model-data", this::customModelData);
     }
 
     private ItemStackBuilder autoAddAttribute(UUID attributeUUID, Attribute attribute, String displayName, double value, AttributeModifier.Operation operation, String slot) {
