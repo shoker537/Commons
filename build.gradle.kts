@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.67"
+version = "1.3.68"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
