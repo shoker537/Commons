@@ -18,6 +18,7 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
+import ru.shk.commons.utils.nms.FieldMappings;
 import ru.shk.commons.utils.nms.Version;
 
 import java.lang.reflect.Field;
@@ -86,6 +87,16 @@ public class v1_17_R1 extends Version {
     public net.minecraft.world.level.block.Block getBlock(Material m) {
         Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers");
         return (net.minecraft.world.level.block.Block) c.getMethod("getBlock", Material.class).invoke(null, m);
+    }
+
+    @Override@SneakyThrows
+    protected void playRiptideAnimation(Player p, int ticks){
+        Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer");
+        Class<?> c1 = Class.forName("net.minecraft.world.entity.EntityLiving");
+        val craftPlayer = c.cast(p);
+        val worldPlayer = craftPlayer.getClass().getMethod("getHandle").invoke(craftPlayer);
+        val worldEntity = c1.cast(worldPlayer);
+        worldEntity.getClass().getMethod(FieldMappings.ENTITYHUMAN_STARTUSERIPTIDE.getField(), int.class).invoke(worldEntity, ticks);
     }
 
 }

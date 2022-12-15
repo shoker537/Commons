@@ -9,7 +9,6 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -195,6 +194,14 @@ public abstract class Version {
 
     protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework) {
         explodeFirework(p, l, firework, "ai", "ae");
+    }
+
+    @SneakyThrows
+    protected void playRiptideAnimation(Player p, int ticks){
+        Class<?> c = Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".entity.CraftPlayer");
+        val craftPlayer = c.cast(p);
+        net.minecraft.world.entity.player.Player pl = (net.minecraft.world.entity.player.Player) craftPlayer.getClass().getMethod("getHandle").invoke(craftPlayer);
+        pl.startAutoSpinAttack(ticks);
     }
 
 }

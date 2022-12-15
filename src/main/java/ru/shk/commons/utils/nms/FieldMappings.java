@@ -21,6 +21,7 @@ public enum FieldMappings {
     SCOREBOARDTEAM_SETCOLLISIONMODE("setCollisionRule", "a", "a"),
     SCOREBOARDTEAM_SETCANSEEFRIENDLYINVISIBLE("setCanSeeFriendlyInvisibles", "b", "b"),
     SCOREBOARDTEAM_SETFRIENDLYFIRE("setAllowFriendlyFire", "a", "a"),
+    ENTITYHUMAN_STARTUSERIPTIDE("s", "t", "t"),
 
     BLOCKBASE_GETMAPCOLOR("s", "t", "s"),
 

@@ -126,6 +126,10 @@ public class PacketUtil {
         versionClass.equipEntity(p, entity, list);
     }
 
+    public static void playRiptideAnimation(Player p, int ticks){
+        versionClass.playRiptideAnimation(p, ticks);
+    }
+
     public static void playTotemAnimation(Player p){
         versionClass.playTotemAnimation(p);
     }
