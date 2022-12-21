@@ -295,8 +295,7 @@ public final class Commons extends JavaPlugin {
     @Nullable
     public ItemStackBuilder getCustomHead(int id){
         if(customHeadsCache.containsKey(id)) return new ItemStackBuilder(Material.PLAYER_HEAD).base64Head(customHeadsCache.get(id).getTexture());
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute();
-        try {
+        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute()) {
             if(rs.next()){
                 CustomHead head = new CustomHead(id, rs.getString("key"), rs.getString("texture"));
                 customHeadsCache.put(id, head);
@@ -313,8 +312,7 @@ public final class Commons extends JavaPlugin {
 
     @Nullable
     public ItemStackBuilder getCustomHead(String key){
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute();
-        try {
+        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute()) {
             if(rs.next()){
                 CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
                 return new ItemStackBuilder(Material.PLAYER_HEAD).base64Head(head.getTexture());

@@ -136,21 +136,21 @@ public class Commons extends Plugin implements Listener {
         syncRepeating(() -> {
             if(getProxy().getOnlineCount()<100) {
 //                if(threadPool.getMaximumPoolSize()!=10) threadPool.setMaximumPoolSize(10);
-                if(threadPool.getMaximumPoolSize()!=10) threadPool.setCorePoolSize(10);
+                if(threadPool.getCorePoolSize()!=10) threadPool.setCorePoolSize(10);
                 return;
             }
             if(getProxy().getOnlineCount()<150) {
 //                threadPool.setMaximumPoolSize(15);
-                threadPool.setCorePoolSize(15);
+                if(threadPool.getCorePoolSize()!=15) threadPool.setCorePoolSize(15);
                 return;
             }
             if(getProxy().getOnlineCount()<300) {
 //                threadPool.setMaximumPoolSize(20);
-                threadPool.setCorePoolSize(20);
+                if(threadPool.getCorePoolSize()!=20) threadPool.setCorePoolSize(20);
                 return;
             }
 //            threadPool.setMaximumPoolSize(30+Math.min(30, getProxy().getOnlineCount()/40));
-            threadPool.setCorePoolSize(30);
+            if(threadPool.getCorePoolSize()!=30) threadPool.setCorePoolSize(30);
         }, 100, 60);
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
