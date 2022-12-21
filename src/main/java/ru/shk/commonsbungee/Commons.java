@@ -122,9 +122,10 @@ public class Commons extends Plugin implements Listener {
         } else {
             mysql = new MySQL("shield_bungee");
         }
-        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
+//        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
         threadPool.setKeepAliveTime(15, TimeUnit.SECONDS);
-        teleportService = new ThreadPoolExecutor(1, 5, 10L, TimeUnit.SECONDS, new SynchronousQueue<>());
+        teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
         teleportService.setKeepAliveTime(15, TimeUnit.SECONDS);
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
@@ -134,18 +135,22 @@ public class Commons extends Plugin implements Listener {
         getProxy().registerChannel("commons:notification");
         syncRepeating(() -> {
             if(getProxy().getOnlineCount()<100) {
-                if(threadPool.getMaximumPoolSize()!=10) threadPool.setMaximumPoolSize(10);
+//                if(threadPool.getMaximumPoolSize()!=10) threadPool.setMaximumPoolSize(10);
+                if(threadPool.getMaximumPoolSize()!=10) threadPool.setCorePoolSize(10);
                 return;
             }
             if(getProxy().getOnlineCount()<150) {
-                threadPool.setMaximumPoolSize(15);
+//                threadPool.setMaximumPoolSize(15);
+                threadPool.setCorePoolSize(15);
                 return;
             }
-            if(getProxy().getOnlineCount()<200) {
-                threadPool.setMaximumPoolSize(20);
+            if(getProxy().getOnlineCount()<300) {
+//                threadPool.setMaximumPoolSize(20);
+                threadPool.setCorePoolSize(20);
                 return;
             }
-            threadPool.setMaximumPoolSize(30+Math.min(30, getProxy().getOnlineCount()/40));
+//            threadPool.setMaximumPoolSize(30+Math.min(30, getProxy().getOnlineCount()/40));
+            threadPool.setCorePoolSize(30);
         }, 100, 60);
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
@@ -287,9 +292,9 @@ public class Commons extends Plugin implements Listener {
             ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
             String type = in.readUTF();
             switch (type){
-                case "CPAF" -> {
-                    if(pafManager!=null) async(() -> pafManager.acceptPluginMessage((ProxiedPlayer) e.getReceiver(),in));
-                }
+//                case "CPAF" -> {
+//                    if(pafManager!=null) async(() -> pafManager.acceptPluginMessage((ProxiedPlayer) e.getReceiver(),in));
+//                }
                 case "executeAtBungee" -> {
                     String cmd = in.readUTF();
                     ProxiedPlayer p = (ProxiedPlayer) e.getReceiver();

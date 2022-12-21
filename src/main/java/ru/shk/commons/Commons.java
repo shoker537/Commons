@@ -35,7 +35,7 @@ import java.sql.ResultSet;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -47,7 +47,8 @@ public final class Commons extends JavaPlugin {
     private final List<Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     @Getter private MySQL mysql;
-    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 15, 15L, TimeUnit.SECONDS, new SynchronousQueue<>());
+//    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 15, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
     private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private SocketManager socketManager;
