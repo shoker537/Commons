@@ -59,32 +59,57 @@ public class Config {
     public Object get(String s){
         return configuration.get(s);
     }
+    public Object get(String s, Object def){
+        return configuration.get(s, def);
+    }
 
     public String getString(String s){
         return configuration.getString(s);
+    }
+    public String getString(String s, String def){
+        return configuration.getString(s,def);
     }
 
     public short getShort(String s){
         return configuration.getShort(s);
     }
+    public short getShort(String s, short def){
+        return configuration.getShort(s, def);
+    }
 
     public float getFloat(String s){
         return configuration.getFloat(s);
+    }
+    public float getFloat(String s, float def){
+        return configuration.getFloat(s, def);
     }
 
     public int getInt(String s){
         return configuration.getInt(s);
     }
+    public int getInt(String s, int def){
+        return configuration.getInt(s, def);
+    }
 
     public double getDouble(String s){
         return configuration.getDouble(s);
+    }
+    public double getDouble(String s, double def){
+        return configuration.getDouble(s, def);
     }
 
     public boolean getBoolean(String s){
         return configuration.getBoolean(s);
     }
+    public boolean getBoolean(String s, boolean def){
+        return configuration.getBoolean(s, def);
+    }
 
     public List<String> getStringList(String s){
+        return configuration.getStringList(s);
+    }
+    public List<String> getStringList(String s, List<String> def){
+        if(!contains(s)) return def;
         return configuration.getStringList(s);
     }
 
