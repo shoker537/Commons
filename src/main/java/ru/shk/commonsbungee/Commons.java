@@ -4,6 +4,11 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
+import de.simonsator.partyandfriends.api.PAFPluginBase;
+import de.simonsator.partyandfriends.api.pafplayers.PAFPlayerManager;
+import de.simonsator.partyandfriends.api.party.PartyAPI;
+import de.simonsator.partyandfriends.api.party.PlayerParty;
+import de.simonsator.partyandfriends.main.Main;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
@@ -94,6 +99,7 @@ public class Commons extends Plugin implements Listener {
 
     @Override
     public void onEnable() {
+        PlayerParty party;
         config = new Config(getDataFolder(), true);
         if(!config.contains("sockets.enable")) config.setAndSave("sockets.enable", false);
         if(!config.contains("sockets.server-port")) config.setAndSave("sockets.server-port", 3000);
@@ -136,21 +142,21 @@ public class Commons extends Plugin implements Listener {
         syncRepeating(() -> {
             if(getProxy().getOnlineCount()<100) {
 //                if(threadPool.getMaximumPoolSize()!=10) threadPool.setMaximumPoolSize(10);
-                if(threadPool.getCorePoolSize()!=10) threadPool.setCorePoolSize(10);
+                if(threadPool.getMaximumPoolSize()!=10) threadPool.setMaximumPoolSize(10);
                 return;
             }
             if(getProxy().getOnlineCount()<150) {
 //                threadPool.setMaximumPoolSize(15);
-                if(threadPool.getCorePoolSize()!=15) threadPool.setCorePoolSize(15);
+                if(threadPool.getMaximumPoolSize()!=15) threadPool.setMaximumPoolSize(15);
                 return;
             }
             if(getProxy().getOnlineCount()<300) {
 //                threadPool.setMaximumPoolSize(20);
-                if(threadPool.getCorePoolSize()!=20) threadPool.setCorePoolSize(20);
+                if(threadPool.getMaximumPoolSize()!=20) threadPool.setMaximumPoolSize(20);
                 return;
             }
 //            threadPool.setMaximumPoolSize(30+Math.min(30, getProxy().getOnlineCount()/40));
-            if(threadPool.getCorePoolSize()!=30) threadPool.setCorePoolSize(30);
+            if(threadPool.getMaximumPoolSize()!=30) threadPool.setMaximumPoolSize(30);
         }, 100, 60);
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
