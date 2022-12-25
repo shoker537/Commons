@@ -76,6 +76,10 @@ public class ItemStackBuilder {
         Config.getIfHasInt(section, "custom-model-data", this::customModelData);
     }
 
+    public Integer customModelData(){
+        return item.nbtData().containsKey("CustomModelData")?item.nbtData().getInt("CustomModelData"):null;
+    }
+
     public ItemStackBuilder customModelData(int data){
         item.nbtData().put("CustomModelData", new IntTag(data));
         return this;

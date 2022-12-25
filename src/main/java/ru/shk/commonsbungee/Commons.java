@@ -65,7 +65,7 @@ public class Commons extends Plugin implements Listener {
     @Getter private PlayerLocationReceiver playerLocationReceiver;
     @Getter private PAFManager pafManager;
     @Getter private SocketManager socketManager;
-    private Config config;
+    @Getter private Config config;
 
     private final List<Integer> tpInProcess = new ArrayList<>();
     private int lastTpId = 0;
@@ -99,7 +99,6 @@ public class Commons extends Plugin implements Listener {
 
     @Override
     public void onEnable() {
-        PlayerParty party;
         config = new Config(getDataFolder(), true);
         if(!config.contains("sockets.enable")) config.setAndSave("sockets.enable", false);
         if(!config.contains("sockets.server-port")) config.setAndSave("sockets.server-port", 3000);

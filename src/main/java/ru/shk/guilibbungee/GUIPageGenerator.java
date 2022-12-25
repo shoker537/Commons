@@ -31,9 +31,9 @@ public class GUIPageGenerator {
     private final ItemStack fillerItem;
     @Setter private int currentPage = 0;
     @Getter private final ProxiedPlayer viewer;
-    @Setter private ItemStack leftButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b<< Назад").build();
-    @Setter private ItemStack rightButton = new ItemStackBuilder(ItemType.PAPER).displayName("&b>> Дальше").build();
-    @Setter private ItemStack backgroundItem = new ItemStack(ItemType.AIR);
+    private ItemStack leftButton = new ItemStackBuilder(ItemType.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0)).displayName("&b<< Назад").build();
+    private ItemStack rightButton = new ItemStackBuilder(ItemType.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0)).displayName("&b>> Дальше").build();
+    private ItemStack backgroundItem = new ItemStackBuilder(ItemType.AIR).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0)).build();
 
     public GUIPageGenerator(ProxiedPlayer viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
         this(viewer,gui, skipLinesCount, linesCountOfGeneratedItems, nothingItem, nothingSlot, fillerItem);
@@ -53,6 +53,18 @@ public class GUIPageGenerator {
         this.nothingSlot = nothingSlot;
         this.fillerItem = fillerItem;
         firstButtonsLineSlot = lastGeneratorSlot+1;
+    }
+
+    public void setLeftButton(ItemStack leftButton) {
+        ItemStackBuilder b = new ItemStackBuilder(leftButton);
+        if(b.customModelData()==null) b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
+        this.leftButton = leftButton;
+    }
+
+    public void setRightButton(ItemStack leftButton) {
+        ItemStackBuilder b = new ItemStackBuilder(leftButton);
+        if(b.customModelData()==null) b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
+        this.leftButton = leftButton;
     }
 
     public void generatePage(){
