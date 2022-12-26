@@ -55,16 +55,28 @@ public class GUIPageGenerator {
         firstButtonsLineSlot = lastGeneratorSlot+1;
     }
 
-    public void setLeftButton(ItemStack leftButton) {
-        ItemStackBuilder b = new ItemStackBuilder(leftButton);
-        if(b.customModelData()==null) b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
-        this.leftButton = leftButton;
+    public void setBackgroundItem(ItemStack backgroundItem) {
+        ItemStackBuilder b = new ItemStackBuilder(backgroundItem);
+        if(b.customModelData()==null) {
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0));
+        }
+        this.backgroundItem = b.build();
     }
 
-    public void setRightButton(ItemStack leftButton) {
+    public void setLeftButton(ItemStack leftButton) {
         ItemStackBuilder b = new ItemStackBuilder(leftButton);
-        if(b.customModelData()==null) b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
-        this.leftButton = leftButton;
+        if(b.customModelData()==null) {
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
+        }
+        this.leftButton = b.build();
+    }
+
+    public void setRightButton(ItemStack rightButton) {
+        ItemStackBuilder b = new ItemStackBuilder(rightButton);
+        if(b.customModelData()==null) {
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0));
+        }
+        this.rightButton = b.build();
     }
 
     public void generatePage(){
