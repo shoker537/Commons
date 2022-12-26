@@ -20,9 +20,15 @@ public class TextInputGUI extends Inventory {
     private String text = "";
     private final AbstractPacketListener<RenameItemPacket> listener;
 
+
     public TextInputGUI(ProxiedPlayer player, String title, String originalName, List<String> description, Consumer<String> result) {
+        this(player, title, false, originalName, description, result);
+    }
+
+    public TextInputGUI(ProxiedPlayer player, String title, boolean json, String originalName, List<String> description, Consumer<String> result) {
         super(InventoryType.ANVIL);
-        title(title).item(0, new ItemStackBuilder(ItemType.PAPER).displayName(originalName).lore(description).build());
+        if(json) titleJson(title); else title(title);
+        item(0, new ItemStackBuilder(ItemType.PAPER).displayName(originalName).lore(description).build());
         onClick(click -> {
             click.cancelled(true);
             if(click.slot()==2){
