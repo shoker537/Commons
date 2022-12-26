@@ -31,9 +31,9 @@ public class GUIPageGenerator {
     private final ItemStack fillerItem;
     @Setter private int currentPage = 0;
     private final Player viewer;
-    @Setter private ItemStack leftButton = new ItemStackBuilder(Material.PAPER).displayName("&b<< Назад").build();
-    @Setter private ItemStack rightButton = new ItemStackBuilder(Material.PAPER).displayName("&b>> Дальше").build();
-    @Setter private ItemStack backgroundItem = new ItemStack(Material.AIR);
+    private ItemStack leftButton = new ItemStackBuilder(Material.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0)).displayName("&b<< Назад").build();
+    private ItemStack rightButton = new ItemStackBuilder(Material.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0)).displayName("&b>> Дальше").build();
+    private ItemStack backgroundItem = new ItemStackBuilder(Material.AIR).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0)).build();
 
     public GUIPageGenerator(Player viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Runnable>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
         this(viewer, gui, skipLinesCount, linesCountOfGeneratedItems, nothingItem, nothingSlot, fillerItem);
@@ -53,6 +53,30 @@ public class GUIPageGenerator {
         this.nothingSlot = nothingSlot;
         this.fillerItem = fillerItem;
         firstButtonsLineSlot = lastGeneratorSlot+1;
+    }
+
+    public void setBackgroundItem(ItemStack item) {
+        ItemStackBuilder b = new ItemStackBuilder(item);
+        if(b.customModelData()>0) {
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0));
+        }
+        this.backgroundItem = b.build();
+    }
+
+    public void setLeftButton(ItemStack item) {
+        ItemStackBuilder b = new ItemStackBuilder(item);
+        if(b.customModelData()>0) {
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
+        }
+        this.leftButton = b.build();
+    }
+
+    public void setRightButton(ItemStack item) {
+        ItemStackBuilder b = new ItemStackBuilder(item);
+        if(b.customModelData()>0) {
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0));
+        }
+        this.rightButton = b.build();
     }
 
     public void generatePage(){

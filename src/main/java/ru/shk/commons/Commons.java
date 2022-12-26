@@ -53,7 +53,7 @@ public final class Commons extends JavaPlugin {
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private SocketManager socketManager;
     @Getter private PAFManager pafManager;
-    private Config config;
+    @Getter private Config config;
 
     @Override
     public void onLoad() {
