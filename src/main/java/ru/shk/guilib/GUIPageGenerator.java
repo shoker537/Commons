@@ -33,7 +33,7 @@ public class GUIPageGenerator {
     private final Player viewer;
     private ItemStack leftButton = new ItemStackBuilder(Material.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0)).displayName("&b<< Назад").build();
     private ItemStack rightButton = new ItemStackBuilder(Material.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0)).displayName("&b>> Дальше").build();
-    private ItemStack backgroundItem = new ItemStackBuilder(Material.AIR).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0)).build();
+    private ItemStack backgroundItem = new ItemStackBuilder(Material.AIR).build();
 
     public GUIPageGenerator(Player viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Runnable>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
         this(viewer, gui, skipLinesCount, linesCountOfGeneratedItems, nothingItem, nothingSlot, fillerItem);
@@ -57,7 +57,7 @@ public class GUIPageGenerator {
 
     public void setBackgroundItem(ItemStack item) {
         ItemStackBuilder b = new ItemStackBuilder(item);
-        if(b.customModelData()>0) {
+        if(b.customModelData()<1 && item.getType()!=Material.AIR) {
             b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0));
         }
         this.backgroundItem = b.build();
@@ -65,7 +65,7 @@ public class GUIPageGenerator {
 
     public void setLeftButton(ItemStack item) {
         ItemStackBuilder b = new ItemStackBuilder(item);
-        if(b.customModelData()>0) {
+        if(b.customModelData()<1 && item.getType()!=Material.AIR) {
             b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0));
         }
         this.leftButton = b.build();
@@ -73,7 +73,7 @@ public class GUIPageGenerator {
 
     public void setRightButton(ItemStack item) {
         ItemStackBuilder b = new ItemStackBuilder(item);
-        if(b.customModelData()>0) {
+        if(b.customModelData()<1 && item.getType()!=Material.AIR) {
             b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0));
         }
         this.rightButton = b.build();

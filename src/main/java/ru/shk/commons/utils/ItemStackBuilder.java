@@ -147,6 +147,7 @@ public class ItemStackBuilder {
 
     private void meta(){
         meta = stack.getItemMeta();
+        if(meta==null) meta = Bukkit.getItemFactory().getItemMeta(stack.getType());
     }
 
     public ItemStackBuilder displayName(@NonNull String name) {
