@@ -2,6 +2,7 @@ package ru.shk.guilib;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.bukkit.Bukkit;
@@ -26,7 +27,7 @@ import java.util.function.Consumer;
 public class GUI {
     private JavaPlugin ownerPlugin;
     private ItemStack emptyFiller = null;
-    private final String title;
+    private final Component title;
     private final int slots;
     @Getter(AccessLevel.NONE) private Inventory inv;
     private final HashMap<Integer, ItemStack> items = new HashMap<>();
@@ -37,12 +38,17 @@ public class GUI {
     @Deprecated
     public GUI(int slots, String title){
         this.slots = slots;
-        this.title = ChatColor.translateAlternateColorCodes('&', title);
+        this.title = Component.text(ChatColor.translateAlternateColorCodes('&', title));
     }
 
     public GUI(JavaPlugin plugin, int slots, String title){
         this.slots = slots;
-        this.title = ChatColor.translateAlternateColorCodes('&', title);
+        this.title = Component.text(ChatColor.translateAlternateColorCodes('&', title));
+        this.ownerPlugin = plugin;
+    }
+    public GUI(JavaPlugin plugin, int slots, Component title){
+        this.slots = slots;
+        this.title = title;
         this.ownerPlugin = plugin;
     }
 
@@ -155,6 +161,7 @@ public class GUI {
     }
     public void open(Player p){
         inv = Bukkit.createInventory(null, slots, title);
+
         for (int i = 0; i < slots; i++) {
             if(items.containsKey(i)){
                 inv.setItem(i, items.get(i));
