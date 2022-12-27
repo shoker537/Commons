@@ -6,7 +6,7 @@
 
 Compiled with Java 17
 
-Modules which use NMS support 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 (probably 1.19.3)
+Modules which use NMS support ~~1.17.1~~, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 (probably 1.19.3)
 
 # Usage
 
@@ -29,7 +29,7 @@ All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-re
 - **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
 - **ConfigAPI** - simple config-management interface (spigot side only for now). ConfigAPI.getServerName() returns readable name of current server (from 'server-name' in server.properties)
 - **GUILib** - spigot library for creating GUIs
-- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Supports 1.17.1, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 versions. Explore all the methods in PacketUtil class!
+- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Supports ~~1.17.1~~, 1.18.1, 1.18.2, 1.19.1 and 1.19.2 versions. Explore all the methods in PacketUtil class!
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 - **PlayerLocationReceiver** - receives player coordinates from Bungee (Commons.getInstance().getPlayerLocationReceiver())
 
