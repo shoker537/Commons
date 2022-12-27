@@ -52,9 +52,13 @@ public class GUI extends Inventory {
     }
 
     public GUI(Plugin pl, String name, InventoryType type, boolean autoColorizeTitle){
+        this(pl, name, type, autoColorizeTitle, false);
+    }
+    public GUI(Plugin pl, String name, InventoryType type, boolean autoColorizeTitle, boolean jsonTitle){
         super(type);
         this.owner = pl;
-        title(autoColorizeTitle?Commons.getInstance().colorize(name):name);
+        String colorizedTitle = autoColorizeTitle?Commons.getInstance().colorize(name):name;
+        if(jsonTitle) titleJson(colorizedTitle); else title(colorizedTitle);
         super.onClick(inventoryClick-> {
             inventoryClick.cancelled(true);
             Commons.getInstance().async(() -> {
