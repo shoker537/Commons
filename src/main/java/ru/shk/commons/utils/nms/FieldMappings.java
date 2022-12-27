@@ -36,7 +36,6 @@ public enum FieldMappings {
 
     private static void init(){
         versionId = switch (Commons.getServerVersion()){
-            case v1_17_R1 -> 0;
             case v1_18_R1, v1_18_R2 -> 1;
             default -> 2;
         };
