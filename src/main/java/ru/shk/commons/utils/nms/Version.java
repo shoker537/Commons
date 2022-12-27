@@ -65,7 +65,7 @@ public abstract class Version {
     public String getItemTypeTranslationKey(Material m) {
         Item item = (Item) craftMagicNumbers().getMethod("getItem", Material.class).invoke(null, m);
         if (item == null) return null;
-        return (String) item.getDescriptionId();
+        return item.getDescriptionId();
     }
     @SneakyThrows
     public Object getNMSWorld(World world) {

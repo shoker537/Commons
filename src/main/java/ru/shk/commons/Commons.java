@@ -68,7 +68,8 @@ public final class Commons extends JavaPlugin {
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
         } catch (Exception e){
             Commons.ver = PacketVersion.values()[PacketVersion.values().length-1];
-            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
+            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported NMS version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
+            info(ChatColor.RED+"                          NMS features will not work properly.");
         }
         info(" ");
         instance = this;

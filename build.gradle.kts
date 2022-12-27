@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.76"
+version = "1.3.77"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -78,7 +78,7 @@ repositories {
 
 dependencies {
   paperDevBundle("1.19.2-R0.1-20220926.081544-62")
-  compileOnly(files("E:/Libraries/spigot-1.17.1.jar"))
+//  compileOnly(files("E:/Libraries/spigot-1.17.1.jar"))
   implementation("org.apache.commons:commons-lang3:3.12.0")
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
