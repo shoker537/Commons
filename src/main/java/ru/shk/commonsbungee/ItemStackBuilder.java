@@ -304,4 +304,8 @@ public class ItemStackBuilder {
         return list.stream().map(s -> ChatColor.WHITE+s).map(ItemStackBuilder::stringToComponent).toList();
     }
 
+    @Override
+    public String toString() {
+        return ItemStackConverter.toString(this);
+    }
 }

@@ -1,7 +1,6 @@
 package ru.shk.guilibbungee;
 
 import com.google.common.collect.Lists;
-import dev.simplix.protocolize.api.ClickType;
 import dev.simplix.protocolize.api.Protocolize;
 import dev.simplix.protocolize.api.inventory.Inventory;
 import dev.simplix.protocolize.api.inventory.InventoryClick;
@@ -11,10 +10,8 @@ import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
-import dev.simplix.protocolize.data.packets.SetSlot;
 import dev.simplix.protocolize.data.packets.WindowItems;
 import lombok.Getter;
-import lombok.val;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
