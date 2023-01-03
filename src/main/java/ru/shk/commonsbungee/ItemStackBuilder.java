@@ -3,6 +3,7 @@ package ru.shk.commonsbungee;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -11,6 +12,7 @@ import net.querz.nbt.tag.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.commons.utils.CustomHead;
 import ru.shk.configapibungee.Config;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class ItemStackBuilder {
     private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     private final ItemStack item;
     private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(300);
+    @Getter private int customHeadId = -1;
 
     public ItemStackBuilder(ItemStack stack){
         this.item = stack;
@@ -37,6 +40,20 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder(ItemType type){
         item = new ItemStack(type);
+    }
+
+    public ItemStackBuilder customHead(int id){
+        base64head(Commons.getInstance().getCustomHeadTexture(id));
+        this.customHeadId = id;
+        return this;
+    }
+
+    public ItemStackBuilder customHead(String key){
+        CustomHead h = Commons.getInstance().findCustomHead(key);
+        if(h==null) return null;
+        base64head(h.getTexture());
+        this.customHeadId = h.getId();
+        return this;
     }
 
     public ItemStackBuilder(Configuration section){
@@ -76,6 +93,15 @@ public class ItemStackBuilder {
         Config.getIfHasInt(section, "custom-model-data", this::customModelData);
     }
 
+    public ItemType type(){
+        return item.itemType();
+    }
+
+    public ItemStackBuilder type(ItemType type){
+        item.itemType(type);
+        return this;
+    }
+
     public Integer customModelData(){
         return item.nbtData().containsKey("CustomModelData")?item.nbtData().getInt("CustomModelData"):null;
     }
@@ -88,6 +114,10 @@ public class ItemStackBuilder {
     public ItemStackBuilder amount(int amount){
         item.amount((byte) amount);
         return this;
+    }
+
+    public int amount(){
+        return item.amount();
     }
 
     public ItemStackBuilder lore(List<String> lore){
@@ -109,6 +139,7 @@ public class ItemStackBuilder {
         Optional<Pair<CachedPlayer,String>> o = headsCache.stream().filter(pair -> pair.getLeft().getName().equalsIgnoreCase(player)).findAny();
         if(o.isPresent()) return base64head(o.get().getRight());
         item.nbtData().put("SkullOwner", new StringTag(player));
+        customHeadId = -1;
         return this;
     }
     /**
@@ -118,9 +149,16 @@ public class ItemStackBuilder {
      *    **/
     public ItemStackBuilder headOwner(CachedPlayer player){
         Optional<Pair<CachedPlayer,String>> o = headsCache.stream().filter(pair -> pair.getLeft().getId()==player.getId()).findAny();
-        if(o.isPresent()) return base64head(o.get().getRight());
+        if(o.isPresent()) return base64head(o.get().getRight(), player.getName());
         item.nbtData().put("SkullOwner", new StringTag(player.getName()));
+        customHeadId = -1;
         return this;
+    }
+    public String headOwner(){
+        Tag<?> tag = item.nbtData().get("SkullOwner");
+        if(tag instanceof StringTag) return ((StringTag)tag).getValue();
+        @Nullable CompoundTag skullOwnerTag = item.nbtData().getCompoundTag("SkullOwner");
+        return skullOwnerTag.getString("Name");
     }
     /**
      * Applies player skin texture to PLAYER_HEAD.<br>
@@ -130,7 +168,8 @@ public class ItemStackBuilder {
     public ItemStackBuilder headOwnerBlockingThread(CachedPlayer player){
         String texture = getPlayerHead(player);
         if(texture==null) return headOwner(player.getName());
-        return base64head(texture);
+        customHeadId = -1;
+        return base64head(texture, player.getName());
     }
 
     /**
@@ -170,7 +209,20 @@ public class ItemStackBuilder {
         return o.get().getRight();
     }
 
+    public String base64head(){
+        final @NotNull CompoundTag tag = item.nbtData();
+        @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
+        if(skullOwnerTag==null) return null;
+        @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
+        if(propertiesTag==null) return null;
+        if(!propertiesTag.containsKey("textures")) return null;
+        final @NotNull ListTag<@NotNull CompoundTag> texturesTag = (ListTag<CompoundTag>) propertiesTag.getListTag("textures");
+        final @NotNull CompoundTag textureTag = texturesTag.get(0);
+        return textureTag.getString("Value");
+    }
+
     public ItemStackBuilder base64head(String texture){
+        customHeadId = -1;
         final @NotNull CompoundTag tag = item.nbtData();
         @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
         @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
@@ -188,7 +240,36 @@ public class ItemStackBuilder {
         texturesTag.add(textureTag);
         propertiesTag.put("textures", texturesTag);
         skullOwnerTag.put("Properties", propertiesTag);
-        skullOwnerTag.put("Name", new StringTag("aboba"));
+        skullOwnerTag.put("Name", new StringTag("##aboba"));
+
+        tag.put("SkullOwner", skullOwnerTag);
+
+        tag.put("HideFlags", new IntTag(99));
+        tag.put("overrideMeta", new ByteTag((byte)1));
+        item.nbtData(tag);
+        return this;
+    }
+
+    public ItemStackBuilder base64head(String texture, String ownerName){
+        customHeadId = -1;
+        final @NotNull CompoundTag tag = item.nbtData();
+        @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
+        @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
+        final @NotNull ListTag<@NotNull CompoundTag> texturesTag = new ListTag<>(CompoundTag.class);
+        final @NotNull CompoundTag textureTag = new CompoundTag();
+
+        if (skullOwnerTag == null) {
+            skullOwnerTag = new CompoundTag();
+        }
+        if (propertiesTag == null) {
+            propertiesTag = new CompoundTag();
+        }
+
+        textureTag.put("Value", new StringTag(texture));
+        texturesTag.add(textureTag);
+        propertiesTag.put("textures", texturesTag);
+        skullOwnerTag.put("Properties", propertiesTag);
+        skullOwnerTag.put("Name", new StringTag(ownerName));
 
         tag.put("SkullOwner", skullOwnerTag);
 

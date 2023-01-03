@@ -2,6 +2,7 @@ package ru.shk.commons.utils;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -24,6 +25,7 @@ import ru.shk.configapi.Config;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -34,7 +36,11 @@ public class ItemStackBuilder {
 
     private ItemStack stack;
     private ItemMeta meta;
+    @Getter private int customHeadId = -1;
 
+    public ItemStackBuilder(){
+        this(new ItemStack(Material.AIR));
+    }
     public ItemStackBuilder(@NonNull Material material) {
         this(new ItemStack(material));
     }
@@ -42,6 +48,25 @@ public class ItemStackBuilder {
     public ItemStackBuilder(@NonNull ItemStack stack) {
         this.stack = stack;
         meta();
+    }
+
+    @Override
+    public String toString() {
+        return ItemStackConverter.toString(this);
+    }
+
+    public ItemStackBuilder customHead(int id){
+        base64Head(Commons.getInstance().getCustomHeadTexture(id));
+        this.customHeadId = id;
+        return this;
+    }
+
+    public ItemStackBuilder customHead(String key){
+        CustomHead h = Commons.getInstance().findCustomHead(key);
+        if(h==null) return null;
+        base64Head(h.getTexture());
+        this.customHeadId = h.getId();
+        return this;
     }
 
     public ItemStackBuilder(@NonNull ConfigurationSection section){
@@ -170,10 +195,26 @@ public class ItemStackBuilder {
         this.meta = meta;
         return this;
     }
+    public ItemStackBuilder leatherColor(java.awt.Color color){
+        LeatherArmorMeta meta = (LeatherArmorMeta) this.meta;
+        meta.setColor(Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()));
+        this.meta = meta;
+        return this;
+    }
+
+    public String leatherColor(){
+        LeatherArmorMeta meta = (LeatherArmorMeta) this.meta;
+        Color c = meta.getColor();
+        return String.format("#%02X%02X%02X", c.getRed(), c.getGreen(), c.getBlue());
+    }
 
     public ItemStackBuilder type(@NonNull Material material) {
         stack.setType(material);
         return this;
+    }
+
+    public Material type(){
+        return stack.getType();
     }
 
     public ItemStackBuilder lore(@NonNull String... lore) {
@@ -237,6 +278,10 @@ public class ItemStackBuilder {
         return this;
     }
 
+    public int count(){
+        return stack.getAmount();
+    }
+
     public ItemStackBuilder potionData(@NonNull PotionData data) {
         if (isPotion()) {
             PotionMeta tempMeta = (PotionMeta) meta;
@@ -259,9 +304,34 @@ public class ItemStackBuilder {
         if (stack.getType() == Material.PLAYER_HEAD) {
             SkullMeta tempMeta = (SkullMeta) meta;
             tempMeta.setOwningPlayer(player);
+            this.customHeadId = -1;
             meta = tempMeta;
         }
         return this;
+    }
+    public ItemStackBuilder skullOwner(@NonNull UUID player) {
+        if (stack.getType() == Material.PLAYER_HEAD) {
+            SkullMeta tempMeta = (SkullMeta) meta;
+            tempMeta.setOwningPlayer(Bukkit.getOfflinePlayer(player));
+            this.customHeadId = -1;
+            meta = tempMeta;
+        }
+        return this;
+    }
+    public ItemStackBuilder skullOwner(@NonNull String player) {
+        if (stack.getType() == Material.PLAYER_HEAD) {
+            SkullMeta tempMeta = (SkullMeta) meta;
+            tempMeta.setOwningPlayer(Bukkit.getOfflinePlayer(player));
+            this.customHeadId = -1;
+            meta = tempMeta;
+        }
+        return this;
+    }
+    public String skullOwner(){
+        return ((SkullMeta)stack.getItemMeta()).getOwningPlayer().getName();
+    }
+    public UUID skullOwnerUUID(){
+        return ((SkullMeta)stack.getItemMeta()).getOwningPlayer().getUniqueId();
     }
     public ItemStackBuilder base64Head(String texture) {
         SkullMeta skullMeta = (SkullMeta) meta;
@@ -275,8 +345,22 @@ public class ItemStackBuilder {
         } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
             e.printStackTrace();
         }
+        this.customHeadId = -1;
         this.meta = skullMeta;
         return this;
+    }
+
+    public String base64Head() {
+        SkullMeta skullMeta = (SkullMeta) meta;
+        try {
+            Field profileField = skullMeta.getClass().getDeclaredField("profile");
+            profileField.setAccessible(true);
+            GameProfile profile = (GameProfile) profileField.get(skullMeta);
+            Collection<Property> collection = profile.getProperties().get("textures");
+            return collection.stream().filter(property -> property.getName().equals("textures")).findAny().get().getValue();
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {}
+        this.customHeadId = -1;
+        return null;
     }
 
     public ItemStackBuilder bannerPattern(@NonNull Pattern pattern) {

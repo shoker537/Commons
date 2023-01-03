@@ -45,10 +45,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -332,40 +329,63 @@ public class Commons extends Plugin implements Listener {
     }
 
     @Nullable
-    public ItemStackBuilder getCustomHead(int id){
-        if(customHeadsCache.containsKey(id)) return new ItemStackBuilder(ItemType.PLAYER_HEAD).base64head(customHeadsCache.get(id).getTexture());
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute();
-        try {
+    public CustomHead findCustomHead(int id){
+        if(customHeadsCache.containsKey(id)) return (customHeadsCache.get(id));
+        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute()) {
             if(rs.next()){
                 CustomHead head = new CustomHead(id, rs.getString("key"), rs.getString("texture"));
                 customHeadsCache.put(id, head);
-                return new ItemStackBuilder(ItemType.PLAYER_HEAD).base64head(head.getTexture());
+                return head;
             } else {
                 throw new NullPointerException("No custom head with id "+id);
             }
         } catch (Exception e) {
-            getProxy().getLogger().warning(e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
     @Nullable
-    public ItemStackBuilder getCustomHead(String key){
-        ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute();
-        try {
+    public String getCustomHeadTexture(int id){
+        CustomHead h = findCustomHead(id);
+        if(h==null) return null;
+        return h.getTexture();
+    }
+
+    public CustomHead findCustomHead(String key){
+        Optional<CustomHead> h = customHeadsCache.values().stream().filter(customHead -> customHead.getKey().equals(key)).findAny();
+        if(h.isPresent()) return h.get();
+        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute()) {
             if(rs.next()){
                 CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
-                return new ItemStackBuilder(ItemType.PLAYER_HEAD).base64head(head.getTexture());
+                customHeadsCache.put(head.getId(), head);
+                return head;
             } else {
                 throw new NullPointerException("No custom head with key "+key);
             }
         } catch (Exception e) {
-            getProxy().getLogger().warning(e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
+
+    @Nullable
+    public String getCustomHeadTexture(String key){
+        CustomHead h = findCustomHead(key);
+        if(h==null) return null;
+        return h.getTexture();
+    }
+
+    @Nullable
+    public ItemStackBuilder getCustomHead(int id){
+        return new ItemStackBuilder(ItemType.PLAYER_HEAD).customHead(id);
+    }
+
+    @Nullable
+    public ItemStackBuilder getCustomHead(String key){
+        return new ItemStackBuilder(ItemType.PLAYER_HEAD).customHead(key);
+    }
+
     public void async(Runnable r){
         threadPool.submit(r);
     }
