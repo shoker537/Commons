@@ -69,6 +69,7 @@ public class Commons extends Plugin implements Listener {
 
     @Override
     public void onLoad(){
+        ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.BUNGEE);
         SocketManager.serverType = ServerType.BUNGEE;
         instance = this;
         info(" ");

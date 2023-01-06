@@ -57,6 +57,7 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.SPIGOT);
         SocketManager.serverType = ServerType.SPIGOT;
         pool.setKeepAliveTime(15, TimeUnit.SECONDS);
         info(" ");
