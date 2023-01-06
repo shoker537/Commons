@@ -10,7 +10,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
@@ -63,9 +62,10 @@ public abstract class Version {
 
     @SneakyThrows
     public String getItemTypeTranslationKey(Material m) {
-        Item item = (Item) craftMagicNumbers().getMethod("getItem", Material.class).invoke(null, m);
-        if (item == null) return null;
-        return item.getDescriptionId();
+        return (String) craftMagicNumbers().getMethod("getTranslationKey", Material.class).invoke(null, m);
+//        Item item = (Item) craftMagicNumbers().getMethod("getItem", Material.class).invoke(null, m);
+//        if (item == null) return null;
+//        return item.getDescriptionId();
     }
     @SneakyThrows
     public Object getNMSWorld(World world) {
