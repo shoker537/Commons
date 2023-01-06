@@ -25,6 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+@Deprecated
 public class ItemStackBuilder {
 //    private static final ThreadPoolExecutor mojangRequestThreadPool = new ThreadPoolExecutor(1, 3, 10, TimeUnit.SECONDS, new SynchronousQueue<>());
 //    private static final ThreadPoolExecutor cacheThreadPool = new ThreadPoolExecutor(2, 5, 60, TimeUnit.SECONDS, new SynchronousQueue<>());

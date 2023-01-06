@@ -16,6 +16,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import ru.shk.commons.utils.items.bungee.BungeeItemStack;
 import ru.shk.commonsbungee.Commons;
 import ru.shk.commonsbungee.ItemStackBuilder;
 
@@ -87,6 +88,25 @@ public class GUI extends Inventory {
 
     public GUI item(int slot, ItemStack item, Consumer<InventoryClick> action){
         item(slot, item);
+        slotActions.put(slot, action);
+        update();
+        return this;
+    }
+
+    @Override
+    public Inventory item(int slot, ItemStack stack) {
+        super.item(slot, stack);
+        update();
+        return this;
+    }
+
+    public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder item){
+        item(slot, ((BungeeItemStack)item).build());
+        return this;
+    }
+
+    public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder item, Consumer<InventoryClick> action){
+        item(slot, ((BungeeItemStack)item).build());
         slotActions.put(slot, action);
         update();
         return this;

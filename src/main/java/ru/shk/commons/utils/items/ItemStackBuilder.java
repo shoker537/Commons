@@ -46,6 +46,9 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(String hexColor);
     public abstract ItemStackBuilder<ITEM,MATERIAL> type(MATERIAL material);
     public abstract ItemStackBuilder<ITEM,MATERIAL> type(String material);
+    public ItemStackBuilder<ITEM,MATERIAL> lore(String... lore){
+        return lore(Arrays.asList(lore));
+    }
     public abstract ItemStackBuilder<ITEM,MATERIAL> lore(List<String> lore);
     public abstract ItemStackBuilder<ITEM,MATERIAL> unbreakable(boolean b);
     public abstract ItemStackBuilder<ITEM,MATERIAL> enchant(EnchantmentType e, int level);
@@ -123,5 +126,14 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
             }
         }
         throw new RuntimeException("Unsupported ServerType!");
+    }
+
+    public static ItemStackBuilder fromString(String s){
+        return ItemStackConverter.fromString(s);
+    }
+
+    @Override
+    public String toString() {
+        return ItemStackConverter.toString(this);
     }
 }

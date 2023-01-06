@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+@Deprecated
 public class ItemStackConverter {
     private static final List<StringConverterRule> stringRules = new ArrayList<>();
 

@@ -9,7 +9,7 @@ public class Enchantment {
     private final EnchantmentType type;
     @Setter private int level = 1;
 
-    Enchantment(EnchantmentType type) {
+    public Enchantment(EnchantmentType type) {
         this.type = type;
     }
 

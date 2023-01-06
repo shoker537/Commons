@@ -3,7 +3,6 @@ package ru.shk.commons.utils.items.bukkit;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import land.shield.playerapi.CachedPlayer;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,12 +17,15 @@ import org.bukkit.inventory.meta.SkullMeta;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.items.ItemStackBuilder;
+import ru.shk.commons.utils.items.ItemStackConverter;
 import ru.shk.commons.utils.items.universal.EnchantmentType;
 
 import java.awt.*;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     private int customHeadId = -1;
@@ -299,5 +301,14 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     @Override
     public ItemStack build() {
         return item;
+    }
+
+    public static BukkitItemStack fromString(String s){
+        return (BukkitItemStack) ItemStackConverter.fromString(s);
+    }
+
+    @Override
+    public String toString() {
+        return ItemStackConverter.toString(this);
     }
 }

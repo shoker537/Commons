@@ -11,7 +11,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.querz.nbt.tag.*;
 import org.apache.commons.lang3.tuple.Pair;
 import ru.shk.commons.utils.CustomHead;
+import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.ItemStackBuilder;
+import ru.shk.commons.utils.items.ItemStackConverter;
 import ru.shk.commons.utils.items.universal.Enchantment;
 import ru.shk.commons.utils.items.universal.EnchantmentType;
 import ru.shk.commons.utils.items.universal.ItemFlag;
@@ -19,6 +21,7 @@ import ru.shk.commonsbungee.Commons;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -112,19 +115,22 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
     @Override
     public ItemStackBuilder<ItemStack, ItemType> enchant(EnchantmentType e, int level) {
         ListTag<?> array = item.nbtData().getListTag("Enchantments");
-        for (int i = 0; i < array.size(); i++) {
-            CompoundTag enchantment = (CompoundTag) array.get(i);
-            String id = enchantment.getString("id");
-            if(!id.equals(e.namespacedKey())) continue;
-            int l = enchantment.getInt("lvl");
-            if(l!=level) enchantment.put("lvl", new IntTag(level));
-            return this;
+        if(array!=null) {
+            for (int i = 0; i < array.size(); i++) {
+                CompoundTag enchantment = (CompoundTag) array.get(i);
+                String id = enchantment.getString("id");
+                if(!id.equals("minecraft:"+e.namespacedKey())) continue;
+                Logger.info("&eItem already has enchantment "+e.namespacedKey());
+                int l = enchantment.getInt("lvl");
+                if(l!=level) enchantment.put("lvl", new IntTag(level));
+                return this;
+            }
         }
         ListTag<CompoundTag> newList = new ListTag<>(CompoundTag.class);
-        array.forEach(tag -> newList.add((CompoundTag) tag));
+        if(array!=null) array.forEach(tag -> newList.add((CompoundTag) tag));
         CompoundTag eTag = new CompoundTag();
         eTag.put("id", new StringTag("minecraft:"+e.namespacedKey()));
-        eTag.put("lvl", new IntTag(level));
+        eTag.put("lvl", new ShortTag((short) level));
         newList.add(eTag);
         item.nbtData().put("Enchantments", newList);
         return this;
@@ -266,6 +272,15 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
     }
 
     public static List<Object> stringsToComponentList(List<String> list){
-        return list.stream().map(s -> ChatColor.WHITE+s).map(ru.shk.commonsbungee.ItemStackBuilder::stringToComponent).toList();
+        return list.stream().map(s -> ChatColor.WHITE+s).map(BungeeItemStack::stringToComponent).toList();
+    }
+
+    public static BungeeItemStack fromString(String s){
+        return (BungeeItemStack) ItemStackConverter.fromString(s);
+    }
+
+    @Override
+    public String toString() {
+        return ItemStackConverter.toString(this);
     }
 }

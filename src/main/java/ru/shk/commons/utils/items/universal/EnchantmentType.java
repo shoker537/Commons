@@ -63,7 +63,7 @@ public enum EnchantmentType {
     @Nullable
     public static EnchantmentType fromString(@NonNull String s){
         for (EnchantmentType value : values()) {
-            if(value.name().equalsIgnoreCase(s) || value.namespacedKey.equalsIgnoreCase(s)) return value;
+            if(value.name().equalsIgnoreCase(s) || value.namespacedKey().equalsIgnoreCase(s)) return value;
         }
 
         return null;

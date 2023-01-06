@@ -27,6 +27,7 @@ import ru.shk.commons.sockets.low.SocketManager;
 import ru.shk.commons.sockets.low.SocketMessageType;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.HTTPRequest;
+import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.TextComponentBuilder;
 import ru.shk.commonsbungee.cmd.CommonsCmd;
 import ru.shk.commonsbungee.cmd.CommonsTp;
@@ -69,6 +70,7 @@ public class Commons extends Plugin implements Listener {
 
     @Override
     public void onLoad(){
+        Logger.logger(getLogger());
         ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.BUNGEE);
         SocketManager.serverType = ServerType.BUNGEE;
         instance = this;

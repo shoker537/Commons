@@ -10,18 +10,17 @@ import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.ItemStackBuilder;
+import ru.shk.commons.utils.items.bukkit.BukkitItemStack;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 
 @Getter
 public class GUI {
@@ -73,6 +72,12 @@ public class GUI {
         if(inv!=null) setItemRaw(slot, item);
         return this;
     }
+    public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder item){
+        ItemStack finalItem = ((BukkitItemStack)item).build();
+        items.put(slot, finalItem);
+        if(inv!=null) setItemRaw(slot, finalItem);
+        return this;
+    }
     public GUI addItem(int slot, ItemStackBuilder item){
         return item(slot, item);
     }
@@ -93,6 +98,11 @@ public class GUI {
     }
     public GUI item(int slot, ItemStackBuilder item, Runnable clicked){
         item(slot, item.build());
+        slotActions.put(slot, clicked);
+        return this;
+    }
+    public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder item, Runnable clicked){
+        item(slot, ((BukkitItemStack)item).build());
         slotActions.put(slot, clicked);
         return this;
     }
