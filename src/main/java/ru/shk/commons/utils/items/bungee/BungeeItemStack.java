@@ -3,15 +3,14 @@ package ru.shk.commons.utils.items.bungee;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.querz.nbt.tag.*;
-import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.CustomHead;
-import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.ItemStackConverter;
 import ru.shk.commons.utils.items.universal.Enchantment;
@@ -21,7 +20,6 @@ import ru.shk.commonsbungee.Commons;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,14 +44,15 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHeadId(int id) {
-        base64head(Commons.getInstance().getCustomHeadTexture(id));
+    public ItemStackBuilder<ItemStack, ItemType> customHead(int id) {
+        String texture = Commons.getInstance().getCustomHeadTexture(id);
+        base64head(texture);
         this.customHeadId = id;
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHeadId(String key) {
+    public ItemStackBuilder<ItemStack, ItemType> customHead(String key) {
         CustomHead h = Commons.getInstance().findCustomHead(key);
         if(h==null) return this;
         base64head(h.getTexture());
@@ -120,7 +119,6 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
                 CompoundTag enchantment = (CompoundTag) array.get(i);
                 String id = enchantment.getString("id");
                 if(!id.equals("minecraft:"+e.namespacedKey())) continue;
-                Logger.info("&eItem already has enchantment "+e.namespacedKey());
                 int l = enchantment.getInt("lvl");
                 if(l!=level) enchantment.put("lvl", new IntTag(level));
                 return this;
@@ -156,21 +154,73 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
 
     @Override
     public ItemStackBuilder<ItemStack, ItemType> headOwner(String name) {
+        String texture = ItemStackBuilder.headsCache().getPlayerTexture(name);
+        if(texture==null) {
+            customHeadId = -1;
+            clearHeadOwnerTag();
+            item.nbtData().put("SkullOwner", new StringTag(name));
+            return this;
+        }
+        base64head(texture);
         return this;
+    }
+
+    private void clearHeadOwnerTag(){
+        item.nbtData().remove("SkullOwner");
     }
 
     @Override
     public ItemStackBuilder<ItemStack, ItemType> headOwner(UUID uuid) {
+        String texture = ItemStackBuilder.headsCache().getPlayerTexture(uuid);
+        if(texture==null) {
+            customHeadId = -1;
+            clearHeadOwnerTag();
+            return this;
+        }
+        base64head(texture);
         return this;
     }
 
     @Override
     public ItemStackBuilder<ItemStack, ItemType> headOwner(CachedPlayer player) {
+        String texture = ItemStackBuilder.headsCache().getPlayerTexture(player);
+        if(texture==null) {
+            customHeadId = -1;
+            clearHeadOwnerTag();
+            item.nbtData().put("SkullOwner", new StringTag(player.getName()));
+            return this;
+        }
+        base64head(texture);
         return this;
     }
 
     @Override
     public ItemStackBuilder<ItemStack, ItemType> base64head(String base64) {
+        customHeadId = -1;
+        final @NotNull CompoundTag tag = item.nbtData();
+        @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
+        @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
+        final @NotNull ListTag<@NotNull CompoundTag> texturesTag = new ListTag<>(CompoundTag.class);
+        final @NotNull CompoundTag textureTag = new CompoundTag();
+
+        if (skullOwnerTag == null) {
+            skullOwnerTag = new CompoundTag();
+        }
+        if (propertiesTag == null) {
+            propertiesTag = new CompoundTag();
+        }
+
+        textureTag.put("Value", new StringTag(base64));
+        texturesTag.add(textureTag);
+        propertiesTag.put("textures", texturesTag);
+        skullOwnerTag.put("Properties", propertiesTag);
+        skullOwnerTag.put("Name", new StringTag("##aboba"));
+
+        tag.put("SkullOwner", skullOwnerTag);
+
+        tag.put("HideFlags", new IntTag(99));
+        tag.put("overrideMeta", new ByteTag((byte)1));
+        item.nbtData(tag);
         return this;
     }
 
@@ -249,17 +299,22 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
 
     @Override
     public String headOwnerName() {
-        return null;
-    }
-
-    @Override
-    public UUID headOwnerUUID() {
-        return null;
+        @Nullable CompoundTag skullOwnerTag = item.nbtData().getCompoundTag("SkullOwner");
+        if(skullOwnerTag==null) return null;
+        return skullOwnerTag.containsKey("Name")?skullOwnerTag.getString("Name"):null;
     }
 
     @Override
     public String base64head() {
-        return null;
+        final @NotNull CompoundTag tag = item.nbtData();
+        @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
+        if(skullOwnerTag==null) return null;
+        @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
+        if(propertiesTag==null) return null;
+        if(!propertiesTag.containsKey("textures")) return null;
+        final @NotNull ListTag<@NotNull CompoundTag> texturesTag = (ListTag<CompoundTag>) propertiesTag.getListTag("textures");
+        final @NotNull CompoundTag textureTag = texturesTag.get(0);
+        return textureTag.getString("Value");
     }
 
     @Override

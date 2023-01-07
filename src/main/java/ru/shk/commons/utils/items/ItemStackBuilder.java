@@ -1,10 +1,14 @@
 package ru.shk.commons.utils.items;
 
 import land.shield.playerapi.CachedPlayer;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.items.universal.Enchantment;
 import ru.shk.commons.utils.items.universal.EnchantmentType;
+import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.items.universal.ItemFlag;
 
 import java.awt.*;
@@ -14,6 +18,8 @@ import java.util.List;
 import java.util.UUID;
 @NoArgsConstructor
 public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
+    @Getter@Accessors(fluent = true)
+    private static final HeadsCache headsCache = new HeadsCache();
 
     public static ItemStackBuilder newEmptyStack(){
         switch (ServerType.get()){
@@ -38,8 +44,8 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     }
 
     // SETTERS
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customHeadId(int id);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customHeadId(String key);
+    public abstract ItemStackBuilder<ITEM,MATERIAL> customHead(int id);
+    public abstract ItemStackBuilder<ITEM,MATERIAL> customHead(String key);
     public abstract ItemStackBuilder<ITEM,MATERIAL> displayName(String name);
     public abstract ItemStackBuilder<ITEM,MATERIAL> customModelData(int id);
     public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(Color color);
@@ -106,7 +112,6 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract int amount();
     public abstract int damage();
     public abstract String headOwnerName();
-    public abstract UUID headOwnerUUID();
     public abstract String base64head();
 
 

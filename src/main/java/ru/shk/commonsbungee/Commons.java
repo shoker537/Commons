@@ -29,6 +29,7 @@ import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.HTTPRequest;
 import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.TextComponentBuilder;
+import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commonsbungee.cmd.CommonsCmd;
 import ru.shk.commonsbungee.cmd.CommonsTp;
 import ru.shk.commonsbungee.cmd.ReloadChildPlugins;
@@ -126,6 +127,7 @@ public class Commons extends Plugin implements Listener {
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {
             mysql = new MySQL("shield_bungee");
+            HeadsCache.mysql(mysql);
         }
 //        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);

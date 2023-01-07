@@ -48,14 +48,14 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customHeadId(int id) {
+    public ItemStackBuilder<ItemStack, Material> customHead(int id) {
         base64head(Commons.getInstance().getCustomHeadTexture(id));
         this.customHeadId = id;
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customHeadId(String key) {
+    public ItemStackBuilder<ItemStack, Material> customHead(String key) {
         CustomHead h = Commons.getInstance().findCustomHead(key);
         if(h==null) return null;
         base64head(h.getTexture());
@@ -276,12 +276,6 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     public String headOwnerName() {
         OfflinePlayer p = ((SkullMeta)item.getItemMeta()).getOwningPlayer();
         return p==null?null:p.getName();
-    }
-
-    @Override
-    public UUID headOwnerUUID() {
-        OfflinePlayer p = ((SkullMeta)item.getItemMeta()).getOwningPlayer();
-        return p==null?null:p.getUniqueId();
     }
 
     @Override

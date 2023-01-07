@@ -1,7 +1,6 @@
 package ru.shk.commons.utils.items;
 
 import lombok.AllArgsConstructor;
-import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.items.universal.Enchantment;
 import ru.shk.commons.utils.items.universal.EnchantmentType;
@@ -13,7 +12,6 @@ import ru.shk.commons.utils.items.universal.parse.type.Value;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -28,8 +26,7 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"unbreakable", b -> new StringValue().value(String.valueOf(b.isUnbreakable())), (b, s) -> b.unbreakable(Boolean.parseBoolean(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"texture", b -> new StringValue().value(b.base64head()), (b, value) -> b.base64head(value.stringValue())));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"player", b -> new StringValue().value(b.headOwnerName()), (b, value) -> b.headOwner(value.stringValue())));
-        stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"player-uuid", b -> new StringValue().value(b.headOwnerUUID().toString()), (b, s) -> b.headOwner(UUID.fromString(s.stringValue()))));
-        stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"custom-head", b -> new StringValue().value(b.customHeadId()==-1?null:String.valueOf(b.customHeadId())), (b, s) -> b.customHeadId(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"custom-head", b -> new StringValue().value(b.customHeadId()==-1?null:String.valueOf(b.customHeadId())), (b, s) -> b.customHead(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"amount", b -> new StringValue().value(String.valueOf(b.amount())), (b, s) -> b.amount(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.LEATHER_ARMOR,"leather-color", b -> new StringValue().value(b.leatherColorAsHexString()), (b, s) -> b.leatherColor(Color.decode(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringValue().value(String.valueOf(ItemFlag.asInt(b.flags()))), (b, s) -> b.flags(Integer.parseInt(s.stringValue()))));

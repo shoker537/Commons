@@ -22,6 +22,7 @@ import ru.shk.commons.sockets.low.ServerType;
 import ru.shk.commons.sockets.low.SocketManager;
 import ru.shk.commons.sockets.low.SocketMessageType;
 import ru.shk.commons.utils.*;
+import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
@@ -165,6 +166,7 @@ public final class Commons extends JavaPlugin {
             if(config.contains("mysql-database")){
                 info("Connecting to database "+org.bukkit.ChatColor.GREEN+config.getString("mysql-database"));
                 mysql = new MySQL(config.getString("mysql-database"));
+                HeadsCache.mysql(mysql);
             } else {
                 warning("&cMySQL database is not defined in config! &rMySQL won't connect.");
             }

@@ -155,6 +155,7 @@ public class ItemStackBuilder {
         customHeadId = -1;
         return this;
     }
+
     public String headOwner(){
         Tag<?> tag = item.nbtData().get("SkullOwner");
         if(tag instanceof StringTag) return ((StringTag)tag).getValue();
