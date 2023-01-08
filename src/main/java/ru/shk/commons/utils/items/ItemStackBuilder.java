@@ -47,6 +47,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract ItemStackBuilder<ITEM,MATERIAL> customHead(int id);
     public abstract ItemStackBuilder<ITEM,MATERIAL> customHead(String key);
     public abstract ItemStackBuilder<ITEM,MATERIAL> displayName(String name);
+    public abstract ItemStackBuilder<ITEM,MATERIAL> displayName(Object name);
     public abstract ItemStackBuilder<ITEM,MATERIAL> customModelData(int id);
     public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(Color color);
     public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(String hexColor);
@@ -115,8 +116,8 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract String base64head();
 
 
-
     // UTILITIES
+    public abstract ItemStackBuilder<ITEM,MATERIAL> clone();
     public abstract ITEM build();
     public static String rgbToHex(int r, int g, int b){
         return String.format("#%02X%02X%02X", r, g, b);

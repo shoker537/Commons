@@ -67,6 +67,12 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
     }
 
     @Override
+    public ItemStackBuilder<ItemStack, ItemType> displayName(Object name) {
+        item.displayName(name);
+        return this;
+    }
+
+    @Override
     public ItemStackBuilder<ItemStack, ItemType> customModelData(int id) {
         item.nbtData().put("CustomModelData", new IntTag(id));
         return this;
@@ -315,6 +321,11 @@ public class BungeeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
         final @NotNull ListTag<@NotNull CompoundTag> texturesTag = (ListTag<CompoundTag>) propertiesTag.getListTag("textures");
         final @NotNull CompoundTag textureTag = texturesTag.get(0);
         return textureTag.getString("Value");
+    }
+
+    @Override
+    public ItemStackBuilder<ItemStack, ItemType> clone() {
+        return new BungeeItemStack(item.deepClone());
     }
 
     @Override

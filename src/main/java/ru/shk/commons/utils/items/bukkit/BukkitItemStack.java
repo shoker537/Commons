@@ -3,6 +3,7 @@ package ru.shk.commons.utils.items.bukkit;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import land.shield.playerapi.CachedPlayer;
+import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,6 +67,12 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     @Override
     public ItemStackBuilder<ItemStack, Material> displayName(String name) {
         item.editMeta(meta -> meta.setDisplayName(name));
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder<ItemStack, Material> displayName(Object name) {
+        item.editMeta(meta -> meta.displayName((Component) name));
         return this;
     }
 
@@ -290,6 +297,11 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
         } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {}
         this.customHeadId = -1;
         return null;
+    }
+
+    @Override
+    public ItemStackBuilder<ItemStack, Material> clone() {
+        return new BukkitItemStack(item.clone());
     }
 
     @Override
