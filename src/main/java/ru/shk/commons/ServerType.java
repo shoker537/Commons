@@ -4,7 +4,8 @@ import lombok.Setter;
 
 public enum ServerType {
     SPIGOT,
-    BUNGEE;
+    BUNGEE,
+    VELOCITY;
 
     @Setter private static ServerType type;
     public static ServerType get(){return type;}

@@ -185,7 +185,7 @@ public abstract class Version {
     }
 
     protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        return createScoreboardTeamPacket(createTeamOrUpdate, true, true, false, name, prefix, suffix, color, entries);
+        return createScoreboardTeamPacket(createTeamOrUpdate, collideTeammates, true, false, name, prefix, suffix, color, entries);
     }
 
     protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
