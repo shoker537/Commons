@@ -26,6 +26,9 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
             case SPIGOT -> {
                 return new ru.shk.commons.utils.items.bukkit.BukkitItemStack();
             }
+            case VELOCITY -> {
+                return new ru.shk.commons.utils.items.velocity.VelocityItemStack();
+            }
         }
         throw new RuntimeException("Unsupported ServerType!");
     }
