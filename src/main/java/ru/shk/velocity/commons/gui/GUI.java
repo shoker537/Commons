@@ -1,16 +1,12 @@
-package ru.shk.velocity.gui;
+package ru.shk.velocity.commons.gui;
 
 import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
-import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
-import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import ru.shk.guilib.protocolize.ProtocolizeGUI;
-import ru.shk.mysql.velocity.Velocity;
-import ru.shk.velocity.Commons;
-import ru.shk.velocity.utils.PluginMessage;
+import ru.shk.velocity.commons.Commons;
+import ru.shk.velocity.commons.utils.PluginMessage;
 
 import java.util.Optional;
 import java.util.UUID;

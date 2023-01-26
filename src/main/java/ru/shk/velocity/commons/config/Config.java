@@ -1,4 +1,4 @@
-package ru.shk.velocity.config;
+package ru.shk.velocity.commons.config;
 
 import lombok.Getter;
 import lombok.SneakyThrows;

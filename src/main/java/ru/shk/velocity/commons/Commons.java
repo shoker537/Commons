@@ -1,4 +1,4 @@
-package ru.shk.velocity;
+package ru.shk.velocity.commons;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -16,11 +16,10 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.yaml.snakeyaml.DumperOptions;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.mysql.database.MySQL;
-import ru.shk.velocity.config.Config;
+import ru.shk.velocity.commons.config.Config;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;

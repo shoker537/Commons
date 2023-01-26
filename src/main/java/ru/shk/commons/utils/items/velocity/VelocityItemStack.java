@@ -4,11 +4,10 @@ import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.protocolize.ProtocolizeItemStack;
-import ru.shk.velocity.Commons;
+import ru.shk.velocity.commons.Commons;
 
 @NoArgsConstructor
 public class VelocityItemStack extends ProtocolizeItemStack {

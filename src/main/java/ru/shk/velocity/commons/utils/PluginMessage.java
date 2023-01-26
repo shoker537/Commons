@@ -1,14 +1,12 @@
-package ru.shk.velocity.utils;
+package ru.shk.velocity.commons.utils;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.ChannelMessageSink;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import ru.shk.velocity.Commons;
+import ru.shk.velocity.commons.Commons;
 
 
 public class PluginMessage {
