@@ -9,9 +9,9 @@ public class Logger {
     private static java.util.logging.Logger logger;
 
     public static void info(String s){
-        logger.info(ChatColor.translateAlternateColorCodes('&', s));
+        logger.info(s.replace('&', '§'));
     }
     public static void warning(String s){
-        logger.warning(ChatColor.translateAlternateColorCodes('&', s));
+        logger.warning(s.replace('&', '§'));
     }
 }

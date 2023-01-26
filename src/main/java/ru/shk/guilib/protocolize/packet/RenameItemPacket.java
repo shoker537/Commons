@@ -1,4 +1,4 @@
-package ru.shk.guilibbungee.protocolize;
+package ru.shk.guilib.protocolize.packet;
 
 import dev.simplix.protocolize.api.PacketDirection;
 import dev.simplix.protocolize.api.mapping.AbstractProtocolMapping;

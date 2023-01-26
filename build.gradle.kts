@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.81-test6"
+version = "1.3.81"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -78,7 +78,6 @@ repositories {
 
 dependencies {
   paperDevBundle("1.19.2-R0.1-20220926.081544-62")
-//  compileOnly(files("E:/Libraries/spigot-1.17.1.jar"))
   implementation("org.apache.commons:commons-lang3:3.12.0")
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
@@ -96,6 +95,8 @@ dependencies {
   compileOnly("land.shield:PlayerAPI:1.5.1")
   compileOnly("ru.shk:MySQLAPI:2.2.1")
   compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
+  compileOnly("com.velocitypowered:velocity-api:3.0.1")
+  annotationProcessor("com.velocitypowered:velocity-api:3.0.1")
 }
 
 tasks {

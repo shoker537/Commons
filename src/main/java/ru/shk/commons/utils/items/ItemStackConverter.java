@@ -2,9 +2,7 @@ package ru.shk.commons.utils.items;
 
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
-import ru.shk.commons.utils.items.universal.Enchantment;
-import ru.shk.commons.utils.items.universal.EnchantmentType;
-import ru.shk.commons.utils.items.universal.ItemFlag;
+import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.universal.parse.type.StringListValue;
 import ru.shk.commons.utils.items.universal.parse.type.StringValue;
 import ru.shk.commons.utils.items.universal.parse.type.Value;
@@ -22,6 +20,8 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"type", b -> new StringValue().value(b.type().name()), (b, value) -> b.type(value.stringValue())));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"name", b -> new StringValue().value(b.displayName()), (b, value) -> b.displayName(value.stringValue())));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"lore", b -> new StringListValue().value(b.lore()), (b, value) -> b.lore(((StringListValue)value).value())));
+        stringRules.add(new StringConverterRule(ConvertMaterial.POTIONS,"potion-data", b -> new StringValue().value(b.potionData()), (b, value) -> b.potionData(PotionData.fromList(((StringListValue)value).value()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.POTIONS,"custom-potion", b -> new StringValue().value(b.customPotion()), (b, value) -> b.customPotion(PotionEffect.fromList(((StringListValue)value).value()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"enchant", b -> new StringListValue().value(enchantsToStringList(b.enchantments())), (b, s) -> b.enchant(enchantsFromString((StringListValue) s))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"unbreakable", b -> new StringValue().value(String.valueOf(b.isUnbreakable())), (b, s) -> b.unbreakable(Boolean.parseBoolean(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"texture", b -> new StringValue().value(b.base64head()), (b, value) -> b.base64head(value.stringValue())));
@@ -184,6 +184,7 @@ public class ItemStackConverter {
 
     private enum ConvertMaterial {
         ANY(null),
+        POTIONS(List.of("LINGERING_POTION", "POTION", "SPLASH_POTION", "TIPPED_ARROW")),
         LEATHER_ARMOR(List.of("LEATHER_CHESTPLATE", "LEATHER_BOOTS", "LEATHER_LEGGINGS", "LEATHER_HELMET")),
         HEADS(List.of("PLAYER_HEAD", "PLAYER_WALL_HEAD"));
 

@@ -134,7 +134,6 @@ public class Config {
         provider.save(configuration, file);
     }
 
-
     public static void getIfHasInt(Configuration section, String key, Consumer<Integer> next){
         if(section.contains(key)) next.accept(section.getInt(key));
     }

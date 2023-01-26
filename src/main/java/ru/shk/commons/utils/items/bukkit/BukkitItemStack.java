@@ -14,12 +14,17 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.ItemStackConverter;
 import ru.shk.commons.utils.items.universal.EnchantmentType;
+import ru.shk.commons.utils.items.universal.PotionData;
 
 import java.awt.*;
 import java.lang.reflect.Field;
@@ -84,14 +89,14 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
 
     @Override
     public ItemStackBuilder<ItemStack, Material> leatherColor(Color color) {
-        item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromBGR(color.getRed(), color.getGreen(), color.getBlue())));
+        item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue())));
         return this;
     }
 
     @Override
     public ItemStackBuilder<ItemStack, Material> leatherColor(String hexColor) {
         Color color = Color.decode(hexColor);
-        item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromBGR(color.getRed(), color.getGreen(), color.getBlue())));
+        item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue())));
         return this;
     }
 
@@ -133,6 +138,12 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     public ItemStackBuilder<ItemStack, Material> flags(int flags) {
         List<ru.shk.commons.utils.items.universal.ItemFlag> f = ru.shk.commons.utils.items.universal.ItemFlag.fromInt(flags);
         item.editMeta(meta -> f.forEach(itemFlag -> meta.addItemFlags(ItemFlag.valueOf(itemFlag.bukkitName()))));
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder<ItemStack, Material> customHeadId(int id) {
+        customHeadId = id;
         return this;
     }
 
@@ -203,6 +214,24 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
         this.customHeadId = -1;
         item.setItemMeta(skullMeta);
         return this;
+    }
+
+    @Override
+    public ItemStackBuilder<ItemStack, Material> potionData(PotionData potionData) {
+        item.editMeta(meta -> {
+            PotionMeta m = (PotionMeta) meta;
+            m.setBasePotionData(new org.bukkit.potion.PotionData(PotionType.valueOf(potionData.type().name()), potionData.extended(), potionData.upgraded()));
+        });
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder<ItemStack, Material> customPotion(ru.shk.commons.utils.items.universal.PotionEffect effect) {
+        item.editMeta(meta -> {
+            PotionMeta m = (PotionMeta) meta;
+            m.addCustomEffect(new PotionEffect(PotionEffectType.getByKey(NamespacedKey.minecraft(effect.type().minecraftKey())), effect.duration(), effect.amplifier(), effect.ambient(), effect.particles(), effect.icon()), true);
+        });
+        return null;
     }
 
     @Override
@@ -297,6 +326,21 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
         } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {}
         this.customHeadId = -1;
         return null;
+    }
+
+    @Override
+    public String potionData() {
+        if(item.getItemMeta()==null || !(item.getItemMeta() instanceof PotionMeta meta)) return null;
+        org.bukkit.potion.PotionData data = meta.getBasePotionData();
+        return new PotionData(PotionData.Type.valueOf(data.getType().name()), data.isExtended(), data.isUpgraded()).toString();
+    }
+
+    @Override
+    public String customPotion() {
+        if(item.getItemMeta()==null || !(item.getItemMeta() instanceof PotionMeta meta)) return null;
+        if(meta.getCustomEffects().size()==0) return null;
+        PotionEffect effect = meta.getCustomEffects().get(0);
+        return new ru.shk.commons.utils.items.universal.PotionEffect(ru.shk.commons.utils.items.universal.PotionType.byKey(effect.getType().getKey().getKey()), effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.hasParticles(), effect.hasIcon()).toString();
     }
 
     @Override

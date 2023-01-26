@@ -1,21 +1,18 @@
 package ru.shk.commons.utils.items;
 
 import land.shield.playerapi.CachedPlayer;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import ru.shk.commons.ServerType;
-import ru.shk.commons.utils.items.universal.Enchantment;
-import ru.shk.commons.utils.items.universal.EnchantmentType;
-import ru.shk.commons.utils.items.universal.HeadsCache;
-import ru.shk.commons.utils.items.universal.ItemFlag;
+import ru.shk.commons.utils.items.universal.*;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
 @NoArgsConstructor
 public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     @Getter@Accessors(fluent = true)
@@ -89,15 +86,17 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
         List<ItemFlag> f = new ArrayList<>(Arrays.asList(flags));
         return flags(f);
     }
+
     public abstract ItemStackBuilder<ITEM,MATERIAL> flags(int flags);
+    public abstract ItemStackBuilder<ITEM,MATERIAL> customHeadId(int id);
     public abstract ItemStackBuilder<ITEM,MATERIAL> amount(int amount);
     public abstract ItemStackBuilder<ITEM,MATERIAL> damage(int damage);
     public abstract ItemStackBuilder<ITEM,MATERIAL> headOwner(String name);
     public abstract ItemStackBuilder<ITEM,MATERIAL> headOwner(UUID uuid);
     public abstract ItemStackBuilder<ITEM,MATERIAL> headOwner(CachedPlayer player);
     public abstract ItemStackBuilder<ITEM,MATERIAL> base64head(String base64);
-
-
+    public abstract ItemStackBuilder<ITEM,MATERIAL> potionData(PotionData potionData);
+    public abstract ItemStackBuilder<ITEM,MATERIAL> customPotion(PotionEffect potionEffect);
 
     // GETTERS
     public abstract int customHeadId();
@@ -114,6 +113,8 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract int damage();
     public abstract String headOwnerName();
     public abstract String base64head();
+    public abstract String potionData();
+    public abstract String customPotion();
 
 
     // UTILITIES

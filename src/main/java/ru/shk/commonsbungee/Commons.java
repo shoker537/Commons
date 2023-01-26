@@ -57,7 +57,7 @@ public class Commons extends Plugin implements Listener {
     private ThreadPoolExecutor teleportService;
     private final HashMap<UUID, Future<?>> runningTeleports = new HashMap<>();
     @Getter private static Commons instance;
-    @Getter private boolean isProtocolizeInstelled = false;
+    @Getter private boolean isProtocolizeInstalled = false;
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     private MySQL mysql;
@@ -82,7 +82,7 @@ public class Commons extends Plugin implements Listener {
         if(getProxy().getPluginManager().getPlugin("Protocolize")==null) {
             warning("Protocolize not found! &fSome API features are unavailable.");
         } else {
-            isProtocolizeInstelled = true;
+            isProtocolizeInstalled = true;
         }
         try {
             plugins.add(new GUILib());
@@ -126,7 +126,7 @@ public class Commons extends Plugin implements Listener {
         if(getProxy().getPluginManager().getPlugin("MySQLAPI")==null){
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {
-            mysql = new MySQL("shield_bungee");
+            mysql = new MySQL(config.getString("database","shield_bungee"));
             HeadsCache.mysql(mysql);
         }
 //        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
@@ -254,8 +254,7 @@ public class Commons extends Plugin implements Listener {
 
     @Nullable
     public String getSkinTexture(CachedPlayer cp){
-        ResultSet rs = mysql.Query("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;");
-        try {
+        try (ResultSet rs = mysql.Query("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;")) {
             if (rs.next()) {
                 return rs.getString(1);
             }
@@ -299,9 +298,6 @@ public class Commons extends Plugin implements Listener {
             ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
             String type = in.readUTF();
             switch (type){
-//                case "CPAF" -> {
-//                    if(pafManager!=null) async(() -> pafManager.acceptPluginMessage((ProxiedPlayer) e.getReceiver(),in));
-//                }
                 case "executeAtBungee" -> {
                     String cmd = in.readUTF();
                     ProxiedPlayer p = (ProxiedPlayer) e.getReceiver();

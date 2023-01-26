@@ -431,6 +431,18 @@ public final class Commons extends JavaPlugin {
         fw.setMetadata("effect", new FixedMetadataValue(this, true));
         fw.detonate();
     }
+
+    public void firework(Location l, FireworkEffect.Builder builder){
+        Firework fw = (Firework) l.getWorld().spawnEntity(l, EntityType.FIREWORK);
+        FireworkMeta fireworkMeta = fw.getFireworkMeta();
+        FireworkEffect effect = builder.build();
+        fireworkMeta.addEffect(effect);
+        fireworkMeta.setPower(0);
+        fw.setFireworkMeta(fireworkMeta);
+        fw.setMetadata("effect", new FixedMetadataValue(this, true));
+        fw.detonate();
+    }
+
     public static String colorizeWithHex(String message) {
         Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
         Matcher matcher = pattern.matcher(message);
