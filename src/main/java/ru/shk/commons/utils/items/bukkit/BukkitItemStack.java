@@ -248,7 +248,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
             PotionMeta m = (PotionMeta) meta;
             m.addCustomEffect(new PotionEffect(PotionEffectType.getByKey(NamespacedKey.minecraft(effect.type().minecraftKey())), effect.duration(), effect.amplifier(), effect.ambient(), effect.particles(), effect.icon()), true);
         });
-        return null;
+        return this;
     }
 
     @Override
