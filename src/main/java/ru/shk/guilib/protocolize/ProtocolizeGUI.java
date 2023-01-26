@@ -107,6 +107,12 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
         return this;
     }
 
+    public Inventory item(int slot, ItemStackBuilder stack) {
+        super.item(slot, ((BungeeItemStack)stack).build());
+        update();
+        return this;
+    }
+
     public ProtocolizeGUI item(int slot, ItemStackBuilder item, Consumer<InventoryClick> action){
         item(slot, (ItemStack) item.build());
         slotActions.put(slot, action);
