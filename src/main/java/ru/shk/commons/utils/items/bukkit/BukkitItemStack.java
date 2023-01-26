@@ -94,6 +94,23 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
+    public ItemStackBuilder<ItemStack, Material> potionColor(int rgb) {
+        item.editMeta(meta -> {
+            PotionMeta meta1 = (PotionMeta) meta;
+            meta1.setColor(org.bukkit.Color.fromRGB(rgb));
+        });
+        return this;
+    }
+
+    public ItemStackBuilder<ItemStack, Material> potionColor(org.bukkit.Color color) {
+        item.editMeta(meta -> {
+            PotionMeta meta1 = (PotionMeta) meta;
+            meta1.setColor(color);
+        });
+        return this;
+    }
+
+    @Override
     public ItemStackBuilder<ItemStack, Material> leatherColor(String hexColor) {
         Color color = Color.decode(hexColor);
         item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue())));
@@ -240,13 +257,20 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
+    public Integer potionColor() {
+        if(!(item.getItemMeta() instanceof PotionMeta meta) || meta.getColor()==null) return null;
+        return meta.getColor().asRGB();
+    }
+
+    @Override
     public String displayName() {
         return item.getItemMeta().getDisplayName();
     }
 
     @Override
-    public int customModelData() {
-        return 0;
+    public Integer customModelData() {
+        if(!item.getItemMeta().hasCustomModelData()) return null;
+        return item.getItemMeta().getCustomModelData();
     }
 
     @Override
@@ -304,8 +328,9 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public int damage() {
-        return ((Damageable)item.getItemMeta()).getDamage();
+    public Integer damage() {
+        if(!(item.getItemMeta() instanceof Damageable d)) return null;
+        return d.getDamage();
     }
 
     @Override

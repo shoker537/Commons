@@ -28,6 +28,7 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"player", b -> new StringValue().value(b.headOwnerName()), (b, value) -> b.headOwner(value.stringValue())));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"custom-head", b -> new StringValue().value(b.customHeadId()==-1?null:String.valueOf(b.customHeadId())), (b, s) -> b.customHead(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"amount", b -> new StringValue().value(String.valueOf(b.amount())), (b, s) -> b.amount(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"potionColor", b -> new StringValue().value(String.valueOf(b.potionColor())), (b, s) -> b.potionColor(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.LEATHER_ARMOR,"leather-color", b -> new StringValue().value(b.leatherColorAsHexString()), (b, s) -> b.leatherColor(Color.decode(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringValue().value(String.valueOf(ItemFlag.asInt(b.flags()))), (b, s) -> b.flags(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"CMD", b -> new StringValue().value(String.valueOf(b.customModelData())), (b, s) -> b.customModelData(Integer.parseInt(s.stringValue()))));

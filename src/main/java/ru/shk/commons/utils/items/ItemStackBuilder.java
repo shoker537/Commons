@@ -48,6 +48,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract ItemStackBuilder<ITEM,MATERIAL> customModelData(int id);
     public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(Color color);
     public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(String hexColor);
+    public abstract ItemStackBuilder<ITEM,MATERIAL> potionColor(int rgb);
     public abstract ItemStackBuilder<ITEM,MATERIAL> type(MATERIAL material);
     public abstract ItemStackBuilder<ITEM,MATERIAL> type(String material);
     public ItemStackBuilder<ITEM,MATERIAL> lore(String... lore){
@@ -100,8 +101,9 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
 
     // GETTERS
     public abstract int customHeadId();
+    public abstract Integer potionColor();
     public abstract String displayName();
-    public abstract int customModelData();
+    public abstract Integer customModelData();
     public abstract Color leatherColor();
     public abstract String leatherColorAsHexString();
     public abstract MATERIAL type();
@@ -110,7 +112,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     public abstract List<Enchantment> enchantments();
     public abstract List<ItemFlag> flags();
     public abstract int amount();
-    public abstract int damage();
+    public abstract Integer damage();
     public abstract String headOwnerName();
     public abstract String base64head();
     public abstract String potionData();
@@ -130,6 +132,9 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
             }
             case SPIGOT -> {
                 return ru.shk.commons.Commons.colorizeWithHex(s);
+            }
+            case VELOCITY -> {
+                return s;
             }
         }
         throw new RuntimeException("Unsupported ServerType!");

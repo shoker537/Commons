@@ -452,8 +452,7 @@ public class Commons extends Plugin implements Listener {
         if(cp.getId()==-1) return ChatColor.RED+"Ошибка: id=-1";
         ProxiedPlayer pp = getProxy().getPlayer(cp.getUuid());
         if(pp!=null && pp.isConnected() && !isVanished(cp.getUuid())) return ChatColor.GREEN+"Онлайн"+ChatColor.WHITE+" на "+pp.getServer().getInfo().getName();
-        ResultSet rs = mysql.Query().SELECT("lastQuit").FROM("masuite_players").WHERE("id="+cp.getId()).LIMIT(1).execute();
-        try {
+        try (ResultSet rs = mysql.Query().SELECT("lastQuit").FROM("masuite_players").WHERE("id="+cp.getId()).LIMIT(1).execute()) {
             if(rs.next()){
                 long a = rs.getLong(1)*1000;
                 return ChatColor.RED+"Заходил "+ formatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(a), ZoneId.of("Europe/Moscow")));
@@ -465,8 +464,7 @@ public class Commons extends Plugin implements Listener {
     }
 
     public boolean isVanished(UUID uuid){
-        ResultSet rs = mysql.Query("SELECT Vanished FROM premiumvanish_playerdata WHERE uuid='"+uuid.toString()+"' LIMIT 1");
-        try {
+        try (ResultSet rs = mysql.Query("SELECT Vanished FROM premiumvanish_playerdata WHERE uuid='"+uuid.toString()+"' LIMIT 1")) {
             if(rs.next()){
                 return rs.getInt(1)==1;
             }

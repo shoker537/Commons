@@ -43,11 +43,6 @@ public class VelocityItemStack extends ProtocolizeItemStack {
     }
 
     @Override
-    public String colorize(String s) {
-        return s;
-    }
-
-    @Override
     public Object stringToComponent(String s) {
         return Commons.colorize(s);
     }

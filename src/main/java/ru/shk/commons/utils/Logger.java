@@ -2,7 +2,6 @@ package ru.shk.commons.utils;
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.md_5.bungee.api.ChatColor;
 
 public class Logger {
     @Setter@Accessors(fluent = true)

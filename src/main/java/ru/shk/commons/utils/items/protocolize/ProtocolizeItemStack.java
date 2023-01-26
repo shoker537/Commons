@@ -138,6 +138,18 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
+    public ItemStackBuilder<ItemStack, ItemType> potionColor(int rgb) {
+        item.nbtData().put("CustomPotionColor", new IntTag(rgb));
+        return this;
+    }
+
+    @Override
+    public Integer potionColor() {
+        if(!item.nbtData().containsKey("CustomPotionColor")) return null;
+        return item.nbtData().getInt("CustomPotionColor");
+    }
+
+    @Override
     public ItemStackBuilder<ItemStack, ItemType> headOwner(String name) {
         String texture = ItemStackBuilder.headsCache().getPlayerTexture(name);
         if(texture==null) {
@@ -248,8 +260,8 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public int customModelData() {
-        return item.nbtData().containsKey("CustomModelData")?item.nbtData().getInt("CustomModelData"):-1;
+    public Integer customModelData() {
+        return item.nbtData().containsKey("CustomModelData")?item.nbtData().getInt("CustomModelData"):null;
     }
 
     @Override
@@ -306,8 +318,8 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public int damage() {
-        return item.nbtData().containsKey("Damage")?item.nbtData().getInt("Damage"):0;
+    public Integer damage() {
+        return item.nbtData().containsKey("Damage")?item.nbtData().getInt("Damage"):null;
     }
 
     @Override
