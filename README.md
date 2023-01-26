@@ -36,6 +36,7 @@ All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-re
 Be careful at importing the correct Commons class:
 - **ru.shk.commons.Commons** for Spigot plugins
 - **ru.shk.commonsbungee.Commons** for Bungee plugins
+- **ru.shk.velocity.commons.Commons** for Velocity plugins
 
 # Commons (spigot-side)
 
