@@ -71,7 +71,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
 
     @Override
     public ItemStackBuilder<ItemStack, Material> displayName(String name) {
-        item.editMeta(meta -> meta.setDisplayName(name));
+        item.editMeta(meta -> meta.setDisplayName(colorize(name)));
         return this;
     }
 
