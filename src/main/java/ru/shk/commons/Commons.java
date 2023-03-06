@@ -3,7 +3,9 @@ package ru.shk.commons;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.google.gson.JsonObject;
 import com.sk89q.worldedit.WorldEdit;
+import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
@@ -32,11 +34,12 @@ import ru.shk.mysql.database.MySQL;
 import javax.annotation.Nullable;
 import java.io.DataInputStream;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -96,6 +99,17 @@ public final class Commons extends JavaPlugin {
         });
     }
 
+    public long getPlayerPlayedTime(String uuid){
+        try (ResultSet rs = mysql.Query("SELECT time FROM BungeeOnlineTime WHERE uuid='"+uuid+"' LIMIT 1")) {
+            if(rs.next()){
+                return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     private void sendLocationFeedback(String uuid, Coordinates coordinates){
         ByteArrayDataOutput o = ByteStreams.newDataOutput();
         o.writeUTF("location");
@@ -141,23 +155,23 @@ public final class Commons extends JavaPlugin {
         if(!config.contains("sockets.server-port")) config.setValue("sockets.server-port", 3001);
         if(!config.contains("sockets.bungee-socket-ip")) config.setValue("sockets.bungee-socket-ip", "127.0.0.1");
         if(!config.contains("sockets.bungee-socket-port")) config.setValue("sockets.bungee-socket-port", 3000);
-        if(config.getBoolean("sockets.enable")) {
-            socketManager = new SocketManager(
-                    config.getBoolean("sockets.auto-find-port")?-1:config.getInt("sockets.server-port"),
-                    s -> sync(() -> getServer().getConsoleSender().sendMessage(colorize(s))),
-                    new InetSocketAddress(config.getString("sockets.bungee-socket-ip"), config.getInt("sockets.bungee-socket-port"))
-            );
-            socketManager.getSocketThread().start();
-
-            // TEST
-            DecimalFormat f = new DecimalFormat("##.#");
-            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
-                @Override
-                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
-                    manager.sendToBungee("TPS", List.of(f.format(MinecraftServer.getServer().recentTps[0]).toString()));
-                }
-            });
-        }
+//        if(config.getBoolean("sockets.enable")) {
+//            socketManager = new SocketManager(
+//                    config.getBoolean("sockets.auto-find-port")?-1:config.getInt("sockets.server-port"),
+//                    s -> sync(() -> getServer().getConsoleSender().sendMessage(colorize(s))),
+//                    new InetSocketAddress(config.getString("sockets.bungee-socket-ip"), config.getInt("sockets.bungee-socket-port"))
+//            );
+//            socketManager.getSocketThread().start();
+//
+//            // TEST
+//            DecimalFormat f = new DecimalFormat("##.#");
+//            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
+//                @Override
+//                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
+//                    manager.sendToBungee("TPS", List.of(f.format(MinecraftServer.getServer().recentTps[0]).toString()));
+//                }
+//            });
+//        }
         getServer().getPluginManager().registerEvents(new Events(), this);
         if(Bukkit.getPluginManager().getPlugin("MySQLAPI")==null){
             warning("&cMySQLAPI not loaded! &rSome features may be not available.");
@@ -267,15 +281,15 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if(socketManager!=null){
-            socketManager.sendToBungee(SocketMessageType.UNREGISTER, List.of());
-            try {
-                socketManager.getSocketThread().getSendQueue().awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            socketManager.close();
-        }
+//        if(socketManager!=null){
+//            socketManager.sendToBungee(SocketMessageType.UNREGISTER, List.of());
+//            try {
+//                socketManager.getSocketThread().getSendQueue().awaitTermination(3, TimeUnit.SECONDS);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            socketManager.close();
+//        }
         plugins.forEach(plugin -> {
             try {
                 plugin.disable();
@@ -322,6 +336,35 @@ public final class Commons extends JavaPlugin {
         return h.getTexture();
     }
 
+
+    @Nullable
+    public String getSkinTexture(CachedPlayer cp){
+        try (ResultSet rs = mysql.Query("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;")) {
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        String texture = getSkinTextureFromMojang(cp.getUuid());
+        if(texture==null) return null;
+        mysql.Update("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
+        return texture;
+    }
+
+    private static String getSkinTextureFromMojang(UUID uuid) {
+        try {
+            String trimmedUUID = uuid.toString().replace("-", "");
+            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"+trimmedUUID+"?unsigned=false");
+            JsonObject o = new HTTPRequest(url).get().asJson();
+            return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
+        } catch (Exception e){
+            ru.shk.commonsbungee.Commons.getInstance().warning(e.getMessage());
+            return null;
+        }
+    }
+
     public CustomHead findCustomHead(String key){
         Optional<CustomHead> h = customHeadsCache.values().stream().filter(customHead -> customHead.getKey().equals(key)).findAny();
         if(h.isPresent()) return h.get();
@@ -347,12 +390,12 @@ public final class Commons extends JavaPlugin {
         return h.getTexture();
     }
 
-    @Nullable
+    @Nullable@Deprecated
     public ItemStackBuilder getCustomHead(int id){
         return new ItemStackBuilder(Material.PLAYER_HEAD).customHead(id);
     }
 
-    @Nullable
+    @Nullable@Deprecated
     public ItemStackBuilder getCustomHead(String key){
         return new ItemStackBuilder(Material.PLAYER_HEAD).customHead(key);
     }

@@ -5,12 +5,11 @@ import dev.simplix.protocolize.data.ItemType;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import ru.shk.commons.utils.CustomHead;
-import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.protocolize.ProtocolizeItemStack;
 import ru.shk.velocity.commons.Commons;
 
 @NoArgsConstructor
-public class VelocityItemStack extends ProtocolizeItemStack {
+public class VelocityItemStack extends ProtocolizeItemStack<VelocityItemStack> {
 
     public VelocityItemStack(@NonNull ItemStack stack) {
         super(stack);
@@ -25,7 +24,7 @@ public class VelocityItemStack extends ProtocolizeItemStack {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHead(int id) {
+    public VelocityItemStack customHead(int id) {
         String texture = Commons.getInstance().getCustomHeadTexture(id);
         if(texture==null) return this;
         base64head(texture);
@@ -34,7 +33,7 @@ public class VelocityItemStack extends ProtocolizeItemStack {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHead(String key) {
+    public VelocityItemStack customHead(String key) {
         CustomHead head = Commons.getInstance().findCustomHead(key);
         if(head==null) return this;
         base64head(head.getTexture());

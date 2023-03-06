@@ -12,7 +12,7 @@ import ru.shk.commons.utils.items.protocolize.ProtocolizeItemStack;
 import ru.shk.commonsbungee.Commons;
 
 @NoArgsConstructor
-public class BungeeItemStack extends ProtocolizeItemStack {
+public class BungeeItemStack extends ProtocolizeItemStack<BungeeItemStack> {
 
     public BungeeItemStack(@NonNull ItemStack stack) {
         super(stack);
@@ -27,7 +27,7 @@ public class BungeeItemStack extends ProtocolizeItemStack {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHead(int id) {
+    public BungeeItemStack customHead(int id) {
         String texture = Commons.getInstance().getCustomHeadTexture(id);
         if(texture==null) return this;
         base64head(texture);
@@ -36,7 +36,7 @@ public class BungeeItemStack extends ProtocolizeItemStack {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHead(String key) {
+    public BungeeItemStack customHead(String key) {
         CustomHead h = Commons.getInstance().findCustomHead(key);
         if(h==null) return this;
         base64head(h.getTexture());

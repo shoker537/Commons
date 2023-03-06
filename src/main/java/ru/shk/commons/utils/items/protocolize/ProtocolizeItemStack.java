@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, ItemType> {
+public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> extends ItemStackBuilder<ItemStack, ItemType, R> {
     private int customHeadId = -1;
     private ItemStack item;
 
@@ -40,64 +40,64 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> displayName(String name) {
+    public R displayName(String name) {
         item.displayName(stringToComponent(colorize(name)));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> displayName(Object name) {
+    public R displayName(Object name) {
         item.displayName(name);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customModelData(int id) {
+    public R customModelData(int id) {
         item.nbtData().put("CustomModelData", new IntTag(id));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> leatherColor(Color color) {
+    public R leatherColor(Color color) {
         CompoundTag tag = item.nbtData().getCompoundTag("display");
         tag.put("color", new IntTag(color.getRGB()));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> leatherColor(String hexColor) {
+    public R leatherColor(String hexColor) {
         Color color = Color.decode(hexColor);
         CompoundTag tag = item.nbtData().getCompoundTag("display");
         tag.put("color", new IntTag(color.getRGB()));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> type(ItemType type) {
+    public R type(ItemType type) {
         item.itemType(type);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> type(String material) {
+    public R type(String material) {
         item.itemType(ItemType.valueOf(material.toUpperCase()));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> lore(java.util.List<String> lore) {
+    public R lore(java.util.List<String> lore) {
         item.lore(stringsToComponentList(lore.stream().map(this::colorize).toList()), false);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> unbreakable(boolean b) {
+    public R unbreakable(boolean b) {
         item.nbtData().put("Unbreakable", new ByteTag((byte)(b?1:0)));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> enchant(EnchantmentType e, int level) {
+    public R enchant(EnchantmentType e, int level) {
         ListTag<?> array = item.nbtData().getListTag("Enchantments");
         if(array!=null) {
             for (int i = 0; i < array.size(); i++) {
@@ -106,7 +106,7 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
                 if(!id.equals("minecraft:"+e.namespacedKey())) continue;
                 int l = enchantment.getInt("lvl");
                 if(l!=level) enchantment.put("lvl", new IntTag(level));
-                return this;
+                return (R) this;
             }
         }
         ListTag<CompoundTag> newList = new ListTag<>(CompoundTag.class);
@@ -116,31 +116,31 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
         eTag.put("lvl", new ShortTag((short) level));
         newList.add(eTag);
         item.nbtData().put("Enchantments", newList);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> flags(int flags) {
+    public R flags(int flags) {
         item.nbtData().put("HideFlags", new IntTag(flags));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> amount(int amount) {
+    public R amount(int amount) {
         item.amount((byte) amount);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> damage(int damage) {
+    public R damage(int damage) {
         item.nbtData().put("Damage", new IntTag(damage));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> potionColor(int rgb) {
+    public R potionColor(int rgb) {
         item.nbtData().put("CustomPotionColor", new IntTag(rgb));
-        return this;
+        return (R) this;
     }
 
     @Override
@@ -150,16 +150,16 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> headOwner(String name) {
+    public R headOwner(String name) {
         String texture = ItemStackBuilder.headsCache().getPlayerTexture(name);
         if(texture==null) {
             customHeadId = -1;
             clearHeadOwnerTag();
             item.nbtData().put("SkullOwner", new StringTag(name));
-            return this;
+            return (R) this;
         }
         base64head(texture);
-        return this;
+        return (R) this;
     }
 
     private void clearHeadOwnerTag(){
@@ -167,32 +167,32 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> headOwner(UUID uuid) {
+    public R headOwner(UUID uuid) {
         String texture = ItemStackBuilder.headsCache().getPlayerTexture(uuid);
         if(texture==null) {
             customHeadId = -1;
             clearHeadOwnerTag();
-            return this;
+            return (R) this;
         }
         base64head(texture);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> headOwner(CachedPlayer player) {
+    public R headOwner(CachedPlayer player) {
         String texture = ItemStackBuilder.headsCache().getPlayerTexture(player);
         if(texture==null) {
             customHeadId = -1;
             clearHeadOwnerTag();
             item.nbtData().put("SkullOwner", new StringTag(player.getName()));
-            return this;
+            return (R) this;
         }
         base64head(texture);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> base64head(String base64) {
+    public R base64head(String base64) {
         customHeadId = -1;
         final @NotNull CompoundTag tag = item.nbtData();
         @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
@@ -218,18 +218,18 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
         tag.put("HideFlags", new IntTag(99));
         tag.put("overrideMeta", new ByteTag((byte)1));
         item.nbtData(tag);
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> potionData(PotionData potionData) {
+    public R potionData(PotionData potionData) {
         String potion = (potionData.extended()?"long_":"")+(potionData.upgraded()?"strong_":"")+potionData.type().name().toLowerCase();
         item.nbtData().put("Potion", new StringTag(potion));
-        return this;
+        return (R) this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customPotion(PotionEffect potionEffect) {
+    public R customPotion(PotionEffect potionEffect) {
         final @NotNull ListTag<@NotNull CompoundTag> effects = new ListTag<>(CompoundTag.class);
         CompoundTag tag = new CompoundTag();
         tag.put("id", new IntTag(potionEffect.type().id()));
@@ -240,7 +240,7 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
         tag.put("ShowIcon", new ByteTag((byte) (potionEffect.icon()?1:0)));
         effects.add(tag);
         item.nbtData().put("CustomPotionEffects", effects);
-        return this;
+        return (R) this;
     }
 
     @Override
@@ -249,9 +249,9 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> customHeadId(int id) {
+    public R customHeadId(int id) {
         this.customHeadId = id;
-        return this;
+        return (R) this;
     }
 
     @Override
@@ -368,8 +368,8 @@ public abstract class ProtocolizeItemStack extends ItemStackBuilder<ItemStack, I
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, ItemType> clone() {
-        return switch (ServerType.get()){
+    public R clone() {
+        return (R) switch (ServerType.get()){
             case BUNGEE -> new BungeeItemStack(item.deepClone());
             case VELOCITY -> new VelocityItemStack(item.deepClone());
             default -> throw new IllegalStateException("This class cannot be used on "+ServerType.get()+" server.");

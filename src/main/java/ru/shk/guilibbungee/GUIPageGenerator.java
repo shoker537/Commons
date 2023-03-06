@@ -101,9 +101,10 @@ public class GUIPageGenerator {
 
     public void clear(){
         for (int i = firstGeneratorSlot; i <= lastGeneratorSlot+9; i++) {
-            gui.clear(i);
-            gui.item(i, backgroundItem);
+            gui.clear(i, false);
+            if(backgroundItem!=null && backgroundItem.itemType()!=ItemType.AIR) gui.item(i, backgroundItem);
         }
+        gui.update();
     }
 
     public void fillBottomPanes(){

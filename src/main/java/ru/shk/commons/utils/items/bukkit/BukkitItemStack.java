@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
+public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, BukkitItemStack> {
     private int customHeadId = -1;
     private ItemStack item;
 
@@ -54,14 +54,14 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customHead(int id) {
+    public BukkitItemStack customHead(int id) {
         base64head(Commons.getInstance().getCustomHeadTexture(id));
         this.customHeadId = id;
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customHead(String key) {
+    public BukkitItemStack customHead(String key) {
         CustomHead h = Commons.getInstance().findCustomHead(key);
         if(h==null) return null;
         base64head(h.getTexture());
@@ -70,31 +70,31 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> displayName(String name) {
+    public BukkitItemStack displayName(String name) {
         item.editMeta(meta -> meta.setDisplayName(colorize(name)));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> displayName(Object name) {
+    public BukkitItemStack displayName(Object name) {
         item.editMeta(meta -> meta.displayName((Component) name));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customModelData(int id) {
+    public BukkitItemStack customModelData(int id) {
         item.editMeta(meta -> meta.setCustomModelData(id));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> leatherColor(Color color) {
+    public BukkitItemStack leatherColor(Color color) {
         item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue())));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> potionColor(int rgb) {
+    public BukkitItemStack potionColor(int rgb) {
         item.editMeta(meta -> {
             PotionMeta meta1 = (PotionMeta) meta;
             meta1.setColor(org.bukkit.Color.fromRGB(rgb));
@@ -102,7 +102,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
         return this;
     }
 
-    public ItemStackBuilder<ItemStack, Material> potionColor(org.bukkit.Color color) {
+    public BukkitItemStack potionColor(org.bukkit.Color color) {
         item.editMeta(meta -> {
             PotionMeta meta1 = (PotionMeta) meta;
             meta1.setColor(color);
@@ -111,14 +111,14 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> leatherColor(String hexColor) {
+    public BukkitItemStack leatherColor(String hexColor) {
         Color color = Color.decode(hexColor);
         item.editMeta(meta -> ((LeatherArmorMeta)meta).setColor(org.bukkit.Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue())));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> type(Material material) {
+    public BukkitItemStack type(Material material) {
         if(customHeadId!=-1 && item!=null && (item.getType()==Material.PLAYER_HEAD || item.getType()==Material.PLAYER_WALL_HEAD) && !(material==Material.PLAYER_HEAD || material==Material.PLAYER_WALL_HEAD)) customHeadId = -1;
         if(item==null){
             item = new ItemStack(material);
@@ -129,53 +129,53 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> type(String material) {
+    public BukkitItemStack type(String material) {
         return type(Material.valueOf(material.toUpperCase()));
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> lore(List<String> lore) {
+    public BukkitItemStack lore(List<String> lore) {
         item.editMeta(meta -> meta.setLore(lore.stream().map(this::colorize).toList()));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> unbreakable(boolean b) {
+    public BukkitItemStack unbreakable(boolean b) {
         item.editMeta(meta -> meta.setUnbreakable(b));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> enchant(EnchantmentType e, int level) {
+    public BukkitItemStack enchant(EnchantmentType e, int level) {
         item.addEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(e.namespacedKey())), level);
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> flags(int flags) {
+    public BukkitItemStack flags(int flags) {
         List<ru.shk.commons.utils.items.universal.ItemFlag> f = ru.shk.commons.utils.items.universal.ItemFlag.fromInt(flags);
         item.editMeta(meta -> f.forEach(itemFlag -> meta.addItemFlags(ItemFlag.valueOf(itemFlag.bukkitName()))));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customHeadId(int id) {
+    public BukkitItemStack customHeadId(int id) {
         customHeadId = id;
         return this;
     }
 
-    public ItemStackBuilder<ItemStack, Material> enchant(Enchantment e, int level){
+    public BukkitItemStack enchant(Enchantment e, int level){
         item.addUnsafeEnchantment(e, level);
         return this;
     }
 
-    public ItemStackBuilder<ItemStack, Material> bukkitFlags(ItemFlag... flags){
+    public BukkitItemStack bukkitFlags(ItemFlag... flags){
         item.editMeta(meta -> {
             for (ItemFlag flag : flags) meta.addItemFlags(flag);
         });
         return this;
     }
-    public ItemStackBuilder<ItemStack, Material> bukkitFlags(List<ItemFlag> flags){
+    public BukkitItemStack bukkitFlags(List<ItemFlag> flags){
         item.editMeta(meta -> {
             for (ItemFlag flag : flags) meta.addItemFlags(flag);
         });
@@ -183,40 +183,53 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> amount(int amount) {
+    public BukkitItemStack amount(int amount) {
         item.setAmount(amount);
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> damage(int damage) {
+    public BukkitItemStack damage(int damage) {
         item.editMeta(meta -> ((Damageable)meta).setDamage(damage));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> headOwner(String name) {
-        return headOwner(Bukkit.getOfflinePlayer(name));
+    public BukkitItemStack headOwner(String name) {
+        CachedPlayer cp = CachedPlayer.of(name);
+        if(cp.notPresent()) return localHeadOwner(Bukkit.getOfflinePlayer(name));
+        return headOwner(cp);
     }
 
-    public ItemStackBuilder<ItemStack, Material> headOwner(OfflinePlayer p) {
+    public BukkitItemStack headOwner(OfflinePlayer p) {
+        CachedPlayer cp = CachedPlayer.of(p.getUniqueId());
+        if(cp.notPresent()) return localHeadOwner(p);
+        return headOwner(cp);
+    }
+
+    private BukkitItemStack localHeadOwner(OfflinePlayer p){
         this.customHeadId = -1;
         item.editMeta(meta -> ((SkullMeta)meta).setOwningPlayer(p));
         return this;
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> headOwner(UUID uuid) {
-        return headOwner(Bukkit.getOfflinePlayer(uuid));
+    public BukkitItemStack headOwner(UUID uuid) {
+        CachedPlayer cp = CachedPlayer.of(uuid);
+        if(cp.notPresent()) return localHeadOwner(Bukkit.getOfflinePlayer(uuid));
+        return headOwner(cp);
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> headOwner(CachedPlayer player) {
-        return headOwner(player.getUuid());
+    public BukkitItemStack headOwner(CachedPlayer cp) {
+        if(cp.notPresent()) return this;
+        String s = Commons.getInstance().getSkinTexture(cp);
+        if(s==null) return this;
+        return base64head(s);
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> base64head(String base64) {
+    public BukkitItemStack base64head(String base64) {
         SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
         GameProfile profile = new GameProfile(new UUID(0,0), "");
         profile.getProperties().put("textures", new Property("textures", base64));
@@ -234,7 +247,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> potionData(PotionData potionData) {
+    public BukkitItemStack potionData(PotionData potionData) {
         item.editMeta(meta -> {
             PotionMeta m = (PotionMeta) meta;
             m.setBasePotionData(new org.bukkit.potion.PotionData(PotionType.valueOf(potionData.type().name()), potionData.extended(), potionData.upgraded()));
@@ -243,7 +256,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> customPotion(ru.shk.commons.utils.items.universal.PotionEffect effect) {
+    public BukkitItemStack customPotion(ru.shk.commons.utils.items.universal.PotionEffect effect) {
         item.editMeta(meta -> {
             PotionMeta m = (PotionMeta) meta;
             m.addCustomEffect(new PotionEffect(PotionEffectType.getByKey(NamespacedKey.minecraft(effect.type().minecraftKey())), effect.duration(), effect.amplifier(), effect.ambient(), effect.particles(), effect.icon()), true);
@@ -369,7 +382,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material> {
     }
 
     @Override
-    public ItemStackBuilder<ItemStack, Material> clone() {
+    public BukkitItemStack clone() {
         return new BukkitItemStack(item.clone());
     }
 

@@ -1,6 +1,7 @@
 package ru.shk.guilibbungee;
 
 import dev.simplix.protocolize.api.inventory.InventoryClick;
+import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import net.md_5.bungee.api.ProxyServer;
@@ -35,6 +36,26 @@ public class GUI extends ProtocolizeGUI<Plugin, ProxiedPlayer> {
     @Override
     public String colorize(String s) {
         return Commons.getInstance().colorize(s);
+    }
+
+    public GUI item(int slot, ItemStack item, Consumer<InventoryClick> action) {
+        super.item(slot, item, action);
+        return this;
+    }
+
+    public GUI item(int slot, ItemStack stack) {
+        super.item(slot, stack);
+        return this;
+    }
+
+    public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder stack) {
+        super.item(slot, stack);
+        return this;
+    }
+
+    public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder item, Consumer<InventoryClick> action) {
+        super.item(slot, item, action);
+        return this;
     }
 
     @Override

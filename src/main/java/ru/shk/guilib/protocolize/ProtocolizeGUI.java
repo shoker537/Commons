@@ -75,10 +75,14 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
     public abstract void updateBackendInv(ProtocolizePlayer player);
 
     public void clear(int itemSlot){
+        clear(itemSlot, true);
+    }
+
+    public void clear(int itemSlot, boolean update){
         removeItem(itemSlot);
-        item(itemSlot, new ItemStack(ItemType.AIR));
+        super.item(itemSlot, new ItemStack(ItemType.AIR));
         slotActions.remove(itemSlot);
-        update();
+        if(update) update();
     }
 
     public void clear(){
@@ -127,9 +131,9 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
         ProtocolizePlayer player = Protocolize.playerProvider().player(uuid);
         if(player==null) return;
         player.openInventory(this);
-        windowId(getInvId());
         open = true;
         pp = uuid;
+        windowId(getInvId());
     }
 
     public void close(UUID uuid){
@@ -148,6 +152,7 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
 
     public int getInvId(){
         int windowId = -1;
+        if(pp==null) return windowId;
         ProtocolizePlayer player = Protocolize.playerProvider().player(pp);
         for (Integer id : player.registeredInventories().keySet()) {
             if(player.registeredInventories().get(id).equals(this)) {

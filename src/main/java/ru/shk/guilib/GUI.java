@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Getter
 public class GUI {
@@ -31,6 +32,7 @@ public class GUI {
     @Getter(AccessLevel.NONE) private Inventory inv;
     private final HashMap<Integer, ItemStack> items = new HashMap<>();
     private final HashMap<Integer, Runnable> slotActions = new HashMap<>();
+    private final HashMap<Integer, Consumer<ClickType>> slotMultiActions = new HashMap<>();
     private final HashMap<Material, Runnable> materialActions = new HashMap<>();
     @Getter(AccessLevel.NONE) private TriConsumer<ClickType, Integer, ItemStack> universalAction = null;
 
@@ -45,6 +47,7 @@ public class GUI {
         this.title = Component.text(ChatColor.translateAlternateColorCodes('&', title));
         this.ownerPlugin = plugin;
     }
+
     public GUI(JavaPlugin plugin, int slots, Component title){
         this.slots = slots;
         this.title = title;
@@ -85,8 +88,16 @@ public class GUI {
         item(slot, item.build());
         return this;
     }
+    public GUI addItem(int slot, ItemStack item, Consumer<ClickType> clicked){
+        return item(slot, item, clicked);
+    }
     public GUI addItem(int slot, ItemStack item, Runnable clicked){
         return item(slot, item, clicked);
+    }
+    public GUI item(int slot, ItemStack item, Consumer<ClickType> clicked){
+        item(slot, item);
+        slotMultiActions.put(slot, clicked);
+        return this;
     }
     public GUI item(int slot, ItemStack item, Runnable clicked){
         item(slot, item);
@@ -96,9 +107,17 @@ public class GUI {
     public GUI addItem(int slot, ItemStackBuilder item, Runnable clicked){
         return item(slot, item, clicked);
     }
+    public GUI addItem(int slot, ItemStackBuilder item, Consumer<ClickType> clicked){
+        return item(slot, item, clicked);
+    }
     public GUI item(int slot, ItemStackBuilder item, Runnable clicked){
         item(slot, item.build());
         slotActions.put(slot, clicked);
+        return this;
+    }
+    public GUI item(int slot, ItemStackBuilder item, Consumer<ClickType> clicked){
+        item(slot, item.build());
+        slotMultiActions.put(slot, clicked);
         return this;
     }
     public GUI item(int slot, ru.shk.commons.utils.items.ItemStackBuilder item, Runnable clicked){
@@ -125,12 +144,14 @@ public class GUI {
         for (int i = 0; i < max; i++) {
             item(i, (ItemStack) null);
             slotActions.remove(i);
+            slotMultiActions.remove(i);
         }
     }
     public void clear(){
         for (int i = 0; i < slots; i++) item(i, (ItemStack) null);
         slotActions.clear();
         materialActions.clear();
+        slotMultiActions.clear();
         universalAction = null;
     }
     public void close(){
@@ -144,6 +165,12 @@ public class GUI {
         if(slotActions.size()!=0){
             if(slotActions.containsKey(slot)) {
                 slotActions.get(slot).run();
+                return;
+            }
+        }
+        if(slotMultiActions.size()!=0){
+            if(slotMultiActions.containsKey(slot)) {
+                slotMultiActions.get(slot).accept(type);
                 return;
             }
         }
@@ -171,7 +198,6 @@ public class GUI {
     }
     public void open(Player p){
         inv = Bukkit.createInventory(null, slots, title);
-
         for (int i = 0; i < slots; i++) {
             if(items.containsKey(i)){
                 inv.setItem(i, items.get(i));

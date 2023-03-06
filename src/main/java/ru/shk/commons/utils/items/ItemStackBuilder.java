@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @NoArgsConstructor
-public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
+public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends ItemStackBuilder> {
     @Getter@Accessors(fluent = true)
     private static final HeadsCache headsCache = new HeadsCache();
 
@@ -44,38 +44,38 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
     }
 
     // SETTERS
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customHead(int id);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customHead(String key);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> displayName(String name);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> displayName(Object name);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customModelData(int id);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(Color color);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> leatherColor(String hexColor);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> potionColor(int rgb);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> type(MATERIAL material);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> type(String material);
-    public ItemStackBuilder<ITEM,MATERIAL> lore(String... lore){
+    public abstract R customHead(int id);
+    public abstract R customHead(String key);
+    public abstract R displayName(String name);
+    public abstract R displayName(Object name);
+    public abstract R customModelData(int id);
+    public abstract R leatherColor(Color color);
+    public abstract R leatherColor(String hexColor);
+    public abstract R potionColor(int rgb);
+    public abstract R type(MATERIAL material);
+    public abstract R type(String material);
+    public R lore(String... lore){
         return lore(Arrays.asList(lore));
     }
-    public abstract ItemStackBuilder<ITEM,MATERIAL> lore(List<String> lore);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> unbreakable(boolean b);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> enchant(EnchantmentType e, int level);
-    public ItemStackBuilder<ITEM,MATERIAL> enchant(List<Enchantment> enchantments){
+    public abstract R lore(List<String> lore);
+    public abstract R unbreakable(boolean b);
+    public abstract R enchant(EnchantmentType e, int level);
+    public R enchant(List<Enchantment> enchantments){
         enchantments.forEach(this::enchant);
-        return this;
+        return (R) this;
     }
-    public ItemStackBuilder<ITEM,MATERIAL> enchant(Enchantment... enchantments){
+    public R enchant(Enchantment... enchantments){
         for (Enchantment e : enchantments) enchant(e.type(), e.level());
-        return this;
+        return (R) this;
     }
-    public ItemStackBuilder<ITEM,MATERIAL> allHideFlags(){
+    public R allHideFlags(){
         return flags(127);
     }
     /**
      *  Adds all flags from a list, does not override already applied flags.
      *  See ItemStackBuilder#flags(int) to override flags.
      */
-    public ItemStackBuilder<ITEM,MATERIAL> flags(List<ItemFlag> flags){
+    public R flags(List<ItemFlag> flags){
         List<ItemFlag> f = new ArrayList<>();
         for (ItemFlag flag : flags) {
             if(!f.contains(flag)) f.add(flag);
@@ -86,21 +86,21 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
      *  Adds all flags from a list, does not override already applied flags.
      *  See ItemStackBuilder#flags(int) to override flags.
      */
-    public ItemStackBuilder<ITEM,MATERIAL> flags(ItemFlag... flags){
+    public R flags(ItemFlag... flags){
         List<ItemFlag> f = new ArrayList<>(Arrays.asList(flags));
-        return flags(f);
+        return (R) flags(f);
     }
 
-    public abstract ItemStackBuilder<ITEM,MATERIAL> flags(int flags);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customHeadId(int id);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> amount(int amount);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> damage(int damage);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> headOwner(String name);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> headOwner(UUID uuid);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> headOwner(CachedPlayer player);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> base64head(String base64);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> potionData(PotionData potionData);
-    public abstract ItemStackBuilder<ITEM,MATERIAL> customPotion(PotionEffect potionEffect);
+    public abstract R flags(int flags);
+    public abstract R customHeadId(int id);
+    public abstract R amount(int amount);
+    public abstract R damage(int damage);
+    public abstract R headOwner(String name);
+    public abstract R headOwner(UUID uuid);
+    public abstract R headOwner(CachedPlayer player);
+    public abstract R base64head(String base64);
+    public abstract R potionData(PotionData potionData);
+    public abstract R customPotion(PotionEffect potionEffect);
 
     // GETTERS
     public abstract int customHeadId();
@@ -123,7 +123,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum> {
 
 
     // UTILITIES
-    public abstract ItemStackBuilder<ITEM,MATERIAL> clone();
+    public abstract R clone();
     public abstract ITEM build();
     public static String rgbToHex(int r, int g, int b){
         return String.format("#%02X%02X%02X", r, g, b);

@@ -435,6 +435,17 @@ public class Commons extends Plugin implements Listener {
         return System.currentTimeMillis()/1000;
     }
 
+    public long getPlayerPlayedTime(String uuid){
+        try (ResultSet rs = mysql.Query("SELECT time FROM BungeeOnlineTime WHERE uuid='"+uuid+"' LIMIT 1")) {
+            if(rs.next()){
+                return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     @Override
     public void onDisable() {
         info("Waiting for tasks to complete...");
