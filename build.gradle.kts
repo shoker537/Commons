@@ -4,12 +4,12 @@ import java.util.Properties
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.3.8"
+  id("io.papermc.paperweight.userdev") version "1.3.11"
   id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "ru.shk"
-version = "1.3.88"
+version = "1.3.89"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -37,6 +37,8 @@ java {
   toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 repositories {
+  mavenLocal()
+  mavenCentral()
   maven {
     url = URI.create("https://nexus.shoker.su/repository/maven-releases/")
   }
@@ -44,7 +46,7 @@ repositories {
     url = URI.create("https://maven.enginehub.org/repo/")
   }
   maven {
-    url = URI.create("https://papermc.io/repo/repository/maven-public/")
+    url = URI.create("https://repo.papermc.io/repository/maven-public/")
   }
   maven {
     url = URI.create("https://oss.sonatype.org/content/groups/public/")
@@ -62,9 +64,6 @@ repositories {
     url = URI.create("https://maven.enginehub.org/repo/")
   }
   maven {
-    url = URI.create("https://repo.dmulloy2.net/repository/public/")
-  }
-  maven {
     url = URI.create("https://nexus.shoker.su/repository/maven-shield/")
     credentials {
       username = "${nexusRepository["user"]}"
@@ -77,7 +76,7 @@ repositories {
 }
 
 dependencies {
-  paperDevBundle("1.19.2-R0.1-20220926.081544-62")
+  paperDevBundle("1.19.2-R0.1-SNAPSHOT")
   implementation("org.apache.commons:commons-lang3:3.12.0")
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
@@ -94,7 +93,8 @@ dependencies {
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
   compileOnly("ru.shk:MySQLAPI:2.2.1")
-  compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
+//  compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
+  compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.0.1")
   annotationProcessor("com.velocitypowered:velocity-api:3.0.1")
 }
@@ -117,6 +117,10 @@ tasks {
     filesMatching("*.yml"){
       expand(props)
     }
+  }
+
+  shadowJar {
+    exclude("META-INF/*","release-timestamp.txt","README.md","LICENSE","latestchanges.html","changelog.txt","AUTHORS", "Class50/*")
   }
 
   reobfJar {

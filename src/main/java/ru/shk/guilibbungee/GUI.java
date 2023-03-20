@@ -1,6 +1,7 @@
 package ru.shk.guilibbungee;
 
 import dev.simplix.protocolize.api.inventory.InventoryClick;
+import dev.simplix.protocolize.api.inventory.InventoryClose;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.inventory.InventoryType;
@@ -26,6 +27,18 @@ public class GUI extends ProtocolizeGUI<Plugin, ProxiedPlayer> {
 
     public GUI(Plugin plugin, String name, InventoryType type, boolean autoColorizeTitle, boolean jsonTitle) {
         super(plugin, name, type, autoColorizeTitle, jsonTitle);
+    }
+
+    @Override
+    public GUI onClick(Consumer<InventoryClick> consumer) {
+        super.onClick(consumer);
+        return this;
+    }
+
+    @Override
+    public GUI onClose(Consumer<InventoryClose> consumer) {
+        super.onClose(consumer);
+        return this;
     }
 
     @Override

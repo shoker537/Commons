@@ -55,18 +55,25 @@ public abstract class Version {
         return (ItemStack) c.getMethod("asNMSCopy", org.bukkit.inventory.ItemStack.class).invoke(null, itemStack);
     }
 
-    @SneakyThrows
-    protected Class<?> craftMagicNumbers(){
+    protected Class<?> craftMagicNumbers() throws ClassNotFoundException {
         return Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".util.CraftMagicNumbers");
     }
 
     @SneakyThrows
     public String getItemTypeTranslationKey(Material m) {
-        return (String) craftMagicNumbers().getMethod("getTranslationKey", Material.class).invoke(null, m);
+        return getTranslationKey(m);
 //        Item item = (Item) craftMagicNumbers().getMethod("getItem", Material.class).invoke(null, m);
 //        if (item == null) return null;
 //        return item.getDescriptionId();
     }
+
+    public String getTranslationKey(Material mat) {
+        if (mat.isBlock()) {
+            return getBlock(mat).getDescriptionId();
+        }
+        return getItem(mat).getDescriptionId();
+    }
+
     @SneakyThrows
     public Object getNMSWorld(World world) {
         Class<?> c = Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".CraftWorld");
@@ -76,8 +83,14 @@ public abstract class Version {
 
     @SneakyThrows
     public net.minecraft.world.level.block.Block getBlock(Material m) {
-        Class<?> c = Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".util.CraftMagicNumbers");
+        Class<?> c = craftMagicNumbers();
         return (net.minecraft.world.level.block.Block) c.getMethod("getBlock", Material.class).invoke(null, m);
+    }
+
+    @SneakyThrows
+    public net.minecraft.world.item.Item getItem(Material m) {
+        Class<?> c = craftMagicNumbers();
+        return (net.minecraft.world.item.Item) c.getMethod("getItem", Material.class).invoke(null, m);
     }
 
     @SneakyThrows
