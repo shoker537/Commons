@@ -4,12 +4,12 @@ import java.util.Properties
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.3.11"
+  id("io.papermc.paperweight.userdev") version "1.5.3"
   id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "ru.shk"
-version = "1.3.89"
+version = "1.3.90"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -76,7 +76,7 @@ repositories {
 }
 
 dependencies {
-  paperDevBundle("1.19.2-R0.1-SNAPSHOT")
+  paperDevBundle("1.19.4-R0.1-SNAPSHOT")
   implementation("org.apache.commons:commons-lang3:3.12.0")
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")

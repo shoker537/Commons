@@ -1,5 +1,8 @@
 package ru.shk.commons.utils;
 
+import joptsimple.util.RegexMatcher;
+
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,5 +30,11 @@ public class JavaUtils {
         } catch (Exception e){
             return -1;
         }
+    }
+
+    public static UUID uuidFromNoDashString(String s){
+        return UUID.fromString(s.replaceAll(
+                "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                "$1-$2-$3-$4-$5"));
     }
 }
