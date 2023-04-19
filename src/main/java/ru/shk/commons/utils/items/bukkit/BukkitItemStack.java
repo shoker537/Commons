@@ -2,7 +2,6 @@ package ru.shk.commons.utils.items.bukkit;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import land.shield.playerapi.CachedPlayer;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
@@ -43,6 +42,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
 
     public BukkitItemStack(ItemStack itemStack) {
         item = itemStack;
+        if(itemStack.getType()!=Material.AIR && !itemStack.hasItemMeta()) item.setItemMeta(Bukkit.getItemFactory().getItemMeta(item.getType()));
     }
 
     public BukkitItemStack(Material item) {
@@ -125,6 +125,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
         } else {
             item.setType(material);
         }
+        if(material!=Material.AIR && !item.hasItemMeta()) item.setItemMeta(Bukkit.getItemFactory().getItemMeta(item.getType()));
         return this;
     }
 
@@ -194,19 +195,6 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
         return this;
     }
 
-    @Override
-    public BukkitItemStack headOwner(String name) {
-        CachedPlayer cp = CachedPlayer.of(name);
-        if(cp.notPresent()) return localHeadOwner(Bukkit.getOfflinePlayer(name));
-        return headOwner(cp);
-    }
-
-    public BukkitItemStack headOwner(OfflinePlayer p) {
-        CachedPlayer cp = CachedPlayer.of(p.getUniqueId());
-        if(cp.notPresent()) return localHeadOwner(p);
-        return headOwner(cp);
-    }
-
     private BukkitItemStack localHeadOwner(OfflinePlayer p){
         this.customHeadId = -1;
         item.editMeta(meta -> ((SkullMeta)meta).setOwningPlayer(p));
@@ -214,18 +202,13 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     }
 
     @Override
-    public BukkitItemStack headOwner(UUID uuid) {
-        CachedPlayer cp = CachedPlayer.of(uuid);
-        if(cp.notPresent()) return localHeadOwner(Bukkit.getOfflinePlayer(uuid));
-        return headOwner(cp);
+    public BukkitItemStack localHeadOwner(String name) {
+        return localHeadOwner(Bukkit.getOfflinePlayer(name));
     }
 
     @Override
-    public BukkitItemStack headOwner(CachedPlayer cp) {
-        if(cp.notPresent()) return this;
-        String s = Commons.getInstance().getSkinTexture(cp);
-        if(s==null) return this;
-        return base64head(s);
+    public BukkitItemStack localHeadOwner(UUID uuid) {
+        return localHeadOwner(Bukkit.getOfflinePlayer(uuid));
     }
 
     @Override
@@ -361,9 +344,9 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
             GameProfile profile = (GameProfile) profileField.get(skullMeta);
             Collection<Property> collection = profile.getProperties().get("textures");
             return collection.stream().filter(property -> property.getName().equals("textures")).findAny().get().getValue();
-        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {}
-        this.customHeadId = -1;
-        return null;
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {
+            return null;
+        }
     }
 
     @Override

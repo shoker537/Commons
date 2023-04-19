@@ -449,10 +449,11 @@ public class Commons extends Plugin implements Listener {
     @Override
     public void onDisable() {
         info("Waiting for tasks to complete...");
+        threadPool.shutdown();
         try {
-            threadPool.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if(!threadPool.awaitTermination(30, TimeUnit.SECONDS)) threadPool.shutdownNow();
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
         }
         info("Tasks completed.");
     }

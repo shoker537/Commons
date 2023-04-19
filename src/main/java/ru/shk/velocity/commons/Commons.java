@@ -6,6 +6,8 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyReloadEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 @Getter@Accessors(fluent = true)
@@ -38,7 +41,7 @@ public class Commons {
     private MySQL mysql;
     private final Config config;
     private final ProxyServer proxy;
-    private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(15);
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
@@ -73,6 +76,16 @@ public class Commons {
 
     public void async(Runnable r){
         threadPool.submit(r);
+    }
+
+    @Subscribe
+    public void onDisable(ProxyShutdownEvent e){
+        threadPool.shutdown();
+        try {
+            if(!threadPool.awaitTermination(30, TimeUnit.SECONDS)) threadPool.shutdownNow();
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public void later(Runnable r, Duration delay){

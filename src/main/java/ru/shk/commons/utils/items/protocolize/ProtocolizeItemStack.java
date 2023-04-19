@@ -2,7 +2,6 @@ package ru.shk.commons.utils.items.protocolize;
 
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
-import land.shield.playerapi.CachedPlayer;
 import lombok.NonNull;
 import net.querz.nbt.tag.*;
 import org.jetbrains.annotations.NotNull;
@@ -150,15 +149,10 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     }
 
     @Override
-    public R headOwner(String name) {
-        String texture = ItemStackBuilder.headsCache().getPlayerTexture(name);
-        if(texture==null) {
-            customHeadId = -1;
-            clearHeadOwnerTag();
-            item.nbtData().put("SkullOwner", new StringTag(name));
-            return (R) this;
-        }
-        base64head(texture);
+    public R localHeadOwner(String name) {
+        customHeadId = -1;
+        clearHeadOwnerTag();
+        item.nbtData().put("SkullOwner", new StringTag(name));
         return (R) this;
     }
 
@@ -167,27 +161,10 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     }
 
     @Override
-    public R headOwner(UUID uuid) {
-        String texture = ItemStackBuilder.headsCache().getPlayerTexture(uuid);
-        if(texture==null) {
-            customHeadId = -1;
-            clearHeadOwnerTag();
-            return (R) this;
-        }
-        base64head(texture);
-        return (R) this;
-    }
-
-    @Override
-    public R headOwner(CachedPlayer player) {
-        String texture = ItemStackBuilder.headsCache().getPlayerTexture(player);
-        if(texture==null) {
-            customHeadId = -1;
-            clearHeadOwnerTag();
-            item.nbtData().put("SkullOwner", new StringTag(player.getName()));
-            return (R) this;
-        }
-        base64head(texture);
+    public R localHeadOwner(UUID uuid) {
+        customHeadId = -1;
+        clearHeadOwnerTag();
+        item.nbtData().put("SkullOwner", new StringTag(uuid.toString()));
         return (R) this;
     }
 

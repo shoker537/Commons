@@ -1,6 +1,5 @@
 package ru.shk.commons.utils.items;
 
-import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -95,9 +94,24 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public abstract R customHeadId(int id);
     public abstract R amount(int amount);
     public abstract R damage(int damage);
-    public abstract R headOwner(String name);
-    public abstract R headOwner(UUID uuid);
-    public abstract R headOwner(CachedPlayer player);
+    public R headOwner(long playerId){
+        String texture = headsCache.getPlayerTexture(playerId);
+        if(texture==null) return (R) this;
+        return base64head(texture);
+    }
+    public R headOwner(String name){
+        String texture = headsCache.getPlayerTexture(name);
+        if(texture==null) return localHeadOwner(name);
+        return base64head(texture);
+    }
+    public R headOwner(UUID uuid){
+        String texture = headsCache.getPlayerTexture(uuid);
+        if(texture==null) return localHeadOwner(uuid);
+        return base64head(texture);
+    }
+    public abstract R localHeadOwner(String name);
+    public abstract R localHeadOwner(UUID uuid);
+//    public abstract R headOwner(CachedPlayer player);
     public abstract R base64head(String base64);
     public abstract R potionData(PotionData potionData);
     public abstract R customPotion(PotionEffect potionEffect);

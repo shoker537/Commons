@@ -40,6 +40,7 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -52,7 +53,7 @@ public final class Commons extends JavaPlugin {
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     @Getter private MySQL mysql;
 //    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 15, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-    private final ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 25, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private SocketManager socketManager;
@@ -298,11 +299,12 @@ public final class Commons extends JavaPlugin {
             }
         });
         plugins.clear();
-        info("Waiting for tasks to complete...");
+        info("Waiting for tasks to complete... (queue size: "+pool.getQueue().size()+")");
+        pool.shutdown();
         try {
-            pool.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if(!pool.awaitTermination(30, TimeUnit.SECONDS)) pool.shutdownNow();
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
         }
         info("Tasks completed.");
     }

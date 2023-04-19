@@ -1,6 +1,7 @@
 package ru.shk.commons.utils.nms;
 
 import com.mojang.datafixers.util.Pair;
+import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -82,6 +83,10 @@ public class PacketUtil {
         sendPacket(p, packet);
     }
     public static void sendScoreboardTeamPacket(boolean createTeamOrUpdate, Player p, String name, String prefix, String suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
+        Packet<?> packet = versionClass.createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix);
+        sendPacket(p, packet);
+    }
+    public static void sendScoreboardTeamPacket(boolean createTeamOrUpdate, Player p, String name, Component prefix, Component suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
         Packet<?> packet = versionClass.createScoreboardTeamPacket(createTeamOrUpdate,name, prefix, suffix);
         sendPacket(p, packet);
     }

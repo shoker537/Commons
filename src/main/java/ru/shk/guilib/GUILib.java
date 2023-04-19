@@ -45,7 +45,7 @@ public class GUILib implements Plugin, Listener {
 
     @EventHandler
     public void pluginDisableEvent(PluginDisableEvent e){
-        guis.values().stream().filter(gui -> gui.getOwnerPlugin()!=null && gui.getOwnerPlugin().equals(e.getPlugin())).forEach(GUI::close);
+        guis.values().stream().filter(gui -> gui.getOwnerPlugin()!=null && gui.getOwnerPlugin().equals(e.getPlugin())).toList().forEach(GUI::close);
     }
 
     @Override
@@ -69,6 +69,6 @@ public class GUILib implements Plugin, Listener {
     public void onInventoryClick(InventoryClickEvent e){
         if(e.getCurrentItem()==null || !guis.containsKey(e.getWhoClicked().getUniqueId()) || e.getClickedInventory()==null) return;
         e.setCancelled(true);
-        guis.get(e.getWhoClicked().getUniqueId()).clickedSlot(e.getClick(), e.getSlot(), e.getCurrentItem());
+        guis.get(e.getWhoClicked().getUniqueId()).clickedSlot(e);
     }
 }

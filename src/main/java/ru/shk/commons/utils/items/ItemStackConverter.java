@@ -2,6 +2,8 @@ package ru.shk.commons.utils.items;
 
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.commons.ServerType;
+import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.universal.parse.type.StringListValue;
 import ru.shk.commons.utils.items.universal.parse.type.StringValue;
@@ -17,21 +19,21 @@ public class ItemStackConverter {
     private static final List<StringConverterRule> stringRules = new ArrayList<>();
 
     static {
-        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"type", b -> new StringValue().value(b.type().name()), (b, value) -> b.type(value.stringValue())));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"type", b -> new StringValue().value(b.type().name()), (b, value) -> b.type(value.stringValue()), false));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"name", b -> new StringValue().value(b.displayName()), (b, value) -> b.displayName(value.stringValue())));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"lore", b -> new StringListValue().value(b.lore()), (b, value) -> b.lore(((StringListValue)value).value())));
         stringRules.add(new StringConverterRule(ConvertMaterial.POTIONS,"potion-data", b -> new StringValue().value(b.potionData()), (b, value) -> b.potionData(PotionData.fromList(((StringListValue)value).value()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.POTIONS,"custom-potion", b -> new StringValue().value(b.customPotion()), (b, value) -> b.customPotion(PotionEffect.fromList(((StringListValue)value).value()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"enchant", b -> new StringListValue().value(enchantsToStringList(b.enchantments())), (b, s) -> b.enchant(enchantsFromString((StringListValue) s))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"unbreakable", b -> new StringValue().value(String.valueOf(b.isUnbreakable())), (b, s) -> b.unbreakable(Boolean.parseBoolean(s.stringValue()))));
-        stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"texture", b -> new StringValue().value(b.base64head()), (b, value) -> b.base64head(value.stringValue())));
+        stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"texture", b -> new StringValue().value(b.base64head()==null?null:b.base64head().replace("=", "\\u003d")), (b, value) -> b.base64head(value.stringValue().replace("\\u003d", "="))));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"player", b -> new StringValue().value(b.headOwnerName()), (b, value) -> b.headOwner(value.stringValue())));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"custom-head", b -> new StringValue().value(b.customHeadId()==-1?null:String.valueOf(b.customHeadId())), (b, s) -> b.customHead(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"amount", b -> new StringValue().value(String.valueOf(b.amount())), (b, s) -> b.amount(Integer.parseInt(s.stringValue()))));
-        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"potionColor", b -> new StringValue().value(String.valueOf(b.potionColor())), (b, s) -> b.potionColor(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"potionColor", b -> new StringValue().value(b.potionColor()==null?null:String.valueOf(b.potionColor())), (b, s) -> b.potionColor(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.LEATHER_ARMOR,"leather-color", b -> new StringValue().value(b.leatherColorAsHexString()), (b, s) -> b.leatherColor(Color.decode(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringValue().value(String.valueOf(ItemFlag.asInt(b.flags()))), (b, s) -> b.flags(Integer.parseInt(s.stringValue()))));
-        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"CMD", b -> new StringValue().value(String.valueOf(b.customModelData())), (b, s) -> b.customModelData(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"CMD", b -> new StringValue().value(b.customModelData()==null?null:String.valueOf(b.customModelData())), (b, s) -> b.customModelData(Integer.parseInt(s.stringValue()))));
     }
 
     private static List<String> enchantsToStringList(List<Enchantment> list){
@@ -129,8 +131,8 @@ public class ItemStackConverter {
 
     public static ItemStackBuilder fromString(String s) {
         if(!s.endsWith(" ")) s+=" ";
-        String material = s.split(" ")[0];
-        String valuesString = s.replace(material+" ", "");
+        String material = (s.split(" ")[0]).replace("type:", "");
+        String valuesString = s.replace(material+" ", "").replace("type:", "");
         if(valuesString.length()==0) return ItemStackBuilder.newEmptyStack().type(material);
         List<Value<?>> values = values(valuesString);
         ItemStackBuilder builder = ItemStackBuilder.newEmptyStack();
@@ -140,9 +142,7 @@ public class ItemStackConverter {
             if(rule==null) {
                 continue;
             }
-            if(value.value()==null){
-                continue;
-            }
+            if(value.value()==null || (value.value() instanceof String st && (st.length()==0 || st.equals("null"))) || ((value.value() instanceof ArrayList list) && list.size()==0)) continue;
             rule.applyToStack.accept(builder, value);
         }
 
@@ -155,7 +155,6 @@ public class ItemStackConverter {
             boolean a = name.equalsIgnoreCase(rule.sectionName);
             if(a){
                 return rule;
-            } else {
             }
         }
         return null;
@@ -163,16 +162,18 @@ public class ItemStackConverter {
 
     public static String toString(ItemStackBuilder b) {
         StringBuilder builder = new StringBuilder();
+        boolean first = true;
         for (StringConverterRule rule : stringRules) {
             if(!rule.convertMaterial.canApply(b.type().name())) continue;
+            if(b.type().name().equals("AIR") && rule.needsItemMeta) continue;
             try {
                 Value<?> v = rule.stringValue.apply(b);
-                if(v==null) continue;
-                builder.append(rule.sectionName).append(":").append(v.stringValue());
+                if(v==null || v.value()==null || ((v.value() instanceof ArrayList list) && list.size()==0) || ((v.value() instanceof String s) && s.length()==0)) continue;
+                builder.append(first?"":" ").append(rule.sectionName).append(":").append(v.stringValue());
             } catch (Throwable t){t.printStackTrace();}
+            first = false;
         }
-        String result = builder.toString();
-        return result.substring(0, result.length()-1);
+        return builder.toString();
     }
 
     @AllArgsConstructor
@@ -181,6 +182,15 @@ public class ItemStackConverter {
         private final String sectionName;
         private final Function<ItemStackBuilder, Value<?>> stringValue;
         private final BiConsumer<ItemStackBuilder, Value<?>> applyToStack;
+        private final boolean needsItemMeta;
+
+        public StringConverterRule(ConvertMaterial convertMaterial, String sectionName, Function<ItemStackBuilder, Value<?>> stringValue, BiConsumer<ItemStackBuilder, Value<?>> applyToStack) {
+            this.convertMaterial = convertMaterial;
+            this.sectionName = sectionName;
+            this.stringValue = stringValue;
+            this.applyToStack = applyToStack;
+            this.needsItemMeta = true;
+        }
     }
 
     private enum ConvertMaterial {

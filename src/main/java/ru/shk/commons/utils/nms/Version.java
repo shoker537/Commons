@@ -4,12 +4,14 @@ import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.SneakyThrows;
 import lombok.val;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
@@ -67,11 +69,14 @@ public abstract class Version {
 //        return item.getDescriptionId();
     }
 
+    @SneakyThrows
     public String getTranslationKey(Material mat) {
         if (mat.isBlock()) {
-            return getBlock(mat).getDescriptionId();
+             net.minecraft.world.level.block.Block b = getBlock(mat);
+             return (String) b.getClass().getMethod(FieldMappings.BLOCK_DESCRIPTIONID.getField()).invoke(b);
         }
-        return getItem(mat).getDescriptionId();
+        Item item = getItem(mat);
+        return (String) item.getClass().getMethod(FieldMappings.ITEM_DESCRIPTIONID.getField()).invoke(item);
     }
 
     @SneakyThrows
@@ -183,12 +188,16 @@ public abstract class Version {
     }
 
     protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, boolean friendlyFire, boolean seeFriendlyInvisible, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return createScoreboardTeamPacket(createTeamOrUpdate, collideTeammates, friendlyFire, seeFriendlyInvisible, name, Component.nullToEmpty(prefix), Component.nullToEmpty(suffix), color, entries);
+    }
+
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, boolean friendlyFire, boolean seeFriendlyInvisible, String name, Component prefix, Component suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         PlayerTeam t = new PlayerTeam(new net.minecraft.world.scores.Scoreboard(), name);
         if(!collideTeammates) disableTeammatesCollision(t);
         if(seeFriendlyInvisible) setCanSeeFriendlyInvisible(t);
         setFriendlyFire(t, friendlyFire);
-        t.getClass().getMethod("b", Component.class).invoke(t, Component.nullToEmpty(prefix));
-        t.getClass().getMethod("c", Component.class).invoke(t, Component.nullToEmpty(suffix));
+        t.getClass().getMethod("b", Component.class).invoke(t, prefix);
+        t.getClass().getMethod("c", Component.class).invoke(t, suffix);
         if(color!=null) t.getClass().getMethod("a", ChatFormatting.class).invoke(t, ChatFormatting.valueOf(color.name()));
         if(entries!=null){
             Collection<String> e = (Collection<String>) t.getClass().getMethod("g").invoke(t);
@@ -197,12 +206,17 @@ public abstract class Version {
         return ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(t, createTeamOrUpdate);
     }
 
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, String name, Component prefix, Component suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return createScoreboardTeamPacket(createTeamOrUpdate, collideTeammates, true, false, name, prefix, suffix, color, entries);
+    }
     protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return createScoreboardTeamPacket(createTeamOrUpdate, collideTeammates, true, false, name, prefix, suffix, color, entries);
     }
-
     protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, String prefix, String suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return createScoreboardTeamPacket(createTeamOrUpdate, true,name, prefix, suffix, null, null);
+    }
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeamOrUpdate, String name, net.kyori.adventure.text.Component prefix, net.kyori.adventure.text.Component suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return createScoreboardTeamPacket(createTeamOrUpdate, true, name, net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(prefix)), net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(suffix)), null, null);
     }
 
     protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework) {

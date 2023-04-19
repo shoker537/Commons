@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -33,6 +34,7 @@ public class GUI {
     private final HashMap<Integer, ItemStack> items = new HashMap<>();
     private final HashMap<Integer, Runnable> slotActions = new HashMap<>();
     private final HashMap<Integer, Consumer<ClickType>> slotMultiActions = new HashMap<>();
+    private Consumer<InventoryClickEvent> onClick = null;
     private final HashMap<Material, Runnable> materialActions = new HashMap<>();
     @Getter(AccessLevel.NONE) private TriConsumer<ClickType, Integer, ItemStack> universalAction = null;
 
@@ -52,6 +54,10 @@ public class GUI {
         this.slots = slots;
         this.title = title;
         this.ownerPlugin = plugin;
+    }
+
+    public void onClick(Consumer<InventoryClickEvent> click){
+        onClick = click;
     }
 
     @Deprecated
@@ -161,7 +167,10 @@ public class GUI {
     public void close(Player p){
         p.closeInventory();
     }
-    public void clickedSlot(ClickType type, int slot, ItemStack item){
+    public void clickedSlot(InventoryClickEvent e){
+        int slot = e.getSlot();
+        ItemStack item = e.getCurrentItem();
+        ClickType type = e.getClick();
         if(slotActions.size()!=0){
             if(slotActions.containsKey(slot)) {
                 slotActions.get(slot).run();
@@ -182,6 +191,9 @@ public class GUI {
         }
         if(universalAction!=null) {
             universalAction.accept(type, slot, item);
+        }
+        if(onClick!=null){
+            onClick.accept(e);
         }
     }
     public boolean isOpen(){

@@ -22,6 +22,8 @@ public enum FieldMappings {
     SCOREBOARDTEAM_SETCANSEEFRIENDLYINVISIBLE("setCanSeeFriendlyInvisibles", "b", "b", "b"),
     SCOREBOARDTEAM_SETFRIENDLYFIRE("setAllowFriendlyFire", "a", "a", "a"),
     ENTITYHUMAN_STARTUSERIPTIDE("s", "t", "t", "s"),
+    BLOCK_DESCRIPTIONID("h", "h", "g", "h"),
+    ITEM_DESCRIPTIONID("a", "a", "a", "a"),
 
     BLOCKBASE_GETMAPCOLOR("s", "t", "s", "t"),
 

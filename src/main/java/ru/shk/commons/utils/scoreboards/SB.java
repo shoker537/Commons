@@ -2,6 +2,7 @@ package ru.shk.commons.utils.scoreboards;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -41,6 +42,18 @@ public class SB {
         c--;
     }
 
+    public void addDynamicLine(String team, Component prefix, Component suffix) {
+        String entry = getNextEntry()+"";
+        if (board.getTeam(team) != null) {
+            board.getTeam(team).unregister();
+        }
+        Team t = board.registerNewTeam(team);
+        t.addEntry(entry);
+        t.prefix(prefix);
+        t.suffix(suffix);
+        objective.getScore(entry).setScore(c);
+        c--;
+    }
     public void addDynamicLine(String team, String prefix, String suffix) {
         String entry = getNextEntry()+"";
         if (board.getTeam(team) != null) {
@@ -85,6 +98,11 @@ public class SB {
         return this;
     }
 
+    public SB dynamicLine(@NonNull String team, @NonNull Component prefix, @NonNull Component suffix) {
+        addDynamicLine(team, prefix, suffix);
+        return this;
+    }
+
     public SB dynamicLine(@NonNull String team, @NonNull String prefix, @NonNull String suffix) {
         addDynamicLine(team, prefix, suffix);
         return this;
@@ -101,8 +119,20 @@ public class SB {
         return next;
     }
 
+    public static void updateScoreboardPersonally(Player player, String team, Component prefix, Component suffix) {
+        sendScoreboardTeamPacket(player, team.replace("&", "§"), prefix, suffix);
+    }
+
     public static void updateScoreboardPersonally(Player player, String team, String prefix, String suffix) {
         sendScoreboardTeamPacket(player, team.replace("&", "§"), prefix.replace("&", "§"), suffix.replace("&", "§"));
+    }
+
+    private static void sendScoreboardTeamPacket(Player p, String team, Component prefix, Component suffix){
+        try {
+            PacketUtil.sendScoreboardTeamPacket(false,p, team, prefix, suffix);
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | NoSuchFieldException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void sendScoreboardTeamPacket(Player p, String team, String prefix, String suffix){

@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.90"
+version = "1.3.97"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -81,9 +81,9 @@ dependencies {
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
-  compileOnly("dev.simplix:protocolize-api:2.2.2")
+  compileOnly("dev.simplix:protocolize-api:2.2.6")
   compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
-  implementation("net.wesjd:anvilgui:1.5.3-SNAPSHOT")
+  implementation("net.wesjd:anvilgui:1.6.3-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   compileOnly("com.mojang:authlib:1.5.21")
   compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
