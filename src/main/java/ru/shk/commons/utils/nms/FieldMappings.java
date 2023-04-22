@@ -5,6 +5,7 @@ import ru.shk.commons.Commons;
 public enum FieldMappings {
     ENTITY_GETID("getId", "ae", "ae", "af"),
     ENTITY_GETDATAWATCHER("getDataWatcher", "ai", "ai", "aj"),
+    ENTITY_GETLEVEL(null, "W", "W", "Y"),
     ENTITY_LOCX("locX", "dc", "dg", "dl"),
     ENTITY_LOCY("locY", "de", "di", "dn"),
     ENTITY_LOCZ("locZ", "di", "dm", "dr"),
@@ -27,7 +28,26 @@ public enum FieldMappings {
 
     BLOCKBASE_GETMAPCOLOR("s", "t", "s", "t"),
 
-    MAPCOLOR_INTCOLOR("al", "ak", "ak", "ak")
+    MAPCOLOR_INTCOLOR("al", "ak", "ak", "ak"),
+
+
+    DISPLAY_SETTRANSFORMATION(null, null, null, "a"),
+    DISPLAY_CREATETRANSFORMATION(null, null, null, "a"),
+    DISPLAY_SETINTERPOLATIONDURATION(null, null, null, "b"),
+    DISPLAY_GETINTERPOLATIONDURATION(null, null, null, "o"),
+    TEXTDISPLAY_SETTEXT(null, null, null, "c"),
+    TEXTDISPLAY_GETTEXT(null, null, null, "o"),
+    TEXTDISPLAY_GETLINEWIDTH(null, null, null, "p"),
+    TEXTDISPLAY_SETLINEWIDTH(null, null, null, "b"),
+    TEXTDISPLAY_GETBACKFROUNDCOLOR(null, null, null, "s"),
+    TEXTDISPLAY_SETBACKFROUNDCOLOR(null, null, null, "c"),
+    TEXTDISPLAY_GETFLAGS(null, null, null, "q"),
+    TEXTDISPLAY_SETFLAGS(null, null, null, "d"),
+    TEXTDISPLAY_GETALIGNMENT(null, null, null, "a"),
+    TEXTDISPLAY_SETBACKGROUND(null, null, null, "c"),
+    TEXTDISPLAY_GETBACKGROUND(null, null, null, "s"),
+
+    ENTITYTYPE_BYSTRING(null, "a", "a", "a")
     ;
 
     private static int versionId;
