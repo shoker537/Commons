@@ -1,13 +1,14 @@
 package ru.shk.commons.utils.nms.entity;
 
 import lombok.SneakyThrows;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.World;
 import ru.shk.commons.utils.nms.FieldMappings;
 
 public class PacketArmorStand extends PacketEntity<PacketArmorStand> {
     public PacketArmorStand(World world, double x, double y, double z){
-        super("net.minecraft.world.entity.decoration.EntityArmorStand", world, x, y, z);
+        super("net.minecraft.world.entity.decoration.EntityArmorStand", "armor_stand", world, x, y, z);
     }
     @SneakyThrows
     public PacketArmorStand small(boolean value) {

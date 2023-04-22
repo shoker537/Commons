@@ -5,10 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.nms.entity.PacketEntity;
@@ -17,9 +14,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class PacketUtil {
     public static List<PacketEntity<?>> entitiesToTick = new ArrayList<>();
+    private static final ThreadPoolExecutor asyncEntityTicker = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
     private static final Version versionClass;
     static {
@@ -34,14 +34,16 @@ public class PacketUtil {
         versionClass = versionClass1;
 
         Commons.getInstance().asyncRepeating(() -> {
-            if(entitiesToTick.size()==0) return;
+            if(entitiesToTick.size()==0 || asyncEntityTicker.getQueue().size()!=0) return;
             entitiesToTick.removeIf(packetEntity -> !packetEntity.isValid());
             entitiesToTick.forEach(packetEntity -> {
-                try {
-                    if(packetEntity.isTicking()) packetEntity.tick();
-                } catch (Throwable t){
-                    Commons.getInstance().sync(t::printStackTrace);
-                }
+                if(packetEntity.isTicking()) asyncEntityTicker.submit(() -> {
+                    try {
+                         packetEntity.tick();
+                    } catch (Throwable t){
+                        t.printStackTrace();
+                    }
+                });
             });
         }, 1,1);
     }
