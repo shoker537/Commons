@@ -4,27 +4,17 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
-import de.simonsator.partyandfriends.api.PAFPluginBase;
-import de.simonsator.partyandfriends.api.pafplayers.PAFPlayerManager;
-import de.simonsator.partyandfriends.api.party.PartyAPI;
-import de.simonsator.partyandfriends.api.party.PlayerParty;
-import de.simonsator.partyandfriends.main.Main;
 import dev.simplix.protocolize.data.ItemType;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
-import ru.shk.commons.sockets.SocketMessageListener;
-import ru.shk.commons.sockets.low.ServerType;
-import ru.shk.commons.sockets.low.SocketManager;
-import ru.shk.commons.sockets.low.SocketMessageType;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.HTTPRequest;
 import ru.shk.commons.utils.Logger;
@@ -38,8 +28,6 @@ import ru.shk.guilibbungee.GUILib;
 import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -48,7 +36,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +54,6 @@ public class Commons extends Plugin implements Listener {
     private MySQL mysql;
     @Getter private PlayerLocationReceiver playerLocationReceiver;
     @Getter private PAFManager pafManager;
-    @Getter private SocketManager socketManager;
     @Getter private Config config;
 
     private final List<Integer> tpInProcess = new ArrayList<>();
@@ -73,7 +63,6 @@ public class Commons extends Plugin implements Listener {
     public void onLoad(){
         Logger.logger(getLogger());
         ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.BUNGEE);
-        SocketManager.serverType = ServerType.BUNGEE;
         instance = this;
         info(" ");
         info("&b            shoker'&fs &bcommon&fs");
@@ -103,26 +92,6 @@ public class Commons extends Plugin implements Listener {
         config = new Config(getDataFolder(), true);
         if(!config.contains("sockets.enable")) config.setAndSave("sockets.enable", false);
         if(!config.contains("sockets.server-port")) config.setAndSave("sockets.server-port", 3000);
-        if(config.getBoolean("sockets.enable")) {
-            socketManager = new SocketManager(config.getInt("sockets.server-port"), s -> getLogger().info(colorize(s)));
-            socketManager.getSocketThread().start();
-            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
-                @Override
-                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
-                    try {
-                        getLogger().warning(" TPS on "+server+" is "+data.readUTF());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            asyncRepeating(() -> socketManager.getBackendServers().forEach(socketServerInfo -> {
-                if(!socketServerInfo.getName().equals("BungeeCord")) {
-                    getLogger().warning("Sending TPS request to "+socketServerInfo.getName()+" at "+socketServerInfo.getAddress().getPort());
-                    socketManager.sendData(socketServerInfo, "TPS", List.of());
-                }
-            }), 10,10);
-        }
         if(getProxy().getPluginManager().getPlugin("MySQLAPI")==null){
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {

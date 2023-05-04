@@ -117,7 +117,10 @@ public class PacketUtil {
     }
 
     public static void entityMetadata(Player p, Object entity){
-        versionClass.entityMetadata(p, entity);
+        entityMetadata(p, entity, true);
+    }
+    public static void entityMetadata(Player p, Object entity, boolean full){
+        versionClass.entityMetadata(p, entity, full);
     }
     public static void teleportEntity(Player p, Object entity){
         versionClass.teleportEntity(p, entity);

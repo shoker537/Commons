@@ -5,18 +5,34 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 public class ReflectionUtil {
     public static Object constructObject(Class<?> c, Object... arguments) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         return ConstructorUtils.invokeConstructor(c, arguments);
     }
 
-    public static Object runMethod(Object c, String method, Object... arguments) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public static Object runMethod(Class<?> clazz, Object instance, String method, Object... args) throws InvocationTargetException, IllegalAccessException {
+        Class<?>[] arr = new Class[args.length];
+        for (int i = 0; i < args.length; i++) {
+            arr[i] = args[i].getClass();
+        }
+        Method m = MethodUtils.getMatchingMethod(clazz, method, arr);
+        if(m==null) m = MethodUtils.getMatchingAccessibleMethod(clazz, method, arr);
+        if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+        return m.invoke(instance, args);
+    }
+
+    public static Object runMethod(Object c, String method, Object... arguments) throws InvocationTargetException, IllegalAccessException {
         Class<?>[] arr = new Class[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
             arr[i] = arguments[i].getClass();
         }
-        return MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr).invoke(c, arguments);
+        Method m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
+        if(m==null) m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
+        if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+        return m.invoke(c, arguments);
 //        Class<?>[] arr = new Class[arguments.length];
 //        for (int i = 0; i < arguments.length; i++)
 //            arr[i] = arguments[i].getClass();

@@ -23,6 +23,7 @@ public enum FieldMappings {
     SCOREBOARDTEAM_SETCANSEEFRIENDLYINVISIBLE("setCanSeeFriendlyInvisibles", "b", "b", "b"),
     SCOREBOARDTEAM_SETFRIENDLYFIRE("setAllowFriendlyFire", "a", "a", "a"),
     ENTITYHUMAN_STARTUSERIPTIDE("s", "t", "t", "s"),
+    DATAWATCHER_PACKDIRTY(null, "b", "b", "b"),
     BLOCK_DESCRIPTIONID("h", "h", "g", "h"),
     ITEM_DESCRIPTIONID("a", "a", "a", "a"),
 
@@ -33,8 +34,10 @@ public enum FieldMappings {
 
     DISPLAY_SETTRANSFORMATION(null, null, null, "a"),
     DISPLAY_CREATETRANSFORMATION(null, null, null, "a"),
-    DISPLAY_SETINTERPOLATIONDURATION(null, null, null, "b"),
+    DISPLAY_SETINTERPOLATIONDURATION(null, null, null, "setInterpolationDuration_"),
     DISPLAY_GETINTERPOLATIONDURATION(null, null, null, "o"),
+    DISPLAY_SETINTERPOLATIONSTART(null, null, null, "setInterpolationDelay_"),
+    DISPLAY_GETINTERPOLATIONSTART(null, null, null, "p"),
     TEXTDISPLAY_SETTEXT(null, null, null, "c"),
     TEXTDISPLAY_GETTEXT(null, null, null, "o"),
     TEXTDISPLAY_GETLINEWIDTH(null, null, null, "p"),
@@ -58,7 +61,6 @@ public enum FieldMappings {
 
     private static void init(){
         versionId = switch (Commons.getServerVersion()){
-            case v1_18_R1, v1_18_R2 -> 1;
             case v1_19_R1 -> 2;
             default -> 3;
         };

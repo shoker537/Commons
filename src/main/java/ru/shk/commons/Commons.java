@@ -10,7 +10,6 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.MinecraftServer;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -19,10 +18,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.shk.commons.sockets.SocketMessageListener;
-import ru.shk.commons.sockets.low.ServerType;
-import ru.shk.commons.sockets.low.SocketManager;
-import ru.shk.commons.sockets.low.SocketMessageType;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.nms.PacketVersion;
@@ -32,12 +27,9 @@ import ru.shk.guilib.GUILib;
 import ru.shk.mysql.database.MySQL;
 
 import javax.annotation.Nullable;
-import java.io.DataInputStream;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,15 +40,14 @@ import java.util.regex.Pattern;
 
 public final class Commons extends JavaPlugin {
     @Getter private static Commons instance;
-    private static PacketVersion ver;
+    @Getter private static PacketVersion serverVersion;
+    @Getter private static boolean isVersionLatestCompatible = false;
     private final List<Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     @Getter private MySQL mysql;
-//    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 15, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 25, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     @Getter@Nullable private WorldEditManager worldEditManager;
-    @Getter private SocketManager socketManager;
     @Getter private PAFManager pafManager;
     @Getter private Config config;
 
@@ -64,18 +55,18 @@ public final class Commons extends JavaPlugin {
     public void onLoad() {
         Logger.logger(getLogger());
         ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.SPIGOT);
-        SocketManager.serverType = ServerType.SPIGOT;
         pool.setKeepAliveTime(15, TimeUnit.SECONDS);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
         String ver = packageName.substring(packageName.lastIndexOf(46) + 1);
         try {
-            Commons.ver = PacketVersion.valueOf(ver);
+            Commons.serverVersion = PacketVersion.valueOf(ver);
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
+            if(Commons.serverVersion==PacketVersion.values()[PacketVersion.values().length-1]) isVersionLatestCompatible = true;
         } catch (Exception e){
-            Commons.ver = PacketVersion.values()[PacketVersion.values().length-1];
-            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported NMS version! "+ChatColor.GRAY+"Fallback version is "+Commons.ver.name());
+            Commons.serverVersion = PacketVersion.values()[PacketVersion.values().length-1];
+            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported NMS version! "+ChatColor.GRAY+"Fallback version is "+Commons.serverVersion.name());
             info(ChatColor.RED+"                          NMS features will not work properly.");
         }
         info(" ");
@@ -142,10 +133,6 @@ public final class Commons extends JavaPlugin {
         ByteArrayDataOutput o = ByteStreams.newDataOutput();
         o.writeUTF(msg);
         p.get().sendPluginMessage(this, "commons:broadcast", o.toByteArray());
-    }
-
-    public static PacketVersion getServerVersion(){
-        return ver;
     }
 
     @Override

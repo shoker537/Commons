@@ -23,25 +23,20 @@ import java.util.*;
 
 public class PacketEntity<T extends PacketEntity> {
     protected final List<Player> receivers = new ArrayList<>();
-    protected Object entity;
+    @Getter protected Object entity;
     @Getter protected HashMap<ItemSlot, ItemStack> equipment;
     protected boolean isSpawned = false;
     @Getter private boolean isTicking = false;
     @Getter@Setter private int showInRadius = -1;
     @Getter@Setter private boolean isValid = true;
+    protected boolean compatibility = !Commons.isVersionLatestCompatible();
 
     @SneakyThrows
     public PacketEntity(String entityClass, String entityTypeId, World world, double x, double y, double z){
         this(entityClass, entityTypeId, world);
         teleport(x,y,z);
     }
-//    private static String entityTypeName(String entityClass){
-//        String[] a = entityClass.split("\\.");
-//        String r = a[a.length-1];
-//        if(!r.contains("$")) return r.toUpperCase();
-//        a = r.split("\\$");
-//        return a[a.length-1].toUpperCase();
-//    }
+
     @SneakyThrows
     public PacketEntity(String entityClass, String entityTypeEnum, World world){
         entity = ReflectionUtil.constructObject(Class.forName(entityClass), ((Optional<?>)Class.forName("net.minecraft.world.entity.EntityTypes").getMethod(FieldMappings.ENTITYTYPE_BYSTRING.getField(), String.class).invoke(null, entityTypeEnum)).get(), PacketUtil.getNMSWorld(world));
@@ -49,7 +44,8 @@ public class PacketEntity<T extends PacketEntity> {
     }
 
     public World getWorld(){
-        return Bukkit.getWorld(level().getWorld().getUID());
+        if(compatibility) return Bukkit.getWorld(level().getWorld().getUID());
+        return Bukkit.getWorld(((net.minecraft.world.entity.Entity)entity).getLevel().getWorld().getUID());
     }
     public Location getLocation(){
         return new Location(getWorld(), locX(), locY(), locZ());
@@ -57,22 +53,26 @@ public class PacketEntity<T extends PacketEntity> {
 
     @SneakyThrows
     private Level level(){
-        return (Level) entity.getClass().getMethod(FieldMappings.ENTITY_GETLEVEL.getField()).invoke(entity);
+        if(compatibility) return (Level) entity.getClass().getMethod(FieldMappings.ENTITY_GETLEVEL.getField()).invoke(entity);
+        return ((net.minecraft.world.entity.Entity)entity).getLevel();
     }
 
     @SneakyThrows
     public double locX(){
-        return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCX.getField());
+        if(compatibility) return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCX.getField());
+        return ((net.minecraft.world.entity.Entity)entity).getX();
     }
 
     @SneakyThrows
     public double locY(){
-        return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCY.getField());
+        if(compatibility) return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCY.getField());
+        return ((net.minecraft.world.entity.Entity)entity).getY();
     }
 
     @SneakyThrows
     public double locZ(){
-        return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCZ.getField());
+        if(compatibility) return (double) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_LOCZ.getField());
+        return ((net.minecraft.world.entity.Entity)entity).getZ();
     }
 
     public T equip(ItemSlot slot, ItemStack item){
@@ -107,17 +107,21 @@ public class PacketEntity<T extends PacketEntity> {
 
     @SneakyThrows
     public void teleport(double x, double y, double z) {
-        ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SET_POS.getField(),x, y, z);
+        if(compatibility){
+            ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SET_POS.getField(),x, y, z);
+        } else {
+            ((net.minecraft.world.entity.Entity)entity).teleportTo(x,y,z);
+        }
         if(isSpawned) receivers.forEach(this::sendTeleportPacket);
     }
     @SneakyThrows
     public T nameVisible(boolean value) {
-        ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAMEVISIBLE.getField(),value);
+        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAMEVISIBLE.getField(),value); else ((net.minecraft.world.entity.Entity)entity).setCustomNameVisible(value);
         return (T) this;
     }
     @SneakyThrows
     public T displayName(String name){
-        ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAME.getField(), Component.literal(Commons.colorizeWithHex(name)));
+        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAME.getField(), Component.literal(Commons.colorizeWithHex(name))); else ((net.minecraft.world.entity.Entity)entity).setCustomName(Component.literal(Commons.colorizeWithHex(name)));
         if(isSpawned) metadata();
         return (T) this;
     }
@@ -167,6 +171,9 @@ public class PacketEntity<T extends PacketEntity> {
     }
 
     public void metadata(){
+        metadata(true);
+    }
+    public void metadata(boolean full){
         receivers.forEach(this::sendMetadataPacket);
     }
     public void equipment(){
@@ -190,7 +197,10 @@ public class PacketEntity<T extends PacketEntity> {
         PacketUtil.spawnLivingEntity(p, entity);
     }
     protected void sendMetadataPacket(Player p){
-        PacketUtil.entityMetadata(p, entity);
+        sendMetadataPacket(p, true);
+    }
+    protected void sendMetadataPacket(Player p, boolean full){
+        PacketUtil.entityMetadata(p, entity, full);
     }
     protected void sendEquipmentPacket(Player p){
         PacketUtil.equipEntity(p, entity, equipment);
@@ -204,11 +214,8 @@ public class PacketEntity<T extends PacketEntity> {
 
     protected int visibilityTickCounter = 0;
     public void tick(){
-
-
         if(showInRadius==-1) return;
         visibilityTickCounter++;
-//        Bukkit.broadcastMessage("VisibilityCounter: "+visibilityTickCounter);
         if(visibilityTickCounter==20) {
             visibilityTickCounter = 0;
             visibilityTick();

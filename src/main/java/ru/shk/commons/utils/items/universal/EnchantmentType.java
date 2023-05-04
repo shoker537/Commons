@@ -2,6 +2,7 @@ package ru.shk.commons.utils.items.universal;
 
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.commons.utils.Logger;
 
 public enum EnchantmentType {
 
@@ -65,7 +66,7 @@ public enum EnchantmentType {
         for (EnchantmentType value : values()) {
             if(value.name().equalsIgnoreCase(s) || value.namespacedKey().equalsIgnoreCase(s)) return value;
         }
-
+        Logger.warning("Wrong enchantment name: "+s);
         return null;
     }
 }

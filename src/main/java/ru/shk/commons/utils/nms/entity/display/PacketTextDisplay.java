@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.minecraft.world.entity.Display;
 import org.bukkit.Color;
 import org.bukkit.World;
 import org.bukkit.entity.TextDisplay;
@@ -25,25 +26,26 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public void text(Component component){
-        entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETTEXT.getField(), net.minecraft.network.chat.Component.class).invoke(
-                entity, net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component))
-        );
+        net.minecraft.network.chat.Component c = net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component));
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETTEXT.getField(), net.minecraft.network.chat.Component.class).invoke(
+                entity, c
+        ); else ((Display.TextDisplay)entity).setText(c);
         metadata();
     }
 
     @SneakyThrows
     public void background(Color color){
-        entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETBACKGROUND.getField(), int.class).invoke(entity, color.asARGB());
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETBACKGROUND.getField(), int.class).invoke(entity, color.asARGB()); else ((Display.TextDisplay)entity).setBackgroundColor(color.asARGB());
         metadata();
     }
 
     @SneakyThrows
     public Color background(){
-        return Color.fromARGB((int)entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETBACKGROUND.getField()).invoke(entity));
+        return Color.fromARGB(compatibility ? (int)entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETBACKGROUND.getField()).invoke(entity) : ((Display.TextDisplay)entity).getBackgroundColor());
     }
     @SneakyThrows
     public Component text(){
-        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson((net.minecraft.network.chat.Component) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETTEXT.getField()).invoke(entity)));
+        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(compatibility ? (net.minecraft.network.chat.Component) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETTEXT.getField()).invoke(entity) : ((Display.TextDisplay)entity).getText()));
     }
 //    @SneakyThrows
 //    public void alignment(TextDisplay.TextAlignment alignment){
@@ -109,20 +111,20 @@ public class PacketTextDisplay extends PacketDisplay {
 
     @SneakyThrows
     private void flags(byte flags){
-        entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETFLAGS.getField(), byte.class).invoke(entity, flags);
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETFLAGS.getField(), byte.class).invoke(entity, flags); else ((Display.TextDisplay)entity).setFlags(flags);
         metadata();
     }
     @SneakyThrows
     private byte flags(){
-        return (byte) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETFLAGS.getField()).invoke(entity);
+        return compatibility ? (byte) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETFLAGS.getField()).invoke(entity) : ((Display.TextDisplay)entity).getFlags();
     }
     @SneakyThrows
     public int lineWidth(){
-        return (int) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETLINEWIDTH.getField()).invoke(entity);
+        return compatibility ? (int) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETLINEWIDTH.getField()).invoke(entity) : ((Display.TextDisplay)entity).getLineWidth();
     }
     @SneakyThrows
     public void lineWidth(int width){
-        entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETLINEWIDTH.getField(), int.class).invoke(entity, width);
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETLINEWIDTH.getField(), int.class).invoke(entity, width); else ((Display.TextDisplay)entity).setLineWidth(width);
         metadata();
     }
 }
