@@ -51,7 +51,8 @@ public class ItemStackConverter {
             String[] p2 = part.split(":");
             String key = p2[0];
             int lvl = Integer.parseInt(p2[1]);
-            list.add(new Enchantment(EnchantmentType.fromString(key), lvl));
+            EnchantmentType eT = EnchantmentType.fromString(key.toUpperCase());
+            if (eT!=null) list.add(new Enchantment(eT, lvl));
         });
         return list;
     }
