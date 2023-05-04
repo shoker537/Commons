@@ -8,8 +8,9 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,24 +19,23 @@ import net.minecraft.world.scores.Team;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.List;
 
 public abstract class Version {
 
     public void sendPacket(Player p, Packet<?> packet) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-        Method getHandle = p.getClass().getMethod("getHandle");
-        Object nmsPlayer = getHandle.invoke(p);
-        Field con_field = nmsPlayer.getClass().getField("b");
-        Object con = con_field.get(nmsPlayer);
-        Method packet_method = con.getClass().getMethod("a", Packet.class);
-        packet_method.invoke(con, packet);
+//        Method getHandle = p.getClass().getMethod("getHandle");
+//        Object nmsPlayer = getHandle.invoke(p);
+//        Field con_field = nmsPlayer.getClass().getField("b");
+//        Object con = con_field.get(nmsPlayer);
+//        Method packet_method = con.getClass().getMethod("a", Packet.class);
+//        packet_method.invoke(con, packet);
+        ((CraftPlayer)p).getHandle().connection.send(packet);
     }
 
     protected Packet<?> createRemoveTeamPacket(String team) {
@@ -53,12 +53,15 @@ public abstract class Version {
 
     @SneakyThrows
     public ItemStack asNMSCopy(org.bukkit.inventory.ItemStack itemStack) {
-        Class<?> c = Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".inventory.CraftItemStack");
+        Class<?> c = craftItemStack();
         return (ItemStack) c.getMethod("asNMSCopy", org.bukkit.inventory.ItemStack.class).invoke(null, itemStack);
     }
 
     protected Class<?> craftMagicNumbers() throws ClassNotFoundException {
         return Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".util.CraftMagicNumbers");
+    }
+    protected Class<?> craftItemStack() throws ClassNotFoundException {
+        return Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".inventory.CraftItemStack");
     }
 
     @SneakyThrows
@@ -102,67 +105,74 @@ public abstract class Version {
     protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework, String dataWatcherField, String idField){
         p.playSound(l, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
         Object fw = ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.world.entity.projectile.EntityFireworks"), new Object[]{getNMSWorld(p.getWorld()), l.getX(), l.getY(), l.getZ(), asNMSCopy(firework)});
-        Object dataWatcher = fw.getClass().getMethod(dataWatcherField).invoke(fw);
         Object id = fw.getClass().getMethod(idField).invoke(fw);
-        PacketUtil.sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity"), new Object[]{fw, 76}));
-        PacketUtil.sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata"), new Object[]{id, dataWatcher, true}));
-        PacketUtil.sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus"), new Object[]{fw, (byte)17}));
-        PacketUtil.sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy"), new Object[]{IntList.of((Integer) id)}));
+        sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity"), new Object[]{fw, 76}));
+        entityMetadata(p, fw, true);
+//        sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata"), new Object[]{id, dataWatcher, true}));
+        sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus"), new Object[]{fw, (byte)17}));
+        destroyEntity(p, id);
     }
 
     @SneakyThrows
     protected void spawnLivingEntity(Player p, Object e){
-        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving");
-        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
-        sendPacket(p, pk);
+        spawnEntity(p, e);
+//        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving");
+//        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
+//        sendPacket(p, pk);
     }
     @SneakyThrows
     protected void spawnEntity(Player p, Object e){
-        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity");
-        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
-        sendPacket(p, pk);
+//        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity");
+//        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
+        sendPacket(p, new ClientboundAddEntityPacket((Entity) e));
     }
     @SneakyThrows
     protected void destroyEntity(Player p, Object e){
-        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy");
-        int id = (int) e.getClass().getMethod(FieldMappings.ENTITY_GETID.getField()).invoke(e);
-        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{IntList.of(id)});
-        sendPacket(p, pk);
+        destroyEntity(p, entityId(e));
+    }
+    @SneakyThrows
+    protected void destroyEntity(Player p, int id){
+        sendPacket(p, new ClientboundRemoveEntitiesPacket(IntList.of(id)));
+    }
+    @SneakyThrows
+    protected void equipEntity(Player p, Object e, List<Pair<EquipmentSlot, ItemStack>> items){
+        sendPacket(p, new ClientboundSetEquipmentPacket(entityId(e), items));
     }
 
     @SneakyThrows
-    protected void equipEntity(Player p, Object e, List<Pair<EquipmentSlot, ItemStack>> items){
-        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment");
-        int id = (int) e.getClass().getMethod(FieldMappings.ENTITY_GETID.getField()).invoke(e);
-        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{id, items});
-        sendPacket(p, pk);
+    protected int entityId(Object e){
+        return ((Entity)e).getId();
     }
 
     @SneakyThrows
     protected void entityMetadata(Player p, Object e){
+        entityMetadata(p, e, true);
+    }
+    @SneakyThrows
+    protected void entityMetadata(Player p, Object e, boolean full){
         Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata");
         Object dataWatcher = e.getClass().getMethod(FieldMappings.ENTITY_GETDATAWATCHER.getField()).invoke(e);
-        int id = (int) e.getClass().getMethod(FieldMappings.ENTITY_GETID.getField()).invoke(e);
-        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{id, dataWatcher, true});
+        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{entityId(e), dataWatcher, full});
         sendPacket(p, pk);
     }
 
     @SneakyThrows
     protected void teleportEntity(Player p, Object e){
-        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport");
-        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
-        sendPacket(p, pk);
+//        Class<?> packet = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport");
+//        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
+        sendPacket(p, new ClientboundTeleportEntityPacket((Entity)e));
     }
 
     @SneakyThrows
     protected void playTotemAnimation(Player p){
-        Class<?> statusPacket = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus");
-        val a = (Packet<?>) ConstructorUtils.invokeConstructor(statusPacket, new Object[]{getNMSPlayer(p), (byte)35});
-        sendPacket(p, a);
+//        Class<?> statusPacket = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus");
+//        val a = (Packet<?>) ConstructorUtils.invokeConstructor(statusPacket, new Object[]{getNMSPlayer(p), (byte)35});
+        sendPacket(p, new ClientboundEntityEventPacket(getNMSPlayer(p), (byte)35));
     }
     @SneakyThrows
     protected ServerPlayer getNMSPlayer(Player p){
-        return (ServerPlayer) p.getClass().getMethod("getHandle").invoke(p);
+        return (ServerPlayer) ReflectionUtil.runMethod(p, "getHandle");
+//        return (ServerPlayer) p.getClass().getMethod("getHandle").invoke(p);
     }
 
     @SneakyThrows
@@ -196,13 +206,17 @@ public abstract class Version {
         if(!collideTeammates) disableTeammatesCollision(t);
         if(seeFriendlyInvisible) setCanSeeFriendlyInvisible(t);
         setFriendlyFire(t, friendlyFire);
-        t.getClass().getMethod("b", Component.class).invoke(t, prefix);
-        t.getClass().getMethod("c", Component.class).invoke(t, suffix);
-        if(color!=null) t.getClass().getMethod("a", ChatFormatting.class).invoke(t, ChatFormatting.valueOf(color.name()));
-        if(entries!=null){
-            Collection<String> e = (Collection<String>) t.getClass().getMethod("g").invoke(t);
-            e.addAll(entries);
-        }
+//        t.getClass().getMethod("b", Component.class).invoke(t, prefix);
+//        t.getClass().getMethod("c", Component.class).invoke(t, suffix);
+//        if(color!=null) t.getClass().getMethod("a", ChatFormatting.class).invoke(t, ChatFormatting.valueOf(color.name()));
+//        if(entries!=null){
+//            Collection<String> e = (Collection<String>) t.getClass().getMethod("g").invoke(t);
+//            e.addAll(entries);
+//        }
+        t.setPlayerPrefix(prefix);
+        t.setPlayerSuffix(suffix);
+        if(color!=null) t.setColor(ChatFormatting.valueOf(color.name()));
+        if(entries!=null) t.getPlayers().addAll(entries);
         return ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(t, createTeamOrUpdate);
     }
 
@@ -225,10 +239,7 @@ public abstract class Version {
 
     @SneakyThrows
     protected void playRiptideAnimation(Player p, int ticks){
-        Class<?> c = Class.forName("org.bukkit.craftbukkit."+getVersionOfPackage()+".entity.CraftPlayer");
-        val craftPlayer = c.cast(p);
-        net.minecraft.world.entity.player.Player pl = (net.minecraft.world.entity.player.Player) craftPlayer.getClass().getMethod("getHandle").invoke(craftPlayer);
-        pl.startAutoSpinAttack(ticks);
+        getNMSPlayer(p).startAutoSpinAttack(ticks);
     }
 
 }
