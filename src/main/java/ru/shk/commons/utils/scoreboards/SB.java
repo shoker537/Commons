@@ -34,7 +34,7 @@ public class SB {
 
     public void load(int maxValue) {
         c = (byte) (maxValue - 1);
-        objective.getScore(" ").setScore(c + 1);
+//        objective.getScore(" ").setScore(c + 1);
     }
 
     public void addLine(String line) {
@@ -74,12 +74,15 @@ public class SB {
     public void setDynamicLine(String team, String suffix) {
         board.getTeam(team).setSuffix((suffix.replace("&", "§")));
     }
-
+    public void setDynamicLine(String team, Component suffix) {
+        board.getTeam(team).suffix(suffix);
+    }
     public void setDynamicLine(String team, String prefix, String suffix) {
-        /*if(prefix.length()>16) prefix = prefix.substring(16);
-        if(suffix.length()>16) suffix = suffix.substring(16);*/
         board.getTeam(team).setSuffix((suffix.replace("&", "§")));
         board.getTeam(team).setPrefix((prefix.replace("&", "§")));
+    }    public void setDynamicLine(String team, Component prefix, Component suffix) {
+        board.getTeam(team).suffix(suffix);
+        board.getTeam(team).prefix(prefix);
     }
 
     public void addBlank() {
