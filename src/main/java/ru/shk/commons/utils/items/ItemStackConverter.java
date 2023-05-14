@@ -2,8 +2,6 @@ package ru.shk.commons.utils.items;
 
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
-import ru.shk.commons.ServerType;
-import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.universal.parse.type.StringListValue;
 import ru.shk.commons.utils.items.universal.parse.type.StringValue;
@@ -34,6 +32,7 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.LEATHER_ARMOR,"leather-color", b -> new StringValue().value(b.leatherColorAsHexString()), (b, s) -> b.leatherColor(Color.decode(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringValue().value(String.valueOf(ItemFlag.asInt(b.flags()))), (b, s) -> b.flags(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"CMD", b -> new StringValue().value(b.customModelData()==null?null:String.valueOf(b.customModelData())), (b, s) -> b.customModelData(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"damage", b -> new StringValue().value(b.damage()==null?null:String.valueOf(b.damage())), (b, s) -> b.damage(Integer.parseInt(s.stringValue()))));
     }
 
     private static List<String> enchantsToStringList(List<Enchantment> list){
