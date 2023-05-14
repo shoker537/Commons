@@ -148,7 +148,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
 
     @Override
     public BukkitItemStack enchant(EnchantmentType e, int level) {
-        item.addEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(e.namespacedKey())), level);
+        item.addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(e.namespacedKey())), level);
         return this;
     }
 
