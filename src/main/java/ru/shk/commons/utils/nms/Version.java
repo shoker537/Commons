@@ -23,19 +23,21 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public abstract class Version {
 
     public void sendPacket(Player p, Packet<?> packet) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-//        Method getHandle = p.getClass().getMethod("getHandle");
-//        Object nmsPlayer = getHandle.invoke(p);
-//        Field con_field = nmsPlayer.getClass().getField("b");
-//        Object con = con_field.get(nmsPlayer);
-//        Method packet_method = con.getClass().getMethod("a", Packet.class);
-//        packet_method.invoke(con, packet);
-        ((CraftPlayer)p).getHandle().connection.send(packet);
+        Method getHandle = p.getClass().getMethod("getHandle");
+        Object nmsPlayer = getHandle.invoke(p);
+        Field con_field = nmsPlayer.getClass().getField("b");
+        Object con = con_field.get(nmsPlayer);
+        Method packet_method = con.getClass().getMethod("a", Packet.class);
+        packet_method.invoke(con, packet);
+//        getNMSPlayer(p).connection.send(packet);
     }
 
     protected Packet<?> createRemoveTeamPacket(String team) {
@@ -141,7 +143,7 @@ public abstract class Version {
 
     @SneakyThrows
     protected int entityId(Object e){
-        return ((Entity)e).getId();
+        return (int) ReflectionUtil.runMethod(e, FieldMappings.ENTITY_GETID.getField());
     }
 
     @SneakyThrows
@@ -162,6 +164,16 @@ public abstract class Version {
 //        Packet<?> pk = (Packet<?>) ConstructorUtils.invokeConstructor(packet, new Object[]{e});
         sendPacket(p, new ClientboundTeleportEntityPacket((Entity)e));
     }
+    @SneakyThrows
+    protected void leashPacket(Player p, org.bukkit.entity.Entity owner, org.bukkit.entity.Entity attached){
+        ClientboundSetEntityLinkPacket packet = new ClientboundSetEntityLinkPacket(getNMSEntity(attached), getNMSEntity(owner));
+        sendPacket(p, packet);
+    }
+
+    @SneakyThrows
+    protected org.bukkit.entity.Entity bukkitEntityFromNMS(Object entity){
+        return (org.bukkit.entity.Entity) ReflectionUtil.runMethod(Entity.class, entity, "getBukkitEntity");
+    }
 
     @SneakyThrows
     protected void playTotemAnimation(Player p){
@@ -172,7 +184,10 @@ public abstract class Version {
     @SneakyThrows
     protected ServerPlayer getNMSPlayer(Player p){
         return (ServerPlayer) ReflectionUtil.runMethod(p, "getHandle");
-//        return (ServerPlayer) p.getClass().getMethod("getHandle").invoke(p);
+    }
+    @SneakyThrows
+    protected Entity getNMSEntity(org.bukkit.entity.Entity e){
+        return (Entity) ReflectionUtil.runMethod(e, "getHandle");
     }
 
     @SneakyThrows

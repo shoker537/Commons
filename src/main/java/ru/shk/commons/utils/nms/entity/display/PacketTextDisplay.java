@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.world.entity.Display;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.TextDisplay;
 import ru.shk.commons.utils.nms.FieldMappings;
@@ -16,6 +17,9 @@ public class PacketTextDisplay extends PacketDisplay {
         super(Type.TEXT,"text_display", world, x, y, z);
 //        if(alignClass==null) alignClass =
 //                Arrays.stream(entity.getClass().getMethods()).filter(method -> Modifier.isStatic(method.getModifiers()) && method.getName().equalsIgnoreCase(FieldMappings.TEXTDISPLAY_GETALIGNMENT.getField())).findAny().get().getReturnType();
+    }
+    public PacketTextDisplay(Location l){
+        this(l.getWorld(), l.getX(), l.getY(), l.getZ());
     }
     public boolean defaultBackground(){
         return getFlag(4);

@@ -4,6 +4,7 @@ import com.mojang.math.Transformation;
 import lombok.SneakyThrows;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Display;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import ru.shk.commons.utils.nms.FieldMappings;
@@ -15,6 +16,10 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
 
     public PacketDisplay(Type type, String entityTypeId, World world, double x, double y, double z) {
         super(type.fullClassName(), entityTypeId, world, x, y, z);
+    }
+
+    public PacketDisplay(Type type, String entityTypeId, Location l){
+        this(type, entityTypeId, l.getWorld(), l.getX(), l.getY(), l.getZ());
     }
     @SneakyThrows
     public void interpolationDuration(int ticks){
@@ -60,6 +65,12 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
         return new org.bukkit.util.Transformation(t.getTranslation(), t.getLeftRotation(), t.getScale(), t.getRightRotation());
     }
 
+    @SneakyThrows
+    public void followLookType(FollowLookType type){
+        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.DISPLAY_SETBILLBOARD.getField(), Display.BillboardConstraints.valueOf(type.name()));
+        else ((Display) entity).setBillboardConstraints(Display.BillboardConstraints.valueOf(type.name()));
+    }
+
     protected enum Type {
         TEXT("TextDisplay"), ITEM("ItemDisplay"), BLOCK("BlockDisplay");
         private final String clazz;
@@ -72,7 +83,25 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
             return "net.minecraft.world.entity.Display$"+clazz;
         }
     }
+    public enum FollowLookType {
 
+        /**
+         * No rotation (default).
+         */
+        FIXED,
+        /**
+         * Can pivot around vertical axis.
+         */
+        VERTICAL,
+        /**
+         * Can pivot around horizontal axis.
+         */
+        HORIZONTAL,
+        /**
+         * Can pivot around center point.
+         */
+        CENTER;
+    }
     @Override
     protected void sendSpawnPacket(Player p) {
         PacketUtil.spawnEntity(p, entity);

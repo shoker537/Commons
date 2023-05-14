@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
@@ -70,7 +72,11 @@ public class v1_19_R3 extends Version {
 
     @Override
     protected ServerPlayer getNMSPlayer(Player p) {
-        return ((CraftPlayer)p).getHandle();
+        return (ServerPlayer) getNMSEntity(p);
+    }
+
+    protected Entity getNMSEntity(org.bukkit.entity.Entity e) {
+        return ((CraftEntity)e).getHandle();
     }
 
     @Override
@@ -86,6 +92,11 @@ public class v1_19_R3 extends Version {
         entityMetadata(p, fw, true);
         sendPacket(p, new ClientboundEntityEventPacket(fw, (byte)17));
         destroyEntity(p, fw.getId());
+    }
+
+    @Override
+    protected org.bukkit.entity.Entity bukkitEntityFromNMS(Object entity) {
+        return ((Entity)entity).getBukkitEntity();
     }
 
     @SneakyThrows
@@ -114,6 +125,7 @@ public class v1_19_R3 extends Version {
     protected void setFriendlyFire(PlayerTeam team, boolean friendlyFire) {
         team.setAllowFriendlyFire(friendlyFire);
     }
+
 
 
 }

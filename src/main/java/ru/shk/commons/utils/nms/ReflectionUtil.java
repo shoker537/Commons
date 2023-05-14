@@ -1,36 +1,55 @@
 package ru.shk.commons.utils.nms;
 
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
+import ru.shk.commons.utils.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class ReflectionUtil {
     public static Object constructObject(Class<?> c, Object... arguments) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         return ConstructorUtils.invokeConstructor(c, arguments);
     }
 
-    public static Object runMethod(Class<?> clazz, Object instance, String method, Object... args) throws InvocationTargetException, IllegalAccessException {
+    public static void printAvailableMethods(Class<?> clazz){
+        Logger.warning(" > Printing available methods at class "+clazz.getSimpleName());
+        for (Method method : clazz.getMethods()) {
+            Logger.info("   "+(method.getReturnType().getSimpleName())+" "+method.getName()+"("+ Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "))+")");
+        }
+    }
+    @SneakyThrows
+    public static Object runMethod(Class<?> clazz, Object instance, String method, Object... args) {
         Class<?>[] arr = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
             arr[i] = args[i].getClass();
         }
         Method m = MethodUtils.getMatchingMethod(clazz, method, arr);
         if(m==null) m = MethodUtils.getMatchingAccessibleMethod(clazz, method, arr);
+        if(m==null) {
+            printAvailableMethods(clazz);
+            throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(args).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+clazz.getSimpleName()+" class");
+        }
         if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-        return m.invoke(instance, args);
+        return m.invoke(clazz.cast(instance), args);
     }
-
-    public static Object runMethod(Object c, String method, Object... arguments) throws InvocationTargetException, IllegalAccessException {
+    @SneakyThrows
+    public static Object runMethod(Object c, String method, Object... arguments) {
         Class<?>[] arr = new Class[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
             arr[i] = arguments[i].getClass();
         }
         Method m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
         if(m==null) m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
+        if(m==null) {
+            printAvailableMethods(c.getClass());
+            throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(arguments).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+c.getClass().getSimpleName()+" class");
+        }
         if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
         return m.invoke(c, arguments);
 //        Class<?>[] arr = new Class[arguments.length];
@@ -98,5 +117,12 @@ public class ReflectionUtil {
         if (!f.canAccess(c))
             f.setAccessible(true);
         f.set(c, value);
+    }
+
+    public static Object getField(Object c, String field) throws NoSuchFieldException, IllegalAccessException {
+        Field f = c.getClass().getDeclaredField(field);
+        if (!f.canAccess(c))
+            f.setAccessible(true);
+        return f.get(c);
     }
 }

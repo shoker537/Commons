@@ -6,6 +6,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.*;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.nms.entity.PacketEntity;
@@ -48,6 +49,10 @@ public class PacketUtil {
         }, 1,1);
     }
 
+    public static Object getNMSEntity(Entity e){
+        return versionClass.getNMSEntity(e);
+    }
+
     /**
     *  @param createTeamOrUpdate true - create, false - update
     */
@@ -66,6 +71,13 @@ public class PacketUtil {
      */
     public static void createAndSendTeam(boolean createTeamOrUpdate, boolean collideTeammates, boolean friendlyFire, boolean canSeeFriendlyInvisible, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
         for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,collideTeammates,friendlyFire, canSeeFriendlyInvisible, name, prefix, suffix, color, entries));
+    }
+
+    public static void sendLeashPacket(Player p, Entity owner, Entity attached){
+        versionClass.leashPacket(p, owner, attached);
+    }
+    public static Entity bukkitEntityFromNMS(Object entity){
+        return versionClass.bukkitEntityFromNMS(entity);
     }
 
     public static void removeTeamPacket(String team, Player... toSend) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
