@@ -36,6 +36,7 @@ public class PacketEntity<T extends PacketEntity> {
     @Getter private boolean isTicking = false;
     @Getter@Setter private int showInRadius = -1;
     @Getter@Setter private boolean isValid = true;
+    private boolean leashHolderSet = false;
     protected static boolean compatibility;
 
     static {
@@ -55,6 +56,7 @@ public class PacketEntity<T extends PacketEntity> {
 
     @SneakyThrows
     public void leashHolder(Entity e){
+        leashHolderSet = e!=null;
         if(compatibility) ReflectionUtil.runMethod(Mob.class, entity, FieldMappings.MOB_SETLEASHEDTO.getField(), PacketUtil.getNMSEntity(e), true);
         ((Mob)entity).setLeashedTo((net.minecraft.world.entity.Entity) PacketUtil.getNMSEntity(e), true);
     }
@@ -272,8 +274,10 @@ public class PacketEntity<T extends PacketEntity> {
         sendSpawnPacket(player);
         sendMetadataPacket(player);
         if(equipment!=null && equipment.size()!=0) sendEquipmentPacket(player);
-        Entity leashHolder = leashHolder();
-        if(leashHolder()!=null) sendLeashPacket(player, leashHolder);
+        if(leashHolderSet) {
+            Entity leashHolder = leashHolder();
+            sendLeashPacket(player, leashHolder);
+        }
     }
 
     public void sendLeashPacket(Player p, Entity leashHolder){

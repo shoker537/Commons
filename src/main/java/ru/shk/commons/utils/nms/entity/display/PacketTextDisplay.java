@@ -9,6 +9,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.TextDisplay;
+import org.jetbrains.annotations.Range;
 import ru.shk.commons.utils.nms.FieldMappings;
 
 public class PacketTextDisplay extends PacketDisplay {
@@ -130,5 +131,15 @@ public class PacketTextDisplay extends PacketDisplay {
     public void lineWidth(int width){
         if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETLINEWIDTH.getField(), int.class).invoke(entity, width); else ((Display.TextDisplay)entity).setLineWidth(width);
         metadata();
+    }
+    @SneakyThrows
+    public void textOpacity(@Range(from = 0, to = 256) int opacity){
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETTEXTOPACITY.getField(), byte.class).invoke(entity, intOpacityToByte(opacity)); else ((Display.TextDisplay)entity).setTextOpacity(intOpacityToByte(opacity));
+        metadata();
+    }
+
+    private static byte intOpacityToByte(int opacity){
+        if(opacity>=128) return (byte) -(256-opacity);
+        return (byte) (opacity);
     }
 }
