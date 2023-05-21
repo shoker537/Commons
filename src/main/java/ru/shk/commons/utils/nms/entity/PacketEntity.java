@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
@@ -261,7 +262,10 @@ public class PacketEntity<T extends PacketEntity> {
     // ONLY if it is EntityLiving
     @SneakyThrows
     public T collides(boolean value) {
-        ReflectionUtil.setField(entity, "collides", value);
+        if(entity instanceof LivingEntity le) {
+            le.collides = value;
+        }
+//        ReflectionUtil.setField(entity, "collides", value);
         return (T) this;
     }
 
