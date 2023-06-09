@@ -16,7 +16,7 @@ public class v1_19_R3 extends Version {
     protected void entityMetadata(Player p, Object e, boolean full) {
         Entity entity = (Entity) e;
         if(!full) {
-            sendPacket(p, new ClientboundSetEntityDataPacket(entity.getId(), (List<SynchedEntityData.DataValue<?>>)ReflectionUtil.runMethod(entityData(entity), "packDirty")));
+            sendPacket(p, new ClientboundSetEntityDataPacket(entityId(entity), (List<SynchedEntityData.DataValue<?>>)ReflectionUtil.runMethod(entityData(entity), "packDirty")));
             return;
         }
         ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entityId(entity), (List<SynchedEntityData.DataValue<?>>)ReflectionUtil.runMethod(entityData(entity), "packAll"));
