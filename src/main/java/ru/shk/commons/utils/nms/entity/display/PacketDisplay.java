@@ -12,6 +12,7 @@ import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.ReflectionUtil;
 import ru.shk.commons.utils.nms.entity.PacketEntity;
 
+@SuppressWarnings("unused")
 public class PacketDisplay extends PacketEntity<PacketDisplay> {
 
     public PacketDisplay(Type type, String entityTypeId, World world, double x, double y, double z) {
@@ -49,7 +50,6 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     @SneakyThrows
     public int startInterpolation() {
         return (int) ReflectionUtil.runMethod(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONSTART.getField());
-//        return (int) entity.getClass().getSuperclass().getMethod(FieldMappings.DISPLAY_GETINTERPOLATIONSTART.getField()).invoke(entity);
     }
     @SneakyThrows
     public void transform(org.bukkit.util.Transformation transformation){

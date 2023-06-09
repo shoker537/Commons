@@ -90,8 +90,8 @@ public class Commons extends Plugin implements Listener {
     @Override
     public void onEnable() {
         config = new Config(getDataFolder(), true);
-        if(!config.contains("sockets.enable")) config.setAndSave("sockets.enable", false);
-        if(!config.contains("sockets.server-port")) config.setAndSave("sockets.server-port", 3000);
+//        if(!config.contains("sockets.enable")) config.setAndSave("sockets.enable", false);
+//        if(!config.contains("sockets.server-port")) config.setAndSave("sockets.server-port", 3000);
         if(getProxy().getPluginManager().getPlugin("MySQLAPI")==null){
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {
@@ -99,7 +99,7 @@ public class Commons extends Plugin implements Listener {
             HeadsCache.mysql(mysql);
         }
 //        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
         threadPool.setKeepAliveTime(15, TimeUnit.SECONDS);
         teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
         teleportService.setKeepAliveTime(15, TimeUnit.SECONDS);

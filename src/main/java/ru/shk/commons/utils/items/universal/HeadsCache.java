@@ -154,4 +154,8 @@ public class HeadsCache {
             return null;
         }
     }
+
+    public int cacheSize(){
+        return cachedHeadsFallback.size()+cachedHeads.size();
+    }
 }

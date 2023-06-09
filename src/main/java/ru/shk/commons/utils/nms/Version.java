@@ -6,12 +6,15 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.PlayerTeam;
@@ -19,7 +22,6 @@ import net.minecraft.world.scores.Team;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
 
@@ -33,7 +35,7 @@ public abstract class Version {
     public void sendPacket(Player p, Packet<?> packet) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         Method getHandle = p.getClass().getMethod("getHandle");
         Object nmsPlayer = getHandle.invoke(p);
-        Field con_field = nmsPlayer.getClass().getField("b");
+        Field con_field = nmsPlayer.getClass().getField("b"); // it's now 'c' in 1.20
         Object con = con_field.get(nmsPlayer);
         Method packet_method = con.getClass().getMethod("a", Packet.class);
         packet_method.invoke(con, packet);
@@ -103,16 +105,15 @@ public abstract class Version {
         return (net.minecraft.world.item.Item) c.getMethod("getItem", Material.class).invoke(null, m);
     }
 
+
     @SneakyThrows
-    protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework, String dataWatcherField, String idField){
+    protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework, String dataWatcherField, String idField) {
         p.playSound(l, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
-        Object fw = ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.world.entity.projectile.EntityFireworks"), new Object[]{getNMSWorld(p.getWorld()), l.getX(), l.getY(), l.getZ(), asNMSCopy(firework)});
-        Object id = fw.getClass().getMethod(idField).invoke(fw);
-        sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity"), new Object[]{fw, 76}));
+        FireworkRocketEntity fw = new FireworkRocketEntity((ServerLevel)getNMSWorld(l.getWorld()), l.getX(), l.getY(), l.getZ(), asNMSCopy(firework));
+        sendPacket(p, new ClientboundAddEntityPacket(fw, 76));
         entityMetadata(p, fw, true);
-//        sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata"), new Object[]{id, dataWatcher, true}));
-        sendPacket(p, (Packet<?>) ConstructorUtils.invokeConstructor(Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus"), new Object[]{fw, (byte)17}));
-        destroyEntity(p, id);
+        sendPacket(p, new ClientboundEntityEventPacket(fw, (byte)17));
+        destroyEntity(p, fw.getId());
     }
 
     @SneakyThrows
@@ -170,11 +171,17 @@ public abstract class Version {
         sendPacket(p, packet);
     }
 
-    @SneakyThrows
-    protected org.bukkit.entity.Entity bukkitEntityFromNMS(Object entity){
-        return (org.bukkit.entity.Entity) ReflectionUtil.runMethod(Entity.class, entity, "getBukkitEntity");
+    protected org.bukkit.entity.Entity bukkitEntityFromNMS(Object entity) {
+        return ((Entity)entity).getBukkitEntity();
     }
 
+    @SneakyThrows
+    protected void chestOpenState(Location l, boolean open){
+        ServerLevel level = (ServerLevel) getNMSWorld(l.getWorld());
+        BlockPos pos = new BlockPos(l.getBlockX(), l.getBlockY(), l.getBlockZ());
+        net.minecraft.world.level.block.Block b = level.getBlockIfLoaded(pos);
+        ReflectionUtil.runMethod(level, FieldMappings.SERVERLEVEL_BLOCKEVENT.getField(), pos, b, 1, open?1:0);
+    }
     @SneakyThrows
     protected void playTotemAnimation(Player p){
 //        Class<?> statusPacket = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus");

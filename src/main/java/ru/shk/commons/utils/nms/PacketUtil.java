@@ -6,6 +6,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
@@ -78,6 +79,10 @@ public class PacketUtil {
     }
     public static Entity bukkitEntityFromNMS(Object entity){
         return versionClass.bukkitEntityFromNMS(entity);
+    }
+
+    public static void chestOpenState(Location l, boolean open){
+        versionClass.chestOpenState(l, open);
     }
 
     public static void removeTeamPacket(String team, Player... toSend) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {

@@ -30,10 +30,12 @@ public class ItemStackBuilder {
 //    private static final ThreadPoolExecutor mojangRequestThreadPool = new ThreadPoolExecutor(1, 3, 10, TimeUnit.SECONDS, new SynchronousQueue<>());
 //    private static final ThreadPoolExecutor cacheThreadPool = new ThreadPoolExecutor(2, 5, 60, TimeUnit.SECONDS, new SynchronousQueue<>());
     private static final ThreadPoolExecutor mojangRequestThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     private final ItemStack item;
     private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(300);
     @Getter private int customHeadId = -1;
+
+    public static int headsCacheSize(){return headsCache.size();}
 
     public ItemStackBuilder(ItemStack stack){
         this.item = stack;

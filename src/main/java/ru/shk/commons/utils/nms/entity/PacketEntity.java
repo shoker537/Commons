@@ -26,6 +26,7 @@ import ru.shk.commons.utils.nms.ReflectionUtil;
 
 import java.util.*;
 
+@SuppressWarnings({"unused", "unchecked"})
 public class PacketEntity<T extends PacketEntity> {
     protected final List<Player> receivers = new ArrayList<>();
     protected final List<Player> excludedReceivers = new ArrayList<>();
@@ -106,7 +107,7 @@ public class PacketEntity<T extends PacketEntity> {
         if(compatibility) {
             return Bukkit.getWorld((UUID) ReflectionUtil.runMethod(ReflectionUtil.runMethod(level(), "getWorld"), "getUID"));
         }
-        return Bukkit.getWorld(entity.getLevel().getWorld().getUID());
+        return Bukkit.getWorld(entity.level().getWorld().getUID());
     }
     public Location getLocation(){
         return new Location(getWorld(), locX(), locY(), locZ());
@@ -115,7 +116,7 @@ public class PacketEntity<T extends PacketEntity> {
     @SneakyThrows
     private Level level(){
         if(compatibility) return (Level) entity.getClass().getMethod(FieldMappings.ENTITY_GETLEVEL.getField()).invoke(entity);
-        return entity.getLevel();
+        return entity.level();
     }
 
     @SneakyThrows

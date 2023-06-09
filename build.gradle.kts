@@ -9,12 +9,13 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.3.116"
+version = "1.4.0"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
 publishing {
   repositories {
+    mavenLocal()
     maven {
       url = URI.create("https://nexus.shoker.su/repository/maven-releases/")
       credentials {
@@ -76,8 +77,8 @@ repositories {
 }
 
 dependencies {
-  paperDevBundle("1.19.4-R0.1-SNAPSHOT")
-  implementation("org.apache.commons:commons-lang3:3.12.0")
+  paperDevBundle("1.20-R0.1-SNAPSHOT")
+  compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")

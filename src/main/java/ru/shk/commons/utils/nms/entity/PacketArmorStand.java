@@ -5,7 +5,7 @@ import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.World;
 import ru.shk.commons.utils.nms.FieldMappings;
 import ru.shk.commons.utils.nms.ReflectionUtil;
-
+@SuppressWarnings("unused")
 public class PacketArmorStand extends PacketEntity<PacketArmorStand> {
     public PacketArmorStand(World world, double x, double y, double z){
         super("net.minecraft.world.entity.decoration.EntityArmorStand", "armor_stand", world, x, y, z);

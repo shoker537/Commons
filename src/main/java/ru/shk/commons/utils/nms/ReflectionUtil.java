@@ -44,8 +44,8 @@ public class ReflectionUtil {
         for (int i = 0; i < arguments.length; i++) {
             arr[i] = arguments[i].getClass();
         }
-        Method m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
-        if(m==null) m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
+        Method m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
+        if(m==null) m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
         if(m==null) {
             printAvailableMethods(c.getClass());
             throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(arguments).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+c.getClass().getSimpleName()+" class");

@@ -12,6 +12,7 @@ import org.bukkit.entity.TextDisplay;
 import org.jetbrains.annotations.Range;
 import ru.shk.commons.utils.nms.FieldMappings;
 
+@SuppressWarnings("unused")
 public class PacketTextDisplay extends PacketDisplay {
 //    private static Class<?> alignClass = null;
     public PacketTextDisplay(World world, double x, double y, double z) {
@@ -40,17 +41,17 @@ public class PacketTextDisplay extends PacketDisplay {
 
     @SneakyThrows
     public void background(Color color){
-        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETBACKGROUND.getField(), int.class).invoke(entity, color.asARGB()); else ((Display.TextDisplay)entity).setBackgroundColor(color.asARGB());
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETBACKFROUNDCOLOR.getField(), int.class).invoke(entity, color.asARGB()); else ((Display.TextDisplay)entity).setBackgroundColor(color.asARGB());
         metadata();
     }
 
     @SneakyThrows
     public Color background(){
-        return Color.fromARGB(compatibility ? (int)entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETBACKGROUND.getField()).invoke(entity) : ((Display.TextDisplay)entity).getBackgroundColor());
+        return Color.fromARGB(compatibility ? (int)entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETBACKFROUNDCOLOR.getField()).invoke(entity) : ((Display.TextDisplay)entity).getBackgroundColor());
     }
     @SneakyThrows
     public Component text(){
-        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(compatibility ? (net.minecraft.network.chat.Component) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETTEXT.getField()).invoke(entity) : ((Display.TextDisplay)entity).getText()));
+        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(compatibility ? (net.minecraft.network.chat.Component) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETTEXT.getField()).invoke(entity) : ((Display.TextDisplay)entity).textRenderState().text()));
     }
 //    @SneakyThrows
 //    public void alignment(TextDisplay.TextAlignment alignment){
@@ -133,12 +134,18 @@ public class PacketTextDisplay extends PacketDisplay {
         metadata();
     }
     @SneakyThrows
-    public void textOpacity(@Range(from = 0, to = 256) int opacity){
+    public void textOpacity(@Range(from = 0, to = 252) int opacity){
         if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETTEXTOPACITY.getField(), byte.class).invoke(entity, intOpacityToByte(opacity)); else ((Display.TextDisplay)entity).setTextOpacity(intOpacityToByte(opacity));
+        metadata();
+    }
+    @SneakyThrows
+    public void textOpacityRaw(byte opacity){
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETTEXTOPACITY.getField(), byte.class).invoke(entity, opacity); else ((Display.TextDisplay)entity).setTextOpacity(opacity);
         metadata();
     }
 
     private static byte intOpacityToByte(int opacity){
+        opacity+=4;
         if(opacity>=128) return (byte) -(256-opacity);
         return (byte) (opacity);
     }
