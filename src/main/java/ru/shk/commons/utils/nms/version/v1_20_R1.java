@@ -39,7 +39,10 @@ public class v1_20_R1 extends Version {
     @Override@SneakyThrows
     protected void entityMetadata(Player p, Object e, boolean full) {
         Entity entity = (Entity) e;
-        if(!full) sendPacket(p, new ClientboundSetEntityDataPacket(entity.getId(), entity.getEntityData().packDirty()));
+        if(!full) {
+            sendPacket(p, new ClientboundSetEntityDataPacket(entity.getId(), entity.getEntityData().packDirty()));
+            return;
+        }
         ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entity.getId(), (List<SynchedEntityData.DataValue<?>>) ReflectionUtil.runMethod(entity.getEntityData(), "packAll"));
         sendPacket(p, packet);
     }
