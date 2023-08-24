@@ -193,7 +193,24 @@ public class PacketEntity<T extends PacketEntity> {
             ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SET_POS.getField(),x, y, z);
         } else {
             entity.teleportTo(x,y,z);
-//            entity.moveTo(x,y,z);
+        }
+        if(isSpawned) receivers.forEach(this::sendTeleportPacket);
+    }
+    @SneakyThrows
+    public void teleport(double x, double y, double z, float yaw, float pitch) {
+        if(compatibility){
+            ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_TELEPORT_TO_WITH_FLAGS.getField(), level(), x, y, z, new HashSet<>(), yaw, pitch);
+        } else {
+            entity.teleportTo((ServerLevel) level(), x,y,z, new HashSet<>(), yaw, pitch);
+        }
+        if(isSpawned) receivers.forEach(this::sendTeleportPacket);
+    }
+    @SneakyThrows
+    public void teleport(World w, double x, double y, double z, float yaw, float pitch) {
+        if(compatibility){
+            ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_TELEPORT_TO_WITH_FLAGS.getField(), PacketUtil.getNMSWorld(w), x, y, z, new HashSet<>(),  yaw, pitch);
+        } else {
+            entity.teleportTo((ServerLevel) PacketUtil.getNMSWorld(w), x,y,z, new HashSet<>(), yaw, pitch);
         }
         if(isSpawned) receivers.forEach(this::sendTeleportPacket);
     }
@@ -211,12 +228,12 @@ public class PacketEntity<T extends PacketEntity> {
     }
     @SneakyThrows
     public T nameVisible(boolean value) {
-        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAMEVISIBLE.getField(),value); else ((net.minecraft.world.entity.Entity)entity).setCustomNameVisible(value);
+        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAMEVISIBLE.getField(),value); else entity.setCustomNameVisible(value);
         return (T) this;
     }
     @SneakyThrows
     public T displayName(String name){
-        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAME.getField(), Component.literal(Commons.colorizeWithHex(name))); else ((net.minecraft.world.entity.Entity)entity).setCustomName(Component.literal(Commons.colorizeWithHex(name)));
+        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETCUSTOMNAME.getField(), Component.literal(Commons.colorizeWithHex(name))); else entity.setCustomName(Component.literal(Commons.colorizeWithHex(name)));
         if(isSpawned) metadata();
         return (T) this;
     }

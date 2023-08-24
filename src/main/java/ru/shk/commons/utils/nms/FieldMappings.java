@@ -12,6 +12,7 @@ public enum FieldMappings {
     ENTITY_SETSHAREDFLAG(null, null, "b", "b"),
     ENTITY_SET_POS("setPosition", "e", "e", "e"),
     ENTITY_TELEPORT_TO(null,null, "a", "a", "b"),
+    ENTITY_TELEPORT_TO_WITH_FLAGS(null,null, null, "a", "a"),
     ENTITY_SETNOGRAVITY("setNoGravity", "e", "e", "e"),
     ENTITY_SETCUSTOMNAMEVISIBLE("setCustomNameVisible", "n", "n", "n"),
     ENTITY_SETCUSTOMNAME("setCustomName", "a", "b", "b"),
@@ -71,7 +72,7 @@ public enum FieldMappings {
 
     private static void init(){
         versionId = switch (Commons.getServerVersion()){
-            case v1_19_R1 -> 2;
+            case v1_19_R3 -> 2;
             default -> 3;
         };
     }
