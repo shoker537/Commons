@@ -7,3 +7,6 @@ authors: [ shoker137 ]
 softdepend:
   - MySQLAPI
   - FastAsyncWorldEdit
+commands:
+  commonsbukkit:
+    permission: commons.admin

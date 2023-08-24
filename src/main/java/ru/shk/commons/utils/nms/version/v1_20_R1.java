@@ -48,7 +48,7 @@ public class v1_20_R1 extends Version {
     }
 
     @Override
-    public void sendPacket(Player p, Packet<?> packet) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+    public void sendPacket(Player p, Packet<?> packet) {
         ((CraftPlayer)p).getHandle().connection.send(packet);
     }
 

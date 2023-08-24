@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.4.0"
+version = "1.4.1"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -76,6 +76,7 @@ repositories {
   }
 }
 
+
 dependencies {
   paperDevBundle("1.20-R0.1-SNAPSHOT")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
@@ -94,7 +95,7 @@ dependencies {
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
   compileOnly("ru.shk:MySQLAPI:2.2.1")
-//  compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
+
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.0.1")
   annotationProcessor("com.velocitypowered:velocity-api:3.0.1")

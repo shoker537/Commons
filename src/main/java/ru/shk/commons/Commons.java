@@ -20,6 +20,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.items.universal.HeadsCache;
+import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
@@ -45,7 +46,7 @@ public final class Commons extends JavaPlugin {
     private final List<Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     @Getter private MySQL mysql;
-    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 25, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private PAFManager pafManager;
@@ -160,6 +161,16 @@ public final class Commons extends JavaPlugin {
 //                }
 //            });
 //        }
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            int players = Bukkit.getOnlinePlayers().size();
+            if(players>50){
+                pool.setMaximumPoolSize(30);
+            } else if (players>30) {
+                pool.setMaximumPoolSize(20);
+            } else {
+                pool.setMaximumPoolSize(10);
+            }
+        }, 1200, 1200);
         getServer().getPluginManager().registerEvents(new Events(), this);
         if(Bukkit.getPluginManager().getPlugin("MySQLAPI")==null){
             warning("&cMySQLAPI not loaded! &rSome features may be not available.");
@@ -184,6 +195,15 @@ public final class Commons extends JavaPlugin {
             } catch (Exception e){
                 e.printStackTrace();
             }
+        });
+        getCommand("commonsbukkit").setExecutor((sender, command, label, args) -> {
+            sender.sendMessage(colorize(" &b          Commons v"+ getDescription().getVersion()));
+            sender.sendMessage(colorize(" &bThreadPool active count: &f"+ pool.getActiveCount()));
+            sender.sendMessage(colorize(" &bThreadPool queue count: &f"+ pool.getQueue().size()));
+            sender.sendMessage(colorize(" &bThreadPool size: &f"+ pool.getPoolSize()));
+            sender.sendMessage(colorize(" &bThreadPool maxSize: &f"+ pool.getMaximumPoolSize()));
+            sender.sendMessage(colorize(" &bHeadsCache size: &f"+ ru.shk.commons.utils.items.ItemStackBuilder.headsCache().cacheSize()));
+            return true;
         });
         pafManager = new PAFManager(this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
