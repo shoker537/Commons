@@ -14,14 +14,12 @@ import ru.shk.commons.utils.Plugin;
 import ru.shk.commonsbungee.Commons;
 import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GUILib implements Plugin {
     @Getter private static GUILib instance;
-    @Getter private final HashMap<UUID, GUI> guis = new HashMap<>();
+    @Getter private final ConcurrentHashMap<UUID, GUI> guis = new ConcurrentHashMap<>();
     @Getter private static final List<TextInputGUI> textInputGUIS = new ArrayList<>();
 
     @Override
@@ -41,6 +39,14 @@ public class GUILib implements Plugin {
     @Override
     public void enable() {
         try {
+            Commons.getInstance().syncRepeating(() -> {
+                Set<UUID> set = new HashSet<>(guis.keySet());
+                for (UUID uuid : set) {
+                    if(Commons.getInstance().getProxy().getPlayer(uuid)==null) {
+                        guis.remove(uuid);
+                    }
+                }
+            }, 60,60);
             Protocolize.protocolRegistration().registerPacket(RenameItemPacket.MAPPINGS, Protocol.PLAY, PacketDirection.SERVERBOUND, RenameItemPacket.class);
             Commons.getInstance().info("Registered custom packet RenameItemPacket.class");
             Commons.getInstance().registerEvents(new GUIEvents());
@@ -52,6 +58,7 @@ public class GUILib implements Plugin {
     public static class GUIEvents implements Listener {
         @EventHandler
         public void onLeave(PlayerDisconnectEvent e){
+            GUILib.getInstance().guis.remove(e.getPlayer().getUniqueId());
             List<TextInputGUI> toRemove = new ArrayList<>();
             for (TextInputGUI gui : textInputGUIS) {
                 if(gui.closed(e.getPlayer())) toRemove.add(gui);
@@ -61,6 +68,7 @@ public class GUILib implements Plugin {
 
         @EventHandler
         public void onLeave(ServerSwitchEvent e){
+            GUILib.getInstance().guis.remove(e.getPlayer().getUniqueId());
             List<TextInputGUI> toRemove = new ArrayList<>();
             for (TextInputGUI gui : textInputGUIS) {
                 if(gui.closed(e.getPlayer())) toRemove.add(gui);
