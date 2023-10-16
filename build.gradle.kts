@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.4.1"
+version = "1.4.10"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -40,6 +40,7 @@ java {
 repositories {
   mavenLocal()
   mavenCentral()
+  maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
   maven {
     url = URI.create("https://nexus.shoker.su/repository/maven-releases/")
   }
@@ -78,12 +79,13 @@ repositories {
 
 
 dependencies {
-  paperDevBundle("1.20-R0.1-SNAPSHOT")
+  paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+  compileOnly("com.github.retrooper.packetevents:spigot:2.0.2")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
-  compileOnly("dev.simplix:protocolize-api:2.2.6")
+  compileOnly("dev.simplix:protocolize-api:2.3.0")
   compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
   implementation("net.wesjd:anvilgui:1.6.3-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
