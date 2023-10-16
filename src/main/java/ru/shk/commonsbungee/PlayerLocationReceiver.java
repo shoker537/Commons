@@ -1,5 +1,6 @@
 package ru.shk.commonsbungee;
 
+import io.netty.util.concurrent.DefaultThreadFactory;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import ru.shk.commons.utils.Coordinates;
 
@@ -11,7 +12,7 @@ import java.util.function.Consumer;
 
 public class PlayerLocationReceiver {
     public HashMap<UUID, Coordinates> receivedCoordinates = new HashMap<>();
-    public ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    public ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3, new DefaultThreadFactory("Commons Location Receiver Pool"));
     private final Commons pl;
     private int awaiting = 0;
 
