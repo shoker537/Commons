@@ -17,17 +17,21 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.map.MapPalette;
 import ru.shk.commons.Commons;
 
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class Version {
@@ -39,7 +43,26 @@ public abstract class Version {
         Object con = con_field.get(nmsPlayer);
         Method packet_method = con.getClass().getMethod("a", Packet.class);
         packet_method.invoke(con, packet);
-//        getNMSPlayer(p).connection.send(packet);
+    }
+
+    public void sendMap(List<Player> players, int mapId, BufferedImage image){
+        val packet = createMapPacket(mapId, image);
+        players.forEach(player -> {
+            try {
+                sendPacket(player, packet);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public Packet<?> createMapPacket(int mapId, BufferedImage image){
+        val mapPatch = new MapItemSavedData.MapPatch(0, 0, 128, 128, imageToByteArray(image));
+        return new ClientboundMapItemDataPacket(mapId, (byte) 0, false, Collections.emptyList(), mapPatch);
+    }
+
+    private static byte[] imageToByteArray(BufferedImage image){
+        return MapPalette.imageToBytes(image);
     }
 
     protected Packet<?> createRemoveTeamPacket(String team) {
@@ -71,9 +94,6 @@ public abstract class Version {
     @SneakyThrows
     public String getItemTypeTranslationKey(Material m) {
         return getTranslationKey(m);
-//        Item item = (Item) craftMagicNumbers().getMethod("getItem", Material.class).invoke(null, m);
-//        if (item == null) return null;
-//        return item.getDescriptionId();
     }
 
     @SneakyThrows
