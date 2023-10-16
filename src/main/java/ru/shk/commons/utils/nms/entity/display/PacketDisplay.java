@@ -28,13 +28,13 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     }
     @SneakyThrows
     public void interpolationDuration(int ticks, boolean sendMetadata){
-//        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.DISPLAY_SETINTERPOLATIONDURATION.getField(), ticks); else ((Display)entity).setInterpolationDuration(ticks);
-        ((Display)entity).setInterpolationDuration(ticks);
+        if(compatibility) ReflectionUtil.runMethodWithSingleArgument(Display.class, entity, FieldMappings.DISPLAY_SETINTERPOLATIONDURATION.getField(), int.class, ticks);
+        else ((Display)entity).setInterpolationDuration(ticks);
         if(sendMetadata) metadata();
     }
     @SneakyThrows
     public int interpolationDuration(){
-        return compatibility ? (int) ReflectionUtil.runMethod(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONDURATION.getField()) : ((Display)entity).getInterpolationDuration();
+        return compatibility ? (int) ReflectionUtil.runMethodAutoDefineTypes(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONDURATION.getField()) : ((Display)entity).getInterpolationDuration();
     }
     @SneakyThrows
     public void startInterpolation(int ticks){
@@ -42,14 +42,14 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     }
     @SneakyThrows
     public void startInterpolation(int ticks, boolean sendMetadata){
-//        ReflectionUtil.runMethod(entity, FieldMappings.DISPLAY_SETINTERPOLATIONSTART.getField(), ticks);
-        ((Display)entity).setInterpolationDelay(ticks);
+        if(compatibility) ReflectionUtil.runMethodWithSingleArgument(Display.class, entity, FieldMappings.DISPLAY_SETINTERPOLATIONSTART.getField(), int.class, ticks);
+        else ((Display)entity).setInterpolationDelay(ticks);
         if(sendMetadata) metadata();
     }
 
     @SneakyThrows
     public int startInterpolation() {
-        return (int) ReflectionUtil.runMethod(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONSTART.getField());
+        return (int) ReflectionUtil.runMethodAutoDefineTypes(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONSTART.getField());
     }
     @SneakyThrows
     public void transform(org.bukkit.util.Transformation transformation){

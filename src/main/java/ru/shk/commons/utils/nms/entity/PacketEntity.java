@@ -59,7 +59,7 @@ public class PacketEntity<T extends PacketEntity> {
     @SneakyThrows
     public void leashHolder(Entity e){
         leashHolderSet = e!=null;
-        if(compatibility) ReflectionUtil.runMethod(Mob.class, entity, FieldMappings.MOB_SETLEASHEDTO.getField(), PacketUtil.getNMSEntity(e), true);
+        if(compatibility) ReflectionUtil.runMethodAutoDefineTypes(Mob.class, entity, FieldMappings.MOB_SETLEASHEDTO.getField(), PacketUtil.getNMSEntity(e), true);
         ((Mob)entity).setLeashedTo((net.minecraft.world.entity.Entity) PacketUtil.getNMSEntity(e), true);
     }
 
@@ -68,7 +68,7 @@ public class PacketEntity<T extends PacketEntity> {
         try {
             if(compatibility){
                 if(!(entity instanceof Mob)) return null;
-                Object o = ReflectionUtil.runMethod(Mob.class, entity, FieldMappings.MOB_GETLEASHHOLDER.getField());
+                Object o = ReflectionUtil.runMethodAutoDefineTypes(Mob.class, entity, FieldMappings.MOB_GETLEASHHOLDER.getField());
                 if(o==null) {
                     return null;
                 }
@@ -88,7 +88,7 @@ public class PacketEntity<T extends PacketEntity> {
         entity = (net.minecraft.world.entity.Entity) ReflectionUtil.constructObject(Class.forName(entityClass), ((Optional<?>)Class.forName("net.minecraft.world.entity.EntityTypes").getMethod(FieldMappings.ENTITYTYPE_BYSTRING.getField(), String.class).invoke(null, entityTypeEnum)).get(), PacketUtil.getNMSWorld(world));
     }
 
-    public void changeWorld(World world){
+    public synchronized void changeWorld(World world){
         receivers.forEach(this::despawn);
         receivers.clear();
         entity.changeDimension((ServerLevel) PacketUtil.getNMSWorld(world));
@@ -242,6 +242,21 @@ public class PacketEntity<T extends PacketEntity> {
         return (T) this;
     }
 
+    @SneakyThrows
+    public T glowing(boolean value){
+        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_SETGLOWING.getField(), value); else entity.setGlowingTag(value);
+        if(isSpawned) metadata();
+        return (T) this;
+    }
+
+    public boolean glowing(){
+        if(compatibility) {
+            return (boolean) ReflectionUtil.runMethod(entity, FieldMappings.ENTITY_ISGLOWING.getField());
+        } else {
+            return entity.isCurrentlyGlowing();
+        }
+    }
+
     public T receivers(List<Player> receivers){
         receivers.removeIf(excludedReceivers::contains);
         this.receivers.clear();
@@ -250,7 +265,7 @@ public class PacketEntity<T extends PacketEntity> {
         return (T) this;
     }
 
-    public void removeReceiver(Player p){
+    public synchronized void removeReceiver(Player p){
         this.receivers.remove(p);
         if(isSpawned) despawn(p);
     }
@@ -295,7 +310,7 @@ public class PacketEntity<T extends PacketEntity> {
     public void spawn(Player player){
         sendSpawnPacket(player);
         sendMetadataPacket(player);
-        if(equipment!=null && equipment.size()!=0) sendEquipmentPacket(player);
+        if(equipment!=null && !equipment.isEmpty()) sendEquipmentPacket(player);
         if(leashHolderSet) {
             Entity leashHolder = leashHolder();
             sendLeashPacket(player, leashHolder);
@@ -315,12 +330,15 @@ public class PacketEntity<T extends PacketEntity> {
     public void equipment(){
         receivers.forEach(this::sendEquipmentPacket);
     }
+    public void equipment(Player p){
+        sendEquipmentPacket(p);
+    }
 
     public void metadata(Player player){
         sendMetadataPacket(player);
     }
 
-    public void despawn(){
+    public synchronized void despawn(){
         receivers.forEach(this::sendDespawnPacket);
         receivers.clear();
         isSpawned = false;

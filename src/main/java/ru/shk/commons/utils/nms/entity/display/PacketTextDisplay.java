@@ -9,8 +9,10 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.TextDisplay;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import ru.shk.commons.utils.nms.FieldMappings;
+import ru.shk.commons.utils.nms.ReflectionUtil;
 
 @SuppressWarnings("unused")
 public class PacketTextDisplay extends PacketDisplay {
@@ -30,6 +32,12 @@ public class PacketTextDisplay extends PacketDisplay {
     public void defaultBackground(boolean b){
         setFlag(4, b);
     }
+    public void shadowed(boolean shadowed){
+        setFlag(1, shadowed);
+    }
+    public boolean shadowed(){
+        return getFlag(1);
+    }
     @SneakyThrows
     public void text(Component component){
         net.minecraft.network.chat.Component c = net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component));
@@ -40,14 +48,20 @@ public class PacketTextDisplay extends PacketDisplay {
     }
 
     @SneakyThrows
-    public void background(Color color){
-        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETBACKFROUNDCOLOR.getField(), int.class).invoke(entity, color.asARGB()); else ((Display.TextDisplay)entity).setBackgroundColor(color.asARGB());
+    public void background(@Nullable Color color){
+        int colorInt = color==null?-1:color.asARGB();
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETBACKFROUNDCOLOR.getField(), int.class).invoke(entity, colorInt);
+//        else entity.getEntityData().set((EntityDataAccessor<? super Integer>) ReflectionUtil.getStaticField(Display.TextDisplay.class, FieldMappings.TEXTDISPLAY_BACKGROUND_ID.getField()), colorInt);
+        else entity.getEntityData().set(Display.TextDisplay.DATA_BACKGROUND_COLOR_ID, color.asARGB());
+//        else ReflectionUtil.runMethodWithSingleArgument(Display.TextDisplay.class, entity, FieldMappings.TEXTDISPLAY_SETBACKFROUNDCOLOR.getField(), int.class, colorInt);
         metadata();
     }
 
-    @SneakyThrows
+    @SneakyThrows@Nullable
     public Color background(){
-        return Color.fromARGB(compatibility ? (int)entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETBACKFROUNDCOLOR.getField()).invoke(entity) : ((Display.TextDisplay)entity).getBackgroundColor());
+        int color = (compatibility ? (int)entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETBACKFROUNDCOLOR.getField()).invoke(entity) : ((Display.TextDisplay)entity).getBackgroundColor());
+        if(color==-1) return null;
+        return Color.fromARGB(color);
     }
     @SneakyThrows
     public Component text(){
@@ -93,20 +107,22 @@ public class PacketTextDisplay extends PacketDisplay {
         metadata();
     }
 
-    private boolean getFlag(int flag) {
+    public boolean getFlag(int flag) {
         return (flags() & flag) != 0;
     }
 
-    private void setFlag(int flag, boolean set) {
+    public void setFlag(int flag, boolean set) {
+//        Logger.warning("Setting Flag: "+flag+"="+set);
         byte flagBits = flags();
-
+//        Logger.warning("  Current flags: "+flagBits);
         if (set) {
-            flagBits |= flag;
+            flagBits = (byte)(flagBits | flag);
         } else {
-            flagBits &= ~flag;
+            flagBits = (byte)(flagBits & (~flag));
         }
-
+//        Logger.warning("  New flags: "+flagBits);
         flags(flagBits);
+//        Logger.warning("  Flags set: "+flags());
     }
 
 //    @SneakyThrows
@@ -116,12 +132,12 @@ public class PacketTextDisplay extends PacketDisplay {
 //    }
 
     @SneakyThrows
-    private void flags(byte flags){
+    public void flags(byte flags){
         if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETFLAGS.getField(), byte.class).invoke(entity, flags); else ((Display.TextDisplay)entity).setFlags(flags);
         metadata();
     }
     @SneakyThrows
-    private byte flags(){
+    public byte flags(){
         return compatibility ? (byte) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_GETFLAGS.getField()).invoke(entity) : ((Display.TextDisplay)entity).getFlags();
     }
     @SneakyThrows
@@ -130,7 +146,10 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public void lineWidth(int width){
-        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETLINEWIDTH.getField(), int.class).invoke(entity, width); else ((Display.TextDisplay)entity).setLineWidth(width);
+        if(compatibility) entity.getClass().getMethod(FieldMappings.TEXTDISPLAY_SETLINEWIDTH.getField(), int.class).invoke(entity, width);
+//        else entity.getEntityData().set((EntityDataAccessor<? super Integer>) ReflectionUtil.getStaticField(Display.TextDisplay.class, FieldMappings.TEXTDISPLAY_LINEWIDTH_ID.getField()), width);
+//        ReflectionUtil.runMethodWithSingleArgument(Display.TextDisplay.class, entity, FieldMappings.TEXTDISPLAY_SETLINEWIDTH.getField(), int.class, width);
+        else entity.getEntityData().set(Display.TextDisplay.DATA_LINE_WIDTH_ID, width);
         metadata();
     }
     @SneakyThrows
