@@ -1,10 +1,12 @@
 package ru.shk.commons.utils.nms;
 
 import com.mojang.datafixers.util.Pair;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,6 +16,7 @@ import org.bukkit.entity.Player;
 import ru.shk.commons.Commons;
 import ru.shk.commons.utils.nms.entity.PacketEntity;
 
+import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class PacketUtil {
     public static List<PacketEntity<?>> entitiesToTick = new ArrayList<>();
-    private static final ThreadPoolExecutor asyncEntityTicker = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+    private static final ThreadPoolExecutor asyncEntityTicker = (ThreadPoolExecutor) Executors.newFixedThreadPool(3, new DefaultThreadFactory("Commons Entity Ticking Pool"));
 
     private static final Version versionClass;
     static {
@@ -62,6 +65,15 @@ public class PacketUtil {
     public static void createAndSendTeam(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
         for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate, true,name, prefix, suffix, color, entries));
     }
+    public static Object createMapPacket(int mapId, BufferedImage image){
+        return versionClass.createMapPacket(mapId, image);
+    }
+    public static void sendMap(List<Player> players, int mapId, BufferedImage image){
+        versionClass.sendMap(players, mapId, image);
+    }
+    public static void sendMap(Player player, int mapId, BufferedImage image){
+        sendMap(List.of(player), mapId, image);
+    }
 
     /**
      *  @param createTeamOrUpdate true - create, false - update
@@ -96,8 +108,15 @@ public class PacketUtil {
         return versionClass.getMaterialColorInt(m);
     }
 
-    public static void sendPacket(Player p, Packet<?>... packets) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-        for (Packet<?> packet : packets) versionClass.sendPacket(p, packet);
+    public static void sendPacket(Player p, Object... packets) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        for (Object packet : packets) versionClass.sendPacket(p, (Packet<?>) packet);
+    }
+    public static void sendPacket(List<Player> players, Object... packets) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        for (Object packet : packets) {
+            for (Player p : players) {
+                versionClass.sendPacket(p, (Packet<?>) packet);
+            }
+        }
     }
 
     public static void sendScoreboardTeamPacket(Player p, String name, String prefix, String suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
