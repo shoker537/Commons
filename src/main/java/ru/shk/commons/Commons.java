@@ -5,6 +5,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
 import com.sk89q.worldedit.WorldEdit;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -46,8 +47,8 @@ public final class Commons extends JavaPlugin {
     private final List<Plugin> plugins = new ArrayList<>();
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
     @Getter private MySQL mysql;
-    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-    private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+    final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 10, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(), new DefaultThreadFactory("Commons Main Pool"));
+    private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(2, new DefaultThreadFactory("Commons Teleport Service Pool"));
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private PAFManager pafManager;
     @Getter private Config config;
@@ -56,7 +57,6 @@ public final class Commons extends JavaPlugin {
     public void onLoad() {
         Logger.logger(getLogger());
         ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.SPIGOT);
-        pool.setKeepAliveTime(15, TimeUnit.SECONDS);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -163,7 +163,7 @@ public final class Commons extends JavaPlugin {
 //        }
         getServer().getScheduler().runTaskTimer(this, () -> {
             int players = Bukkit.getOnlinePlayers().size();
-            if(players>50){
+            if(players>60){
                 pool.setMaximumPoolSize(30);
             } else if (players>30) {
                 pool.setMaximumPoolSize(20);

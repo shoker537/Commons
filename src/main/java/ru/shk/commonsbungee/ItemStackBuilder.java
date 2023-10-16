@@ -2,6 +2,7 @@ package ru.shk.commonsbungee;
 
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -20,17 +21,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @Deprecated
 public class ItemStackBuilder {
 //    private static final ThreadPoolExecutor mojangRequestThreadPool = new ThreadPoolExecutor(1, 3, 10, TimeUnit.SECONDS, new SynchronousQueue<>());
 //    private static final ThreadPoolExecutor cacheThreadPool = new ThreadPoolExecutor(2, 5, 60, TimeUnit.SECONDS, new SynchronousQueue<>());
-    private static final ThreadPoolExecutor mojangRequestThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+    private static final ThreadPoolExecutor mojangRequestThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1, new DefaultThreadFactory("Commons Mojang Request Pool"));
+    private static final ThreadPoolExecutor cacheThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1, new DefaultThreadFactory("Commons Deprecated ItemStackBuilder Cache Pool"));
     private final ItemStack item;
     private static final List<Pair<CachedPlayer, String>> headsCache = new ArrayList<>(300);
     @Getter private int customHeadId = -1;

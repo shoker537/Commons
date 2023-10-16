@@ -5,6 +5,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
 import dev.simplix.protocolize.data.ItemType;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -99,9 +100,9 @@ public class Commons extends Plugin implements Listener {
             HeadsCache.mysql(mysql);
         }
 //        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5, new DefaultThreadFactory("Commons Main Pool"));
         threadPool.setKeepAliveTime(15, TimeUnit.SECONDS);
-        teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+        teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(2, new DefaultThreadFactory("Commons Teleport Service Pool"));
         teleportService.setKeepAliveTime(15, TimeUnit.SECONDS);
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
