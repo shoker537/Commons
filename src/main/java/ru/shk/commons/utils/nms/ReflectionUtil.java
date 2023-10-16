@@ -1,18 +1,29 @@
 package ru.shk.commons.utils.nms;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
+import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ReflectionUtil {
+    private static final Cache<CachedField, Field> fieldsCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(15)).build();
+    private static final Cache<CachedMethod, Method> methodsCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(15)).build();
     public static Object constructObject(Class<?> c, Object... arguments) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         return ConstructorUtils.invokeConstructor(c, arguments);
     }
@@ -24,77 +35,61 @@ public class ReflectionUtil {
         }
     }
     @SneakyThrows
-    public static Object runMethod(Class<?> clazz, Object instance, String method, Object... args) {
+    public static Object runMethodAutoDefineTypes(Class<?> clazz, Object instance, String methodName, Object... args) {
+        return runMethodDefiningTypes(clazz, instance, methodName, new Class[]{}, args);
+    }
+    @SneakyThrows
+    public static Object runMethod(Class<?> clazz, Object instance, String methodName, List<Object> args) {
+        return runMethodAutoDefineTypes(clazz, instance, methodName, null, args.toArray());
+    }
+    @SneakyThrows
+    public static Object runMethod(Class<?> clazz, Object instance, String methodName, List<Class<?>> types, List<Object> args) {
+        return runMethodDefiningTypes(clazz, instance, methodName, (Class<?>[]) types.toArray(), args.toArray());
+    }
+    @SneakyThrows
+    public static Object runMethodWithSingleArgument(Class<?> clazz, Object instance, String methodName, Class<?> type, Object arg) {
+        return runMethodDefiningTypes(clazz, instance, methodName, new Class[]{type}, new Object[]{arg});
+    }
+    @SneakyThrows
+    public static Object runMethodDefiningTypes(Class<?> clazz, Object instance, String methodName, @Nullable Class<?>[] types, @NonNull Object[] args) {
+        if(types!=null && types.length!=0 && types.length!=args.length) throw new IllegalArgumentException("Types array provided but size mismatches with arguments");
         Class<?>[] arr = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
-            arr[i] = args[i].getClass();
+            if(types!=null && types.length!=0) arr[i] = types[i]; else arr[i] = args[i].getClass();
         }
-        Method m = MethodUtils.getMatchingMethod(clazz, method, arr);
-        if(m==null) m = MethodUtils.getMatchingAccessibleMethod(clazz, method, arr);
+        Method m = getMethodFromCache(clazz, methodName, arr, args);
+        boolean saveToCache = m==null;
+        try {
+            m = clazz.getMethod(methodName, arr);
+        } catch (NoSuchMethodException e){}
+        if(m==null) {
+            try {
+                m = clazz.getDeclaredMethod(methodName, arr);
+            } catch (NoSuchMethodException e){}
+        }
+
+        if(m==null){
+            MethodUtils.getMatchingMethod(clazz, methodName, arr);
+        }
+        if(m==null) m = MethodUtils.getMatchingAccessibleMethod(clazz, methodName, arr);
         if(m==null) {
             printAvailableMethods(clazz);
-            throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(args).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+clazz.getSimpleName()+" class");
+            throw new NoSuchMethodException("Method "+methodName+"("+ Arrays.stream(args).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+clazz.getSimpleName()+" class");
         }
+        if(saveToCache) cacheMethod(m, clazz, methodName, types, args);
         if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
         return m.invoke(clazz.cast(instance), args);
     }
     @SneakyThrows
     public static Object runMethod(Object c, String method, Object... arguments) {
-        Class<?>[] arr = new Class[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            arr[i] = arguments[i].getClass();
-        }
-        Method m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
-        if(m==null) m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
-        if(m==null) {
-            printAvailableMethods(c.getClass());
-            throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(arguments).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+c.getClass().getSimpleName()+" class");
-        }
-        if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-        return m.invoke(c, arguments);
-//        Class<?>[] arr = new Class[arguments.length];
-//        for (int i = 0; i < arguments.length; i++)
-//            arr[i] = arguments[i].getClass();
-//        Class<?> sup = c.getClass();
-//        Method m = null;
-//        while (sup != null) {
-//            try {
-//                m = sup.getClass().getMethod(method, arr);
-//                break;
-//            } catch (NoSuchMethodException noSuchMethodException) {
-//                try {
-//                    m = sup.getClass().getDeclaredMethod(method, arr);
-//                    break;
-//                } catch (NoSuchMethodException noSuchMethodException1) {
-//                    for (Method supMethod : sup.getMethods()) {
-//                        if (supMethod.getName().equals(method) && (
-//                                supMethod.getParameterTypes()).length == arr.length) {
-//                            for (int j = 0; j < arr.length &&
-//                                    arr[j].equals(supMethod.getParameterTypes()[j]); j++)
-//                                m = supMethod;
-//                            if (m != null)
-//                                break;
-//                            Class<?>[] newParams = new Class[(supMethod.getParameterTypes()).length];
-//                            int k;
-//                            for (k = 0; k < (supMethod.getParameterTypes()).length; k++)
-//                                newParams[k] = primitiveToBasicClass(supMethod.getParameterTypes()[k]);
-//                            for (k = 0; k < arr.length &&
-//                                    arr[k].equals(newParams[k]); k++)
-//                                m = supMethod;
-//                            if (m != null)
-//                                break;
-//                        }
-//                    }
-//                    if (m != null)
-//                        break;
-//                    sup = sup.getSuperclass();
-//                }
-//            }
+        return runMethodAutoDefineTypes(c.getClass(), c, method, arguments);
+//        Method m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
+//        if(m==null) m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
+//        if(m==null) {
+//            printAvailableMethods(c.getClass());
+//            throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(arguments).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+c.getClass().getSimpleName()+" class");
 //        }
-//        if (m == null || sup == null)
-//            throw new NoSuchMethodException("Checked all superclasses and no method found");
-//        if (!m.canAccess(c))
-//            m.setAccessible(true);
+//        if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 //        return m.invoke(c, arguments);
     }
 
@@ -113,16 +108,84 @@ public class ReflectionUtil {
     }
 
     public static void setField(Object c, String field, Object value) throws NoSuchFieldException, IllegalAccessException {
-        Field f = c.getClass().getDeclaredField(field);
+        Field f = getFieldFromCache(c.getClass(), field);
+        if(f==null) {
+            f = c.getClass().getDeclaredField(field);
+            cacheField(f, c.getClass(), field);
+        }
         if (!f.canAccess(c))
             f.setAccessible(true);
         f.set(c, value);
     }
 
     public static Object getField(Object c, String field) throws NoSuchFieldException, IllegalAccessException {
-        Field f = c.getClass().getDeclaredField(field);
+        Field f = getFieldFromCache(c.getClass(), field);
+        if(f==null) {
+            f = c.getClass().getDeclaredField(field);
+            cacheField(f, c.getClass(), field);
+        }
         if (!f.canAccess(c))
             f.setAccessible(true);
         return f.get(c);
+    }
+    public static Object getStaticField(Class<?> c, String field) throws NoSuchFieldException, IllegalAccessException {
+        Field f = getFieldFromCache(c, field);
+        if(f==null) {
+            f = c.getDeclaredField(field);
+            cacheField(f, c, field);
+        }
+        if (!f.canAccess(null))
+            f.setAccessible(true);
+        return f.get(null);
+    }
+
+    @Nullable private static Field getFieldFromCache(Class<?> aClass, String fieldName){
+        Optional<CachedField> cached = fieldsCache.asMap().keySet().stream().filter(cachedField -> cachedField.fieldName.equals(fieldName) && cachedField.getClass().equals(aClass)).findAny();
+        return cached.map(fieldsCache::getIfPresent).orElse(null);
+    }
+    @Nullable private static Method getMethodFromCache(Class<?> aClass, String methodName, Class<?>[] types, Object[] args){
+        Optional<CachedMethod> cached = methodsCache.asMap().keySet().stream().filter(cachedMethod -> cachedMethod.methodName.equals(methodName) && cachedMethod.getClass().equals(aClass) && Arrays.equals(types, cachedMethod.types) && Arrays.equals(args, cachedMethod.arguments)).findAny();
+        return cached.map(methodsCache::getIfPresent).orElse(null);
+    }
+    private static void cacheMethod(@NonNull Method method, Class<?> aClass, String name, Class<?>[] types, Object[] args){
+        methodsCache.put(new CachedMethod(aClass, name, types, args), method);
+    }
+    private static void cacheField(@NonNull Field field, Class<?> aClass, String name){
+        fieldsCache.put(new CachedField(aClass, name), field);
+    }
+
+    private record CachedField(@NonNull Class<?> aClass, @NonNull String fieldName){
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            CachedField that = (CachedField) o;
+
+            return new EqualsBuilder().append(aClass, that.aClass).append(fieldName, that.fieldName).isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37).append(aClass).append(fieldName).toHashCode();
+        }
+    }
+    private record CachedMethod(@NonNull Class<?> aClass, @NonNull String methodName, @NonNull Class<?>[] types, @NonNull Object[] arguments){
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            CachedMethod that = (CachedMethod) o;
+
+            return new EqualsBuilder().append(aClass, that.aClass).append(methodName, that.methodName).append(types, that.types).append(arguments, that.arguments).isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37).append(aClass).append(methodName).append(types).append(arguments).toHashCode();
+        }
     }
 }
