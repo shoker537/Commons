@@ -16,6 +16,8 @@ public enum FieldMappings {
     ENTITY_SETNOGRAVITY("setNoGravity", "e", "e", "e"),
     ENTITY_SETCUSTOMNAMEVISIBLE("setCustomNameVisible", "n", "n", "n"),
     ENTITY_SETCUSTOMNAME("setCustomName", "a", "b", "b"),
+    ENTITY_SETGLOWING(null, null, "i", "i"),
+    ENTITY_ISGLOWING(null, null, "bZ", "ca"),
     ARMORSTAND_SETINVISIBLE("setInvisible", "j", "j", "j"),
     ARMORSTAND_SETBASEPLATE("setBasePlate", "s", "s", "s"),
     ARMORSTAND_SETARMS("setArms", "r", "r", "a"),
@@ -44,11 +46,13 @@ public enum FieldMappings {
 
     DISPLAY_SETTRANSFORMATION(null, null, null, "a"),
     DISPLAY_CREATETRANSFORMATION(null, null, null, "a"),
-    DISPLAY_SETINTERPOLATIONDURATION(null, null, null, "setInterpolationDuration_"), // b()
+    DISPLAY_SETINTERPOLATIONDURATION(null, null, null, "setInterpolationDuration_", "b"),
     DISPLAY_GETINTERPOLATIONDURATION(null, null, null, "o"),
-    DISPLAY_SETINTERPOLATIONSTART(null, null, null, "setInterpolationDelay_"), // c()
+    DISPLAY_SETINTERPOLATIONSTART(null, null, null, "setInterpolationDelay_", "c"),
     DISPLAY_GETINTERPOLATIONSTART(null, null, null, "p"),
-    DISPLAY_SETBILLBOARD(null, null, null, "setBillboardConstraints_"), // a()
+    DISPLAY_SETBILLBOARD(null, null, null, "setBillboardConstraints_", "a"),
+    TEXTDISPLAY_LINEWIDTH_ID(null, null, null, null, "aM"),
+    TEXTDISPLAY_BACKGROUND_ID(null, null, null, null, "aN"),
     TEXTDISPLAY_SETTEXT(null, null, null, "c"),
     TEXTDISPLAY_GETTEXT(null, null, null, "o", "p"),
     TEXTDISPLAY_GETLINEWIDTH(null, null, null, "p", "q"),
@@ -72,8 +76,8 @@ public enum FieldMappings {
 
     private static void init(){
         versionId = switch (Commons.getServerVersion()){
-            case v1_19_R3 -> 2;
-            default -> 3;
+            case v1_19_R3 -> 3;
+            default -> 4;
         };
     }
 
