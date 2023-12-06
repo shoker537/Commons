@@ -1,0 +1,10 @@
+{
+  "id": "commons",
+  "name": "Commons",
+  "version": "${version}",
+  "main": "ru.shk.velocity.commons.Commons",
+  "authors": ["shoker137"],
+  "dependencies": [
+    {"id": "mysqlapi"}
+  ]
+}
