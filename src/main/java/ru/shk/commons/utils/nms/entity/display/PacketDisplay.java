@@ -7,9 +7,7 @@ import net.minecraft.world.entity.Display;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import ru.shk.commons.utils.nms.FieldMappings;
 import ru.shk.commons.utils.nms.PacketUtil;
-import ru.shk.commons.utils.nms.ReflectionUtil;
 import ru.shk.commons.utils.nms.entity.PacketEntity;
 
 @SuppressWarnings("unused")
@@ -22,53 +20,49 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     public PacketDisplay(Type type, String entityTypeId, Location l){
         this(type, entityTypeId, l.getWorld(), l.getX(), l.getY(), l.getZ());
     }
+
     @SneakyThrows
-    public void interpolationDuration(int ticks){
+    public synchronized void interpolationDuration(int ticks){
         interpolationDuration(ticks, true);
     }
     @SneakyThrows
-    public void interpolationDuration(int ticks, boolean sendMetadata){
-        if(compatibility) ReflectionUtil.runMethodWithSingleArgument(Display.class, entity, FieldMappings.DISPLAY_SETINTERPOLATIONDURATION.getField(), int.class, ticks);
-        else ((Display)entity).setInterpolationDuration(ticks);
+    public synchronized void interpolationDuration(int ticks, boolean sendMetadata){
+        ((Display)entity).setInterpolationDuration(ticks);
         if(sendMetadata) metadata();
     }
     @SneakyThrows
     public int interpolationDuration(){
-        return compatibility ? (int) ReflectionUtil.runMethodAutoDefineTypes(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONDURATION.getField()) : ((Display)entity).getInterpolationDuration();
+        return ((Display)entity).getInterpolationDuration();
     }
     @SneakyThrows
-    public void startInterpolation(int ticks){
+    public synchronized void startInterpolation(int ticks){
         startInterpolation(ticks, true);
     }
     @SneakyThrows
-    public void startInterpolation(int ticks, boolean sendMetadata){
-        if(compatibility) ReflectionUtil.runMethodWithSingleArgument(Display.class, entity, FieldMappings.DISPLAY_SETINTERPOLATIONSTART.getField(), int.class, ticks);
-        else ((Display)entity).setInterpolationDelay(ticks);
+    public synchronized void startInterpolation(int ticks, boolean sendMetadata){
+        ((Display)entity).setInterpolationDelay(ticks);
         if(sendMetadata) metadata();
     }
 
     @SneakyThrows
     public int startInterpolation() {
-        return (int) ReflectionUtil.runMethodAutoDefineTypes(entity.getClass().getSuperclass(), entity, FieldMappings.DISPLAY_GETINTERPOLATIONSTART.getField());
+        return ((Display)entity).getInterpolationDelay();
     }
     @SneakyThrows
-    public void transform(org.bukkit.util.Transformation transformation){
+    public synchronized void transform(org.bukkit.util.Transformation transformation){
         Transformation newTransformation = new Transformation(transformation.getTranslation(), transformation.getLeftRotation(), transformation.getScale(), transformation.getRightRotation());
-        if(compatibility) entity.getClass().getMethod(FieldMappings.DISPLAY_SETTRANSFORMATION.getField(), Transformation.class).invoke(entity,
-                newTransformation
-        ); else ((Display)entity).setTransformation(newTransformation);
+        ((Display)entity).setTransformation(newTransformation);
         metadata();
     }
     @SneakyThrows
     public org.bukkit.util.Transformation transformation(){
-        Transformation t = (Transformation) entity.getClass().getMethod(FieldMappings.DISPLAY_CREATETRANSFORMATION.getField(), SynchedEntityData.class).invoke(null, getEntityData());
+        Transformation t = Display.createTransformation((SynchedEntityData) getEntityData());
         return new org.bukkit.util.Transformation(t.getTranslation(), t.getLeftRotation(), t.getScale(), t.getRightRotation());
     }
 
     @SneakyThrows
-    public void followLookType(FollowLookType type){
-        if(compatibility) ReflectionUtil.runMethod(entity, FieldMappings.DISPLAY_SETBILLBOARD.getField(), Display.BillboardConstraints.valueOf(type.name()));
-        else ((Display) entity).setBillboardConstraints(Display.BillboardConstraints.valueOf(type.name()));
+    public synchronized void followLookType(FollowLookType type){
+        ((Display) entity).setBillboardConstraints(Display.BillboardConstraints.valueOf(type.name()));
     }
 
     protected enum Type {

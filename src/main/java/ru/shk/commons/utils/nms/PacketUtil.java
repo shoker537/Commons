@@ -4,9 +4,9 @@ import com.mojang.datafixers.util.Pair;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -28,20 +29,11 @@ public class PacketUtil {
     public static List<PacketEntity<?>> entitiesToTick = new ArrayList<>();
     private static final ThreadPoolExecutor asyncEntityTicker = (ThreadPoolExecutor) Executors.newFixedThreadPool(3, new DefaultThreadFactory("Commons Entity Ticking Pool"));
 
-    private static final Version versionClass;
+    private static final CurrentVersion versionClass = new CurrentVersion();
     static {
-        Version versionClass1;
-        try {
-            Class<? extends Version> cl = (Class<? extends Version>) Class.forName("ru.shk.commons.utils.nms.version."+Commons.getServerVersion());
-            versionClass1 = cl.getDeclaredConstructor().newInstance();
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            versionClass1 = null;
-        }
-        versionClass = versionClass1;
 
         Commons.getInstance().asyncRepeating(() -> {
-            if(entitiesToTick.size()==0 || asyncEntityTicker.getQueue().size()!=0) return;
+            if(entitiesToTick.isEmpty() || !asyncEntityTicker.getQueue().isEmpty()) return;
             entitiesToTick.removeIf(packetEntity -> !packetEntity.isValid());
             entitiesToTick.forEach(packetEntity -> {
                 if(packetEntity.isTicking()) asyncEntityTicker.submit(() -> {
@@ -60,10 +52,10 @@ public class PacketUtil {
     }
 
     /**
-    *  @param createTeamOrUpdate true - create, false - update
+    *  @param createTeam true - create, false - update
     */
-    public static void createAndSendTeam(boolean createTeamOrUpdate, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
-        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate, true,name, prefix, suffix, color, entries));
+    public static void createAndSendTeam(boolean createTeam, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeam, true,name, prefix, suffix, color, entries));
     }
     public static Object createMapPacket(int mapId, BufferedImage image){
         return versionClass.createMapPacket(mapId, image);
@@ -76,16 +68,16 @@ public class PacketUtil {
     }
 
     /**
-     *  @param createTeamOrUpdate true - create, false - update
+     *  @param createTeam true - create, false - update
      */
-    public static void createAndSendTeam(boolean createTeamOrUpdate, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
-        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,collideTeammates,name, prefix, suffix, color, entries));
+    public static void createAndSendTeam(boolean createTeam, boolean collideTeammates, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeam,collideTeammates,name, prefix, suffix, color, entries));
     }
     /**
-     *  @param createTeamOrUpdate true - create, false - update
+     *  @param createTeam true - create, false - update
      */
-    public static void createAndSendTeam(boolean createTeamOrUpdate, boolean collideTeammates, boolean friendlyFire, boolean canSeeFriendlyInvisible, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
-        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeamOrUpdate,collideTeammates,friendlyFire, canSeeFriendlyInvisible, name, prefix, suffix, color, entries));
+    public static void createAndSendTeam(boolean createTeam, boolean collideTeammates, boolean friendlyFire, boolean canSeeFriendlyInvisible, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeam,collideTeammates,friendlyFire, canSeeFriendlyInvisible, name, prefix, suffix, color, entries));
     }
 
     public static void sendLeashPacket(Player p, Entity owner, Entity attached){
@@ -117,6 +109,14 @@ public class PacketUtil {
                 versionClass.sendPacket(p, (Packet<?>) packet);
             }
         }
+    }
+
+    public static void sendAddPlayerProfile(Player p, Object serverPlayer){
+        versionClass.addPlayerProfile(p, (ServerPlayer) serverPlayer);
+    }
+
+    public static void sendRemovePlayerProfiles(Player p, List<UUID> toRemove){
+        versionClass.removePlayerProfiles(p, toRemove);
     }
 
     public static void sendScoreboardTeamPacket(Player p, String name, String prefix, String suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
@@ -154,6 +154,12 @@ public class PacketUtil {
     public static void spawnEntity(Player p, Object entity){
         versionClass.spawnEntity(p, entity);
     }
+    public static void spawnPlayer(Player p, Object player){
+        versionClass.spawnPlayer(p, player);
+    }
+    public static void sendEntityAnimation(Player p, Object entity, int animationId){
+        versionClass.entityAnimation(p, (net.minecraft.world.entity.Entity) entity, animationId);
+    }
 
     public static void entityMetadata(Player p, Object entity){
         entityMetadata(p, entity, true);
@@ -162,7 +168,10 @@ public class PacketUtil {
         versionClass.entityMetadata(p, entity, full);
     }
     public static void teleportEntity(Player p, Object entity){
-        versionClass.teleportEntity(p, entity);
+        versionClass.teleportEntity(p, (net.minecraft.world.entity.Entity) entity);
+    }
+    public static void teleportPlayer(Player p, double x, double y, double z, float yaw, float pitch, int teleportId){
+
     }
     public static void destroyEntity(Player p, Object entity){
         versionClass.destroyEntity(p, entity);
