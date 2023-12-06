@@ -1,15 +1,14 @@
-import java.net.URI
-import java.util.Properties
+import java.util.*
 
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.5.3"
+  id("io.papermc.paperweight.userdev") version "1.5.5"
   id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "ru.shk"
-version = "1.4.10"
+  version = "1.5.0"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -17,7 +16,7 @@ publishing {
   repositories {
     mavenLocal()
     maven {
-      url = URI.create("https://nexus.shoker.su/repository/maven-releases/")
+      url = uri("https://nexus.shoker.su/repository/maven-releases/")
       credentials {
         username = "${nexusRepository["user"]}"
         password = "${nexusRepository["password"]}"
@@ -42,44 +41,45 @@ repositories {
   mavenCentral()
   maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
   maven {
-    url = URI.create("https://nexus.shoker.su/repository/maven-releases/")
+    url = uri("https://nexus.shoker.su/repository/maven-releases/")
   }
   maven {
-    url = URI.create("https://maven.enginehub.org/repo/")
+    url = uri("https://maven.enginehub.org/repo/")
   }
   maven {
-    url = URI.create("https://repo.papermc.io/repository/maven-public/")
+    url = uri("https://repo.papermc.io/repository/maven-public/")
   }
   maven {
-    url = URI.create("https://oss.sonatype.org/content/groups/public/")
+    url = uri("https://oss.sonatype.org/content/groups/public/")
   }
   maven {
-    url = URI.create("https://libraries.minecraft.net/")
+    url = uri("https://libraries.minecraft.net/")
   }
   maven {
-    url = URI.create("https://repo.codemc.io/repository/maven-snapshots/")
+    url = uri("https://repo.codemc.io/repository/maven-snapshots/")
   }
   maven {
-    url = URI.create("https://mvn.exceptionflug.de/repository/exceptionflug-public/")
+    url = uri("https://mvn.exceptionflug.de/repository/exceptionflug-public/")
   }
   maven {
-    url = URI.create("https://maven.enginehub.org/repo/")
+    url = uri("https://maven.enginehub.org/repo/")
   }
   maven {
-    url = URI.create("https://nexus.shoker.su/repository/maven-shield/")
+    url = uri("https://nexus.shoker.su/repository/maven-shield/")
     credentials {
       username = "${nexusRepository["user"]}"
       password = "${nexusRepository["password"]}"
     }
   }
   maven {
-    url = URI.create("https://simonsator.de/repo")
+    url = uri("https://simonsator.de/repo")
   }
+  maven { url = uri("https://jitpack.io") }
 }
 
 
 dependencies {
-  paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+  paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
   compileOnly("com.github.retrooper.packetevents:spigot:2.0.2")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
@@ -87,8 +87,10 @@ dependencies {
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.3.0")
   compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
-  implementation("net.wesjd:anvilgui:1.6.3-SNAPSHOT")
+  implementation("net.kyori:adventure-platform-bungeecord:4.3.1")
+  implementation("net.wesjd:anvilgui:1.9.0-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
+  implementation("org.apache.commons:commons-lang3:3.14.0")
   compileOnly("com.mojang:authlib:1.5.21")
   compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
 
@@ -96,7 +98,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
-  compileOnly("ru.shk:MySQLAPI:2.2.1")
+  compileOnly("ru.shk:MySQLAPI:3.0.4")
 
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.0.1")
@@ -117,8 +119,14 @@ tasks {
   }
   processResources {
     filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything
-    val props = kotlin.Pair<String, Any>("version", version)
-    filesMatching("*.yml"){
+    val props = Pair("version", version)
+    filesMatching("plugin.yml"){
+      expand(props)
+    }
+    filesMatching("bungee.yml"){
+      expand(props)
+    }
+    filesMatching("velocity-plugin.json"){
       expand(props)
     }
   }

@@ -56,7 +56,8 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public R lore(String... lore){
         return lore(Arrays.asList(lore));
     }
-    public abstract R lore(List<String> lore);
+    public abstract R lore(List<?> lore);
+    public abstract R lore(List<String> lore, boolean minimessage);
     public abstract R unbreakable(boolean b);
     public abstract R enchant(EnchantmentType e, int level);
     public R enchant(List<Enchantment> enchantments){

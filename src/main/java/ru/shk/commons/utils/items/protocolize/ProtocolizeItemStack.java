@@ -3,6 +3,9 @@ package ru.shk.commons.utils.items.protocolize;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NonNull;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.querz.nbt.tag.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,8 +87,28 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     }
 
     @Override
-    public R lore(java.util.List<String> lore) {
-        item.lore(stringsToComponentList(lore.stream().map(this::colorize).toList()), false);
+    public R lore(java.util.List<?> lore) {
+        List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
+        for (Object o : lore) {
+            if(o instanceof String s) {
+                if(s.contains(String.valueOf(LegacyComponentSerializer.SECTION_CHAR))){
+                    newLore.add(LegacyComponentSerializer.legacySection().deserialize(colorize(s)));
+                } else {
+                    newLore.add(MiniMessage.miniMessage().deserialize(s));
+                }
+            } else if(o instanceof net.kyori.adventure.text.Component c){
+                newLore.add(c);
+            }
+        }
+        item.lore(newLore, false);
+        return (R) this;
+    }
+
+    @Override
+    public R lore(List<String> lore, boolean minimessage) {
+        List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
+        lore.forEach(s -> newLore.add(minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s))));
+        item.lore(newLore, false);
         return (R) this;
     }
 
