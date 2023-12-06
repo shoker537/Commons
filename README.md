@@ -6,7 +6,7 @@
 
 Compiled with Java 17
 
-Modules which use NMS support 1.19.4 and 1.20/1.20.1
+Modules which use NMS support v1.20.1
 
 # Usage
 
@@ -29,7 +29,7 @@ All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-re
 - **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
 - **ConfigAPI** - simple config-management interface (spigot side only for now). ConfigAPI.getServerName() returns readable name of current server (from 'server-name' in server.properties)
 - **GUILib** - spigot library for creating GUIs
-- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Supports 1.19.4 and 1.20/1.20.1 versions. Explore all the methods in PacketUtil class!
+- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Supports 1.20.1 version. Explore nms package!
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 - **PlayerLocationReceiver** - receives player coordinates from Bungee (Commons.getInstance().getPlayerLocationReceiver())
 
@@ -113,7 +113,7 @@ GUI examples:
 ```java
 GUI gui = new GUI(plugin, 27, "&cSelect a player");
 
-gui.addItem(14, new ItemStackBuilder(Material.PLAYER_HEAD).skullOwner(Bukkit.getOfflinePlayer("shoker137")), this::clicked);
+gui.addItem(14, new BukkitItemStack(Material.PLAYER_HEAD).headOwner("shoker137"), this::clicked);
 
 gui.addItem(20, new ItemStack(Material.REDSTONE));
 gui.addSlotAction(20, this::slotAction);
@@ -123,7 +123,7 @@ gui.open(player);
 
 ```java
 new GUI(plugin, 27, "&cSelect a player")
-        .addItem(14, new ItemStackBuilder(Material.PLAYER_HEAD).skullOwner(Bukkit.getOfflinePlayer("shoker137")))
+        .addItem(14, new BukkitItemStack(Material.PLAYER_HEAD).headOwner("shoker137").build())
         .withUniversalAction((type, slot, itemStack) -> player.sendMessage("You clicked at "+slot))
         .open(player);
 ```
@@ -138,7 +138,7 @@ gui.setItemRaw(2, new ItemStack(Material.PAPER));
 Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
 ```java
 new GUI(plugin, "&cTitle", InventoryType.GENERIC_9X5)
-.item(12, new ItemStack(ItemType.ALLIUM), this::action)
+.item(12, new BungeeItemStack(ItemType.ALLIUM).displayName("example").build(), this::action)
 .open(player);
 ```
 
@@ -165,9 +165,9 @@ public class FriendsPageGenerator extends GUIPageGenerator {
                 gui,
                 0, // How many lines to skip (0 if you want the generator to work from the first slot)
                 5, // Count of lines for generation items (the entries which the page should show)
-                new ItemStackBuilder(ItemType.RED_STAINED_GLASS).displayName("&cNo friends found :(").build(), // The item shown when the page is empty
+                new BungeeItemStack(ItemType.RED_STAINED_GLASS).displayName("&cNo friends found :(").build(), // The item shown when the page is empty
                 22, // The slot for nothing-found item
-                new ItemStackBuilder(ItemType.YELLOW_STAINED_GLASS_PANE).build() // The item which covers the last line of the GUI, it is a 'system' line with controls of a page (prev/next page buttons)
+                new BungeeItemStack(ItemType.YELLOW_STAINED_GLASS_PANE).build() // The item which covers the last line of the GUI, it is a 'system' line with controls of a page (prev/next page buttons)
                 );
         // Receive a list of entries the page should show
         friends = FriendsPlugin.getFriends(player.getUniqueId());
@@ -181,7 +181,7 @@ public class FriendsPageGenerator extends GUIPageGenerator {
             List<Pair<ItemStack, Consumer<InventoryClick>>> items = new ArrayList<>();
             
             friends.stream().skip(page* 27L).limit(27).forEachOrdered(friend -> {
-                items.add(Pair.of(new ItemStackBuilder(ItemType.PLAYER_HEAD).headOwner(friend.getName()).build(), null)); // null if no action required or a click consumer
+                items.add(Pair.of(new BungeeItemStack(ItemType.PLAYER_HEAD).headOwner(friend.getName()).build(), null)); // null if no action required or a click consumer
             });
             
             return items;
@@ -194,7 +194,7 @@ public class FriendsPageGenerator extends GUIPageGenerator {
         super.fillBottomPanes();
         // Here you can override items on the last (system) line of the GUI (where prev/next buttons appear)
         // Note that prev/next buttons take first and the last slots on this line, so you should not use them in any way
-        item(49, new ItemStackBuilder(ItemType.BARRIER).displayName("Close"), click -> {
+        item(49, new BungeeItemStack(ItemType.BARRIER).displayName("Close"), click -> {
             getGui().close(player);
         });
     }
@@ -203,7 +203,7 @@ public class FriendsPageGenerator extends GUIPageGenerator {
 
 # Utility classes (spigot-side)
 
-- **ItemStackBuilder** - to create ItemStacks simply
+- **BukkitItemStack** - to create ItemStacks simply
 - **TextComponentBuilder** - to create md_5's TextComponents simply
 - **Coordinates** - xyz holder and can be converted to Location
 - **WorldEditManager** - select, copy, fill and work with schematics
