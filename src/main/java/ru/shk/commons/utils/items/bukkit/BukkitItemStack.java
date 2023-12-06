@@ -3,6 +3,12 @@ package ru.shk.commons.utils.items.bukkit;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -135,8 +141,30 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     }
 
     @Override
-    public BukkitItemStack lore(List<String> lore) {
-        item.editMeta(meta -> meta.setLore(lore.stream().map(this::colorize).toList()));
+    public BukkitItemStack lore(List<?> lore) {
+        List<Component> newLore = new ArrayList<>();
+        for (Object o : lore) {
+            if(o instanceof String s) {
+                newLore.add(PlainTextComponentSerializer.plainText().deserialize(Commons.colorizeWithHex(s)));
+            } else if(o instanceof Component c){
+                newLore.add(c);
+            } else if(o instanceof TextComponent tc){
+                newLore.add(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{tc}));
+            } else if(o instanceof TextComponent[] tc){
+                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
+            } else if(o instanceof BaseComponent[] tc){
+                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
+            }
+        }
+        item.editMeta(meta -> meta.lore(newLore));
+        return this;
+    }
+
+    @Override
+    public BukkitItemStack lore(List<String> lore, boolean minimessage) {
+        List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
+        lore.forEach(s -> newLore.add(minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s))));
+        item.editMeta(itemMeta -> itemMeta.lore(newLore));
         return this;
     }
 

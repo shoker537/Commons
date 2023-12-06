@@ -83,14 +83,6 @@ public class ReflectionUtil {
     @SneakyThrows
     public static Object runMethod(Object c, String method, Object... arguments) {
         return runMethodAutoDefineTypes(c.getClass(), c, method, arguments);
-//        Method m = MethodUtils.getMatchingAccessibleMethod(c.getClass(), method, arr);
-//        if(m==null) m = MethodUtils.getMatchingMethod(c.getClass(), method, arr);
-//        if(m==null) {
-//            printAvailableMethods(c.getClass());
-//            throw new NoSuchMethodException("Method "+method+"("+ Arrays.stream(arguments).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+c.getClass().getSimpleName()+" class");
-//        }
-//        if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-//        return m.invoke(c, arguments);
     }
 
     private static Class<?> primitiveToBasicClass(Class<?> primitive) {
@@ -137,6 +129,17 @@ public class ReflectionUtil {
         if (!f.canAccess(null))
             f.setAccessible(true);
         return f.get(null);
+    }
+
+    public static void setStaticField(Class<?> c, String field, Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field f = getFieldFromCache(c, field);
+        if(f==null) {
+            f = c.getDeclaredField(field);
+            cacheField(f, c, field);
+        }
+        if (!f.canAccess(null))
+            f.setAccessible(true);
+        f.set(null, value);
     }
 
     @Nullable private static Field getFieldFromCache(Class<?> aClass, String fieldName){
