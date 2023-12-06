@@ -21,22 +21,18 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.items.universal.HeadsCache;
-import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
 import ru.shk.guilib.GUILib;
-import ru.shk.mysql.database.MySQL;
+import ru.shk.mysql.connection.MySQL;
 
 import javax.annotation.Nullable;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +41,7 @@ public final class Commons extends JavaPlugin {
     @Getter private static PacketVersion serverVersion;
     @Getter private static boolean isVersionLatestCompatible = false;
     private final List<Plugin> plugins = new ArrayList<>();
-    private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
+    private final ConcurrentHashMap<Integer, CustomHead> customHeadsCache = new ConcurrentHashMap<>();
     @Getter private MySQL mysql;
     final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 10, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(), new DefaultThreadFactory("Commons Main Pool"));
     private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(2, new DefaultThreadFactory("Commons Teleport Service Pool"));
@@ -59,16 +55,15 @@ public final class Commons extends JavaPlugin {
         ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.SPIGOT);
         info(" ");
         info(ChatColor.AQUA+"            shoker'"+ChatColor.WHITE+"s "+ChatColor.AQUA+"common"+ChatColor.WHITE+"s");
-        String packageName = Bukkit.getServer().getClass().getPackage().getName();
-        String ver = packageName.substring(packageName.lastIndexOf(46) + 1);
-        try {
-            Commons.serverVersion = PacketVersion.valueOf(ver);
-            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
-            if(Commons.serverVersion==PacketVersion.values()[PacketVersion.values().length-1]) isVersionLatestCompatible = true;
-        } catch (Exception e){
+        String ver = Bukkit.getMinecraftVersion();
+        Commons.serverVersion = PacketVersion.byName(ver);
+        if(serverVersion==null){
             Commons.serverVersion = PacketVersion.values()[PacketVersion.values().length-1];
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.RED+"Unsupported NMS version! "+ChatColor.GRAY+"Fallback version is "+Commons.serverVersion.name());
             info(ChatColor.RED+"                          NMS features will not work properly.");
+        } else {
+            info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
+            if(Commons.serverVersion==PacketVersion.values()[PacketVersion.values().length-1]) isVersionLatestCompatible = true;
         }
         info(" ");
         instance = this;
@@ -358,7 +353,7 @@ public final class Commons extends JavaPlugin {
         }
         String texture = getSkinTextureFromMojang(cp.getUuid());
         if(texture==null) return null;
-        mysql.Update("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
+        mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
     }
 

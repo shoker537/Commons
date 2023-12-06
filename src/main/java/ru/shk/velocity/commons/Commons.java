@@ -7,8 +7,6 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
-import com.velocitypowered.api.plugin.Dependency;
-import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -20,22 +18,21 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.CustomHead;
-import ru.shk.mysql.database.MySQL;
+import ru.shk.mysql.connection.MySQL;
 import ru.shk.velocity.commons.config.Config;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 @Getter@Accessors(fluent = true)
-@Plugin(id = "commons", name = "Commons", authors = {"shoker137"}, version = "1.3.81", dependencies = {@Dependency(id = "mysqlapi")})
 public class Commons {
 
     private MySQL mysql;
@@ -45,7 +42,7 @@ public class Commons {
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
-    private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
+    private final ConcurrentHashMap<Integer, CustomHead> customHeadsCache = new ConcurrentHashMap<>();
 
     @Inject
     public Commons(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory){

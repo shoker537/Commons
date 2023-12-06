@@ -26,7 +26,7 @@ import ru.shk.commonsbungee.cmd.CommonsTp;
 import ru.shk.commonsbungee.cmd.ReloadChildPlugins;
 import ru.shk.configapibungee.Config;
 import ru.shk.guilibbungee.GUILib;
-import ru.shk.mysql.database.MySQL;
+import ru.shk.mysql.connection.MySQL;
 
 import javax.annotation.Nullable;
 import java.net.URL;
@@ -37,10 +37,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,7 +48,7 @@ public class Commons extends Plugin implements Listener {
     @Getter private static Commons instance;
     @Getter private boolean isProtocolizeInstalled = false;
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
-    private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
+    private final ConcurrentHashMap<Integer, CustomHead> customHeadsCache = new ConcurrentHashMap<>();
     private MySQL mysql;
     @Getter private PlayerLocationReceiver playerLocationReceiver;
     @Getter private PAFManager pafManager;
@@ -234,7 +231,7 @@ public class Commons extends Plugin implements Listener {
         }
         String texture = getSkinTextureFromMojang(cp.getUuid());
         if(texture==null) return null;
-        mysql.Update("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
+        mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
     }
 
