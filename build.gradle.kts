@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-  version = "1.5.0"
+version = "1.5.2"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -79,7 +79,7 @@ repositories {
 
 
 dependencies {
-  paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+  paperDevBundle("1.20.1-R0.1-SNAPSHOT")
   compileOnly("com.github.retrooper.packetevents:spigot:2.0.2")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
@@ -98,7 +98,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
-  compileOnly("ru.shk:MySQLAPI:3.0.4")
+  compileOnly("ru.shk:MySQLAPI:3.1.1")
 
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.0.1")
