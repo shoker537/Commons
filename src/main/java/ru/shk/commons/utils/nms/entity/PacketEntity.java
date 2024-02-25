@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -122,6 +123,21 @@ public class PacketEntity<T extends PacketEntity> {
     public synchronized void persistentInvisibility(boolean value){
         entity.persistentInvisibility = value;
         entity.setSharedFlag(5, value);
+    }
+
+    public void pose(org.bukkit.entity.Pose pose){
+        pose(pose, true);
+    }
+    public void pose(org.bukkit.entity.Pose pose, boolean sendMetadata){
+        entity.setPose(asNMSPose(pose));
+        if(sendMetadata) metadata();
+    }
+
+    private Pose asNMSPose(org.bukkit.entity.Pose pose){
+        return switch (pose){
+            case SNEAKING -> Pose.CROUCHING;
+            default -> Pose.valueOf(pose.name());
+        };
     }
 
     public T equip(ItemSlot slot, ItemStack item){
