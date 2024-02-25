@@ -1,10 +1,10 @@
 package ru.shk.commons.utils;
 
 import land.shield.playerapi.CachedPlayer;
+import lombok.SneakyThrows;
 import ru.shk.commons.Commons;
 
 import javax.annotation.Nullable;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,22 +43,22 @@ public class PAFManager {
 //        sendPartyRequest(p);
 //    }
 
-    @Nullable
+    @Nullable@SneakyThrows
     public GlobalParty getPartyFromDatabase(UUID player){
         List<CachedPlayer> players = new ArrayList<>();
-        CachedPlayer owner = null;
-        try (ResultSet rs = Commons.getInstance().getMysql().Query(
-                "SELECT (SELECT player_uuid FROM fr_players players WHERE players.player_id=party.player_member_id LIMIT 1) AS member_uuid, (SELECT player_uuid FROM fr_players players WHERE players.player_id=party.leader_id LIMIT 1) AS owner_uuid FROM fr_party party WHERE leader_id = (SELECT leader_id FROM fr_party WHERE player_member_id=(SELECT player_id FROM fr_players WHERE player_uuid = '"+player+"' LIMIT 1) LIMIT 1)"
-        )) {
-            while (rs.next()){
-                players.add(CachedPlayer.of(UUID.fromString(rs.getString(1))));
-                if(owner==null) owner = CachedPlayer.of(UUID.fromString(rs.getString(2)));
+        final CachedPlayer[] owner = {null};
+        Commons.getInstance().getMysql().Query("SELECT (SELECT player_uuid FROM fr_players players WHERE players.player_id=party.player_member_id LIMIT 1) AS member_uuid, (SELECT player_uuid FROM fr_players players WHERE players.player_id=party.leader_id LIMIT 1) AS owner_uuid FROM fr_party party WHERE leader_id = (SELECT leader_id FROM fr_party WHERE player_member_id=(SELECT player_id FROM fr_players WHERE player_uuid = '"+player+"' LIMIT 1) LIMIT 1)", rs -> {
+            try {
+                while (rs.next()){
+                    players.add(CachedPlayer.of(UUID.fromString(rs.getString(1))));
+                    if(owner[0]==null) owner[0] = CachedPlayer.of(UUID.fromString(rs.getString(2)));
+                }
+            } catch (SQLException e){
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if(owner==null || players.size()==0) return null;
-        return new GlobalParty(players, owner);
+        });
+        if(owner[0]==null || players.isEmpty()) return null;
+        return new GlobalParty(players, owner[0]);
     }
 
 //    private void sendPartyRequest(Player p){

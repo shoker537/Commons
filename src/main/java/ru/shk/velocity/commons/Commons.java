@@ -13,6 +13,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -124,38 +125,38 @@ public class Commons {
         }
     }
 
-    @Nullable
+    @Nullable@SneakyThrows
     public CustomHead findCustomHead(int id){
         if(customHeadsCache.containsKey(id)) return (customHeadsCache.get(id));
-        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute()) {
-            if(rs.next()){
-                CustomHead head = new CustomHead(id, rs.getString("key"), rs.getString("texture"));
-                customHeadsCache.put(id, head);
-                return head;
-            } else {
-                throw new NullPointerException("No custom head with id "+id);
+        CustomHead head = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute(rs -> {
+            try {
+                if(rs.next()){
+                    return new CustomHead(id, rs.getString("key"), rs.getString("texture"));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+            return null;
+        });
+        if(head!=null) customHeadsCache.put(id, head);
+        return head;
     }
 
-    public CustomHead findCustomHead(String key){
+    @SneakyThrows public CustomHead findCustomHead(String key){
         Optional<CustomHead> h = customHeadsCache.values().stream().filter(customHead -> customHead.getKey().equals(key)).findAny();
         if(h.isPresent()) return h.get();
-        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute()) {
-            if(rs.next()){
-                CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
-                customHeadsCache.put(head.getId(), head);
-                return head;
-            } else {
-                throw new NullPointerException("No custom head with key "+key);
+        CustomHead head = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute(rs -> {
+            try {
+                if(rs.next()){
+                    return new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+            return null;
+        });
+        if(head!=null) customHeadsCache.put(head.getId(), head);
+        return head;
     }
 
     @Nullable

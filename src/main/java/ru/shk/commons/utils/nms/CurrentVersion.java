@@ -208,8 +208,6 @@ public class CurrentVersion {
     }
     @SneakyThrows
     protected void playTotemAnimation(Player p){
-//        Class<?> statusPacket = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityStatus");
-//        val a = (Packet<?>) ConstructorUtils.invokeConstructor(statusPacket, new Object[]{getNMSPlayer(p), (byte)35});
         sendPacket(p, new ClientboundEntityEventPacket(getNMSPlayer(p), (byte)35));
     }
     protected ServerPlayer getNMSPlayer(Player p) {

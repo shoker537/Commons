@@ -6,15 +6,13 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
-import ru.shk.commons.utils.items.CachedPlayerProcessor;
 import ru.shk.commons.utils.HTTPRequest;
+import ru.shk.commons.utils.items.CachedPlayerProcessor;
 import ru.shk.commons.utils.items.PlayerProcessor;
 import ru.shk.commonsbungee.Commons;
 import ru.shk.mysql.connection.MySQL;
 
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -129,15 +127,8 @@ public class HeadsCache {
     private String getSkinTexture(long id){
         UUID uuid = playerProcessor().UUIDFromId(id);
         if(mysql==null || !mysql.isConnected()) return getSkinTextureFromMojang(uuid);
-        try (ResultSet rs = mysql.Query("SELECT texture FROM heads_texture_cache WHERE player_id="+id+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;")) {
-            if (rs.next()) {
-                return rs.getString(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        String texture = getSkinTextureFromMojang(uuid);
+        String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+id+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
+        if(texture==null) texture = getSkinTextureFromMojang(uuid);
         if(texture==null) return null;
         mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+id+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;

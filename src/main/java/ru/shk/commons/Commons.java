@@ -8,6 +8,7 @@ import com.sk89q.worldedit.WorldEdit;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -29,9 +30,10 @@ import ru.shk.mysql.connection.MySQL;
 
 import javax.annotation.Nullable;
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,14 +90,7 @@ public final class Commons extends JavaPlugin {
     }
 
     public long getPlayerPlayedTime(String uuid){
-        try (ResultSet rs = mysql.Query("SELECT time FROM BungeeOnlineTime WHERE uuid='"+uuid+"' LIMIT 1")) {
-            if(rs.next()){
-                return rs.getLong(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
+        return mysql.QueryLong("SELECT time FROM BungeeOnlineTime WHERE uuid='"+uuid+"' LIMIT 1", 0);
     }
 
     private void sendLocationFeedback(String uuid, Coordinates coordinates){
@@ -315,22 +310,22 @@ public final class Commons extends JavaPlugin {
 //        new Notification(header, footer, "minecraft:"+icon).show(p);
     }
 
-    @Nullable
+    @Nullable@SneakyThrows
     public CustomHead findCustomHead(int id){
         if(customHeadsCache.containsKey(id)) return (customHeadsCache.get(id));
-        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute()) {
-            if(rs.next()){
-                CustomHead head = new CustomHead(id, rs.getString("key"), rs.getString("texture"));
-                customHeadsCache.put(id, head);
-                return head;
-            } else {
-                throw new NullPointerException("No custom head with id "+id);
+        CustomHead head = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute(rs -> {
+            try {
+                if(rs.next()){
+                    return new CustomHead(id, rs.getString("key"), rs.getString("texture"));
+                }
+            } catch (Exception e) {
+                Bukkit.getLogger().warning(e.getMessage());
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            Bukkit.getLogger().warning(e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
+            return null;
+        });
+        if (head!=null) customHeadsCache.put(id, head);
+        return head;
     }
 
     @Nullable
@@ -343,15 +338,8 @@ public final class Commons extends JavaPlugin {
 
     @Nullable
     public String getSkinTexture(CachedPlayer cp){
-        try (ResultSet rs = mysql.Query("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;")) {
-            if (rs.next()) {
-                return rs.getString(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        String texture = getSkinTextureFromMojang(cp.getUuid());
+        String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
+        if(texture!=null) texture = getSkinTextureFromMojang(cp.getUuid());
         if(texture==null) return null;
         mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
@@ -369,22 +357,22 @@ public final class Commons extends JavaPlugin {
         }
     }
 
-    public CustomHead findCustomHead(String key){
+    @SneakyThrows public CustomHead findCustomHead(String key){
         Optional<CustomHead> h = customHeadsCache.values().stream().filter(customHead -> customHead.getKey().equals(key)).findAny();
         if(h.isPresent()) return h.get();
-        try (ResultSet rs = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute()) {
-            if(rs.next()){
-                CustomHead head = new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
-                customHeadsCache.put(head.getId(), head);
-                return head;
-            } else {
-                throw new NullPointerException("No custom head with key "+key);
+        CustomHead head = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("`key`='"+key+"'").LIMIT(1).execute(rs -> {
+            try {
+                if(rs.next()){
+                    return new CustomHead(rs.getInt("id"), key, rs.getString("texture"));
+                }
+            } catch (Exception e) {
+                Bukkit.getLogger().warning(e.getMessage());
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            Bukkit.getLogger().warning(e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
+            return null;
+        });
+        if (head!=null) customHeadsCache.put(head.getId(), head);
+        return head;
     }
 
     @Nullable
