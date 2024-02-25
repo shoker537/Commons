@@ -19,6 +19,7 @@ import net.minecraft.util.Mth;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Pose;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.nms.PacketUtil;
@@ -103,6 +104,7 @@ public class PacketPlayer extends PacketEntity<PacketPlayer> {
 
     public void setSneaking(boolean sneaking){
         entity.setSharedFlag(1, sneaking);
+        if(sneaking) pose(org.bukkit.entity.Pose.SNEAKING, false); else pose(Pose.STANDING, false);
         metadata();
     }
 
