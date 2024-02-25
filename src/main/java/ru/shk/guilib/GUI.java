@@ -33,6 +33,7 @@ public class GUI {
     @Getter(AccessLevel.NONE) private Inventory inv;
     private final HashMap<Integer, ItemStack> items = new HashMap<>();
     private final HashMap<Integer, Runnable> slotActions = new HashMap<>();
+    private final HashMap<Integer, Consumer<ClickEvent>> slotEventActions = new HashMap<>();
     private final HashMap<Integer, Consumer<ClickType>> slotMultiActions = new HashMap<>();
     private Consumer<InventoryClickEvent> onClick = null;
     private final HashMap<Material, Runnable> materialActions = new HashMap<>();
