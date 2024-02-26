@@ -10,7 +10,7 @@ import ru.shk.commons.utils.items.CachedPlayerProcessor;
 import ru.shk.commons.utils.HTTPRequest;
 import ru.shk.commons.utils.items.PlayerProcessor;
 import ru.shk.commonsbungee.Commons;
-import ru.shk.mysql.connection.MySQL;
+import ru.shk.mysql.database.MySQL;
 
 import java.net.URL;
 import java.sql.ResultSet;
@@ -139,7 +139,7 @@ public class HeadsCache {
         }
         String texture = getSkinTextureFromMojang(uuid);
         if(texture==null) return null;
-        mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+id+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
+        mysql.Update("INSERT INTO heads_texture_cache SET player_id="+id+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
     }
 

@@ -21,7 +21,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.items.universal.HeadsCache;
-import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
