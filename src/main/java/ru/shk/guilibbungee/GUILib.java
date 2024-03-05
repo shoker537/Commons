@@ -67,7 +67,7 @@ public class GUILib implements Plugin {
         }
 
         @EventHandler
-        public void onLeave(ServerSwitchEvent e){
+        public void onSwitchServer(ServerSwitchEvent e){
             GUILib.getInstance().guis.remove(e.getPlayer().getUniqueId());
             List<TextInputGUI> toRemove = new ArrayList<>();
             for (TextInputGUI gui : textInputGUIS) {
@@ -79,6 +79,6 @@ public class GUILib implements Plugin {
 
     @Override
     public void disable() {
-
+        pluginDisabled(Commons.getInstance());
     }
 }

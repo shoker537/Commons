@@ -20,10 +20,7 @@ import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.bungee.BungeeItemStack;
 import ru.shk.guilibbungee.GUILib;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Accessors(fluent = true)
@@ -184,5 +181,19 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
         } catch (Throwable t){
             t.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ProtocolizeGUI<?, ?> that = (ProtocolizeGUI<?, ?>) o;
+        return open == that.open && state == that.state && windowId == that.windowId && Objects.equals(slotActions, that.slotActions) && Objects.equals(universalAction, that.universalAction) && Objects.equals(closeConsumer, that.closeConsumer) && Objects.equals(owner, that.owner) && Objects.equals(pp, that.pp);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), slotActions, universalAction, closeConsumer, owner, pp, open, state, windowId);
     }
 }

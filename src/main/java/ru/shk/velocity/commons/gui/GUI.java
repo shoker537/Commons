@@ -52,4 +52,5 @@ public class GUI extends ProtocolizeGUI<Object, Player> {
     public void close(Player p) {
         close(p.getUniqueId());
     }
+
 }
