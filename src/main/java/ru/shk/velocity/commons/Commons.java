@@ -8,11 +8,13 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Dependency;
-import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import dev.simplix.protocolize.api.PacketDirection;
+import dev.simplix.protocolize.api.Protocol;
+import dev.simplix.protocolize.api.Protocolize;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -20,14 +22,19 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.CustomHead;
+import ru.shk.commons.utils.Plugin;
+import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 import ru.shk.mysql.database.MySQL;
 import ru.shk.velocity.commons.config.Config;
+import ru.shk.velocity.commons.gui.GUILib;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -46,6 +53,7 @@ public class Commons {
     @Accessors(fluent = false)@Getter private static Commons instance;
 
     private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
+    private final List<Plugin> plugins = new ArrayList<>();
 
     @Inject
     public Commons(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory){
@@ -56,6 +64,15 @@ public class Commons {
         config = Config.defaultConfig(dataDirectory.toFile());
         registerMessagingChannel("commons:updateinv");
         registerMessagingChannel("BungeeCord");
+        plugins.add(new GUILib());
+
+        plugins.forEach(plugin -> {
+            try {
+                plugin.load();
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        });
     }
 
     @Subscribe
@@ -65,6 +82,7 @@ public class Commons {
         proxy.getConsoleCommandSource().sendMessage(colorize("              for Velocity"));
         proxy.getConsoleCommandSource().sendMessage(colorize(""));
         mysql = new MySQL(config.getString("database","minigames"));
+        Protocolize.protocolRegistration().registerPacket(RenameItemPacket.MAPPINGS, Protocol.PLAY, PacketDirection.SERVERBOUND, RenameItemPacket.class);
         mysql.UpdateSync("CREATE TABLE IF NOT EXISTS `custom_heads` (" +
                 "  `id` int NOT NULL AUTO_INCREMENT," +
                 "  `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
@@ -72,6 +90,13 @@ public class Commons {
                 "  PRIMARY KEY (`id`) USING BTREE," +
                 "  UNIQUE KEY `UNIQUE` (`key`) USING BTREE" +
                 ") ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        plugins.forEach(plugin -> {
+            try {
+                plugin.enable();
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        });
     }
 
     public void async(Runnable r){
@@ -86,6 +111,13 @@ public class Commons {
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
         }
+        plugins.forEach(plugin -> {
+            try {
+                plugin.disable();
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        });
     }
 
     public void later(Runnable r, Duration delay){

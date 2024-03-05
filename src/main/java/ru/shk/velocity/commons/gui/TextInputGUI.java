@@ -1,5 +1,6 @@
-package ru.shk.guilibbungee;
+package ru.shk.velocity.commons.gui;
 
+import com.velocitypowered.api.proxy.Player;
 import dev.simplix.protocolize.api.Direction;
 import dev.simplix.protocolize.api.Protocolize;
 import dev.simplix.protocolize.api.inventory.Inventory;
@@ -9,10 +10,9 @@ import dev.simplix.protocolize.api.listener.PacketSendEvent;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import ru.shk.commonsbungee.ItemStackBuilder;
+import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 import ru.shk.guilib.protocolize.packet.RenameItemPacket;
+import ru.shk.velocity.commons.Commons;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -20,17 +20,15 @@ import java.util.function.Consumer;
 public class TextInputGUI extends Inventory {
     private String text = "";
     private final AbstractPacketListener<RenameItemPacket> listener;
-    private final ProxiedPlayer player;
-
-    public TextInputGUI(ProxiedPlayer player, String title, String originalName, List<String> description, Consumer<String> result) {
+    private final Player player;
+    public TextInputGUI(Player player, String title, String originalName, List<String> description, Consumer<String> result) {
         this(player, title, false, originalName, description, result);
     }
-
-    public TextInputGUI(ProxiedPlayer player, String title, boolean json, String originalName, List<String> description, Consumer<String> result) {
-        this(player, title, json, new ItemStackBuilder(ItemType.PAPER), originalName, description, result);
+    public TextInputGUI(Player player, String title, boolean json, String originalName, List<String> description, Consumer<String> result) {
+        this(player, title, json, new VelocityItemStack(ItemType.PAPER), originalName, description, result);
     }
 
-    public TextInputGUI(ProxiedPlayer player, String title, boolean json, ItemStackBuilder item, String originalName, List<String> description, Consumer<String> result) {
+    public TextInputGUI(Player player, String title, boolean json, VelocityItemStack item, String originalName, List<String> description, Consumer<String> result) {
         super(InventoryType.ANVIL);
         this.player = player;
         if(json) titleJson(title); else title(title);
@@ -58,13 +56,9 @@ public class TextInputGUI extends Inventory {
 
             }
         };
-        onClose(inventoryClose -> {
-            ProxiedPlayer p = ProxyServer.getInstance().getPlayer(inventoryClose.player().uniqueId());
-            if(p!=null) closed(p);
-        });
+        onClose(inventoryClose -> Commons.getInstance().proxy().getPlayer(inventoryClose.player().uniqueId()).ifPresent(TextInputGUI::close));
     }
-
-    public boolean closed(ProxiedPlayer p){
+    public boolean closed(Player p){
         if(!p.getUniqueId().equals(player.getUniqueId())) return false;
         try {
             Protocolize.listenerProvider().unregisterListener(listener);
@@ -72,14 +66,14 @@ public class TextInputGUI extends Inventory {
         return true;
     }
 
-    private void open(ProxiedPlayer p){
+    private void open(Player p){
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
         player.openInventory(this);
         Protocolize.listenerProvider().registerListener(listener);
     }
 
-    private static void close(ProxiedPlayer p){
+    private static void close(Player p){
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
     }
