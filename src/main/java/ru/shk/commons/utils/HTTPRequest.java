@@ -10,12 +10,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.HashMap;
 
 public class HTTPRequest {
     private final URL url;
     private String result;
     private static final Gson gson = new Gson();
     private int timeout = 5;
+    private final HashMap<String, String> headers = new HashMap<>();
 
     public HTTPRequest timeout(int seconds){
         this.timeout = seconds;
@@ -35,12 +37,12 @@ public class HTTPRequest {
         try {
             HttpClient client = HttpClient.newHttpClient();
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder request = HttpRequest.newBuilder()
                     .uri(url.toURI())
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                    .timeout(Duration.ofSeconds(timeout))
-                    .build();
-            HttpResponse<String> response = client.send(request,
+                    .timeout(Duration.ofSeconds(timeout));
+            headers.forEach(request::setHeader);
+            HttpResponse<String> response = client.send(request.build(),
                     HttpResponse.BodyHandlers.ofString());
             result = response.body();
         } catch (Throwable t){
@@ -49,15 +51,20 @@ public class HTTPRequest {
         return this;
     }
 
+    public HTTPRequest header(String k, String v){
+        headers.put(k, v);
+        return this;
+    }
+
     public HTTPRequest get(){
         HttpClient client;
         try {
             client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder request = HttpRequest.newBuilder()
                     .uri(url.toURI())
-                    .timeout(Duration.ofSeconds(timeout))
-                    .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    .timeout(Duration.ofSeconds(timeout));
+            headers.forEach(request::setHeader);
+            HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
             result = response.body();
         } catch (Throwable t){
             t.printStackTrace();
