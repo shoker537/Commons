@@ -2,6 +2,7 @@ package ru.shk.guilibbungee;
 
 import dev.simplix.protocolize.api.Direction;
 import dev.simplix.protocolize.api.Protocolize;
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.inventory.Inventory;
 import dev.simplix.protocolize.api.listener.AbstractPacketListener;
 import dev.simplix.protocolize.api.listener.PacketReceiveEvent;
@@ -33,7 +34,7 @@ public class TextInputGUI extends Inventory {
     public TextInputGUI(ProxiedPlayer player, String title, boolean json, ItemStackBuilder item, String originalName, List<String> description, Consumer<String> result) {
         super(InventoryType.ANVIL);
         this.player = player;
-        if(json) titleJson(title); else title(title);
+        if(json) title(ChatElement.ofJson(title)); else title(ChatElement.ofLegacyText(title));
         item(0, item.displayName(originalName).lore(description).build());
         onClick(click -> {
             click.cancelled(true);

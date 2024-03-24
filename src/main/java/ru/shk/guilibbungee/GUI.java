@@ -95,6 +95,12 @@ public class GUI extends ProtocolizeGUI<Plugin, ProxiedPlayer> {
     }
 
     @Override
+    public GUI titleJson(String json) {
+        return (GUI) super.titleJson(json);
+    }
+
+
+    @Override
     public void close(ProxiedPlayer p){
         close(p.getUniqueId());
     }

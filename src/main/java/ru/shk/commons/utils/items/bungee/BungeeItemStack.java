@@ -45,7 +45,7 @@ public class BungeeItemStack extends ProtocolizeItemStack<BungeeItemStack> {
     }
 
     public Object stringToComponent(String s){
-        return new BaseComponent[]{new TextComponent(s)};
+        return new BaseComponent[]{new TextComponent(Commons.colorizeWithHex(s))};
     }
 
 }

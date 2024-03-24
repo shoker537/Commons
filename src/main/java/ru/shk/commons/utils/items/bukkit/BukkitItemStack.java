@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+//import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -143,19 +143,19 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     @Override
     public BukkitItemStack lore(List<?> lore) {
         List<Component> newLore = new ArrayList<>();
-        for (Object o : lore) {
-            if(o instanceof String s) {
-                newLore.add(PlainTextComponentSerializer.plainText().deserialize(Commons.colorizeWithHex(s)));
-            } else if(o instanceof Component c){
-                newLore.add(c);
-            } else if(o instanceof TextComponent tc){
-                newLore.add(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{tc}));
-            } else if(o instanceof TextComponent[] tc){
-                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
-            } else if(o instanceof BaseComponent[] tc){
-                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
-            }
-        }
+//        for (Object o : lore) {
+//            if(o instanceof String s) {
+//                newLore.add(PlainTextComponentSerializer.plainText().deserialize(Commons.colorizeWithHex(s)));
+//            } else if(o instanceof Component c){
+//                newLore.add(c);
+//            } else if(o instanceof TextComponent tc){
+//                newLore.add(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{tc}));
+//            } else if(o instanceof TextComponent[] tc){
+//                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
+//            } else if(o instanceof BaseComponent[] tc){
+//                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
+//            }
+//        }
         item.editMeta(meta -> meta.lore(newLore));
         return this;
     }
