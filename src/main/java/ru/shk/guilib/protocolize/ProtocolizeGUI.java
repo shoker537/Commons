@@ -2,6 +2,7 @@ package ru.shk.guilib.protocolize;
 
 import com.google.common.collect.Lists;
 import dev.simplix.protocolize.api.Protocolize;
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.inventory.Inventory;
 import dev.simplix.protocolize.api.inventory.InventoryClick;
 import dev.simplix.protocolize.api.inventory.InventoryClose;
@@ -49,6 +50,15 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
         });
     }
 
+    public ProtocolizeGUI titleJson(String json){
+        title(ChatElement.ofJson(json));
+        return this;
+    }
+
+    public ProtocolizeGUI title(Object title, boolean string){
+        title(string?ChatElement.ofLegacyText((String) title):ChatElement.of(title));
+        return this;
+    }
     public abstract void removeGuiFromCache(UUID playerUUID);
 
     public ProtocolizeGUI(PLUGIN plugin, String name, InventoryType type, boolean autoColorizeTitle){
@@ -59,7 +69,7 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
         super(type);
         this.owner = plugin;
         String colorizedTitle = autoColorizeTitle?colorize(name):name;
-        if(jsonTitle) titleJson(colorizedTitle); else title(colorizedTitle);
+        if(jsonTitle) title(ChatElement.ofJson(colorizedTitle)); else title(ChatElement.ofLegacyText(colorizedTitle));
         super.onClick(inventoryClick-> {
             inventoryClick.cancelled(true);
             updateBackendInv(inventoryClick.player());

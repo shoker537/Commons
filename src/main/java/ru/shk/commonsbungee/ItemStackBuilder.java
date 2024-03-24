@@ -1,5 +1,6 @@
 package ru.shk.commonsbungee;
 
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -123,17 +124,19 @@ public class ItemStackBuilder {
     }
 
     public ItemStackBuilder lore(List<String> lore){
-        item.lore(stringsToComponentList(lore.stream().map(s -> Commons.getInstance().colorize(s)).toList()), false);
+        List<ChatElement<?>> list = new ArrayList<>();
+        lore.forEach(string -> list.add(ChatElement.of(stringToComponent(Commons.colorizeWithHex(string)))));
+        item.lore(list);
         return this;
     }
 
     public ItemStackBuilder lore(String... lore){
-        item.lore(stringsToComponentList(Arrays.stream(lore).map(s -> Commons.getInstance().colorize(s)).toList()), false);
+        lore(List.of(lore));
         return this;
     }
 
     public ItemStackBuilder displayName(String name){
-        item.displayName(stringToComponent(Commons.getInstance().colorize(name)));
+        item.displayName(ChatElement.of(stringToComponent(Commons.getInstance().colorize(name))));
         return this;
     }
 

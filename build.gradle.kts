@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.5.3"
+version = "1.5.5"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -26,7 +26,7 @@ publishing {
   publications {
     create<MavenPublication>("maven") {
       groupId = "${group}"
-      artifactId = "${project.name}"
+      artifactId = "${project.name}-old-mysqlapi"
       version = "${version}"
 
       artifact("/build/libs/${project.name}.jar")
@@ -86,9 +86,9 @@ dependencies {
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
-  compileOnly("dev.simplix:protocolize-api:2.3.0")
-  compileOnly("net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT")
-  implementation("net.kyori:adventure-platform-bungeecord:4.3.1")
+  compileOnly("dev.simplix:protocolize-api:2.3.3")
+  compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.2-SNAPSHOT")
+//  implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
   implementation("net.wesjd:anvilgui:1.9.0-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")

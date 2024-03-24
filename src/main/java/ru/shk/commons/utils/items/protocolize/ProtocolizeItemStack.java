@@ -1,11 +1,15 @@
 package ru.shk.commons.utils.items.protocolize;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NonNull;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.querz.nbt.tag.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> extends ItemStackBuilder<ItemStack, ItemType, R> {
+    private static final Gson gson = new GsonBuilder().create();
     private int customHeadId = -1;
     private ItemStack item;
 
@@ -43,14 +48,27 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R displayName(String name) {
-        item.displayName(stringToComponent(colorize(name)));
+        item.displayName(ChatElement.of(stringToComponent(colorize(name))));
         return (R) this;
     }
 
     @Override
     public R displayName(Object name) {
-        item.displayName(name);
+        item.displayName(elementFromObject(name));
         return (R) this;
+    }
+
+    private ChatElement<?> elementFromObject(Object o){
+        if(o instanceof String s){
+            try {
+                gson.fromJson(s, JsonObject.class);
+                return ChatElement.ofJson(s);
+            } catch (JsonSyntaxException t){
+                return ChatElement.of(stringToComponent(s));
+            }
+        } else {
+            return ChatElement.of(o);
+        }
     }
 
     @Override
@@ -88,19 +106,11 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R lore(java.util.List<?> lore) {
-        List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
+        List<ChatElement<?>> newLore = new ArrayList<>();
         for (Object o : lore) {
-            if(o instanceof String s) {
-                if(s.contains(String.valueOf(LegacyComponentSerializer.SECTION_CHAR))){
-                    newLore.add(LegacyComponentSerializer.legacySection().deserialize(colorize(s)));
-                } else {
-                    newLore.add(MiniMessage.miniMessage().deserialize(s));
-                }
-            } else if(o instanceof net.kyori.adventure.text.Component c){
-                newLore.add(c);
-            }
+            newLore.add(elementFromObject(o));
         }
-        item.lore(newLore, false);
+        item.lore(newLore);
         return (R) this;
     }
 
@@ -108,7 +118,9 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     public R lore(List<String> lore, boolean minimessage) {
         List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
         lore.forEach(s -> newLore.add(minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s))));
-        item.lore(newLore, false);
+        List<ChatElement<?>> list = new ArrayList<>();
+        newLore.forEach(component -> list.add(ChatElement.of(component)));
+        item.lore(list);
         return (R) this;
     }
 
@@ -256,7 +268,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public String displayName() {
-        return item.displayName(true);
+        return item.displayName().asLegacyText();
     }
 
     @Override
@@ -285,7 +297,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public java.util.List<String> lore() {
-        return item.lore(true);
+        return item.lore().stream().map(ChatElement::asLegacyText).toList();
     }
 
     @Override
