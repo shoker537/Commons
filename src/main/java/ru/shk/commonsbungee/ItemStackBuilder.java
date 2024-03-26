@@ -18,7 +18,6 @@ import ru.shk.commons.utils.CustomHead;
 import ru.shk.configapibungee.Config;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -125,7 +124,7 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder lore(List<String> lore){
         List<ChatElement<?>> list = new ArrayList<>();
-        lore.forEach(string -> list.add(ChatElement.of(stringToComponent(Commons.colorizeWithHex(string)))));
+        lore.forEach(string -> list.add(ChatElement.of(stringToComponent(string))));
         item.lore(list);
         return this;
     }
@@ -303,7 +302,7 @@ public class ItemStackBuilder {
     }
 
     public static Object stringToComponent(String s){
-        return new BaseComponent[]{new TextComponent(s)};
+        return new BaseComponent[]{new TextComponent(Commons.colorizeWithHex(s))};
     }
 
     public static List<Object> stringsToComponentList(List<String> list){
