@@ -98,7 +98,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
-  compileOnly("ru.shk:MySQLAPI:2.3.5")
+  compileOnly("ru.shk:MySQLAPI:3.1.2")
 
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.0.1")
