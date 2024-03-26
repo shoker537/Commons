@@ -48,7 +48,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R displayName(String name) {
-        item.displayName(ChatElement.of(stringToComponent(colorize(name))));
+        item.displayName(ChatElement.of(stringToComponent(name)));
         return (R) this;
     }
 

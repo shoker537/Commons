@@ -88,7 +88,6 @@ dependencies {
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.3.3")
   compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.2-SNAPSHOT")
-//  implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
   implementation("net.wesjd:anvilgui:1.9.0-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
