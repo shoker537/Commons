@@ -2,7 +2,7 @@
 
 **Mostly used by me for private networks.**
 
-![Latest version](https://img.shields.io/nexus/r/ru.shk/Commons?nexusVersion=3&server=https%3A%2F%2Fnexus.shoker.su&style=for-the-badge&label=Commons)
+![Latest version](https://img.shields.io/nexus/r/ru.shk/Commons?server=https%3A%2F%2Fnexus.shoker.su&nexusVersion=3&style=for-the-badge&logo=Commons&color=%2313ba59)
 
 Compiled with Java 17
 
@@ -19,7 +19,7 @@ repositories {
     maven { url = 'https://nexus.shoker.su/repository/maven-releases/' }
 }
 dependencies {
-    compileOnly 'ru.shk:Commons:1.4.0' // LOOK AT THE LATEST VERSION ON TOP ^^^
+    compileOnly 'ru.shk:Commons:1.5.8' // LOOK AT THE LATEST VERSION ON TOP ^^^
 }
 ```
 All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
