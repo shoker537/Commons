@@ -180,7 +180,9 @@ public class PacketUtil {
     public static void equipEntity(Player p, Object entity, HashMap<ItemSlot, org.bukkit.inventory.ItemStack> items){
         List<Pair<EquipmentSlot, ItemStack>> list = new ArrayList<>();
         if(items==null) return;
-        items.forEach((slot, itemStack) -> list.add(new Pair<>(slot.getNmsSlot(), asNMSCopy(itemStack))));
+        items.forEach((slot, itemStack) -> {
+            list.add(new Pair<>(slot.getNmsSlot(), asNMSCopy(itemStack==null?new org.bukkit.inventory.ItemStack(Material.AIR):itemStack)));
+        });
         versionClass.equipEntity(p, entity, list);
     }
 
