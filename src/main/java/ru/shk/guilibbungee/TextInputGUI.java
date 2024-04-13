@@ -12,7 +12,7 @@ import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import ru.shk.commonsbungee.ItemStackBuilder;
+import ru.shk.commons.utils.items.bungee.BungeeItemStack;
 import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 
 import java.util.List;
@@ -28,10 +28,10 @@ public class TextInputGUI extends Inventory {
     }
 
     public TextInputGUI(ProxiedPlayer player, String title, boolean json, String originalName, List<String> description, Consumer<String> result) {
-        this(player, title, json, new ItemStackBuilder(ItemType.PAPER), originalName, description, result);
+        this(player, title, json, new BungeeItemStack(ItemType.PAPER), originalName, description, result);
     }
 
-    public TextInputGUI(ProxiedPlayer player, String title, boolean json, ItemStackBuilder item, String originalName, List<String> description, Consumer<String> result) {
+    public TextInputGUI(ProxiedPlayer player, String title, boolean json, BungeeItemStack item, String originalName, List<String> description, Consumer<String> result) {
         super(InventoryType.ANVIL);
         this.player = player;
         if(json) title(ChatElement.ofJson(title)); else title(ChatElement.ofLegacyText(title));
@@ -45,7 +45,6 @@ public class TextInputGUI extends Inventory {
             }
         });
         GUILib.getTextInputGUIS().add(this);
-        open(player);
         listener = new AbstractPacketListener<>(RenameItemPacket.class, Direction.UPSTREAM, 0) {
             @Override
             public void packetReceive(PacketReceiveEvent<RenameItemPacket> event) {
@@ -63,6 +62,7 @@ public class TextInputGUI extends Inventory {
             ProxiedPlayer p = ProxyServer.getInstance().getPlayer(inventoryClose.player().uniqueId());
             if(p!=null) closed(p);
         });
+        open(player);
     }
 
     public boolean closed(ProxiedPlayer p){
