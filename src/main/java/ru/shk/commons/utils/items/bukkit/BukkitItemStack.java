@@ -3,12 +3,13 @@ package ru.shk.commons.utils.items.bukkit;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-//import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -33,10 +34,8 @@ import ru.shk.commons.utils.items.universal.PotionData;
 
 import java.awt.*;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, BukkitItemStack> {
     private int customHeadId = -1;
@@ -142,32 +141,50 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
 
     @Override
     public BukkitItemStack lore(List<?> lore) {
+        if(lore.isEmpty()) {
+            item.lore(Collections.EMPTY_LIST);
+            return this;
+        }
+        if(lore.get(0) instanceof String) return lore((List<String>) lore, false);
         List<Component> newLore = new ArrayList<>();
-//        for (Object o : lore) {
-//            if(o instanceof String s) {
-//                newLore.add(PlainTextComponentSerializer.plainText().deserialize(Commons.colorizeWithHex(s)));
-//            } else if(o instanceof Component c){
-//                newLore.add(c);
-//            } else if(o instanceof TextComponent tc){
-//                newLore.add(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{tc}));
-//            } else if(o instanceof TextComponent[] tc){
-//                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
-//            } else if(o instanceof BaseComponent[] tc){
-//                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
-//            }
-//        }
+        for (Object o : lore) {
+            if(o instanceof String s) {
+                newLore.add(PlainTextComponentSerializer.plainText().deserialize(Commons.colorizeWithHex(s)));
+            } else if(o instanceof Component c){
+                newLore.add(c);
+            } else if(o instanceof TextComponent tc){
+                newLore.add(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{(BaseComponent) tc}));
+            } else if(o instanceof TextComponent[] tc){
+                newLore.add(BungeeComponentSerializer.get().deserialize((BaseComponent[]) tc));
+            } else if(o instanceof BaseComponent[] tc){
+                newLore.add(BungeeComponentSerializer.get().deserialize(tc));
+            }
+        }
         item.editMeta(meta -> meta.lore(newLore));
         return this;
     }
 
     @Override
     public BukkitItemStack lore(List<String> lore, boolean minimessage) {
+        return lore(lore, minimessage, true);
+    }
+
+
+    public BukkitItemStack lore(List<String> lore, boolean minimessage, boolean forceDisableItalic) {
         List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
-        lore.forEach(s -> newLore.add(minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s))));
+        lore.forEach(s -> {
+            Component c;
+            if(s.isEmpty()) {
+                c = Component.text(" ");
+            } else {
+                c = minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s));
+            }
+            if(forceDisableItalic) c = c.decoration(TextDecoration.ITALIC, false);
+            newLore.add(c);
+        });
         item.editMeta(itemMeta -> itemMeta.lore(newLore));
         return this;
     }
-
     @Override
     public BukkitItemStack unbreakable(boolean b) {
         item.editMeta(meta -> meta.setUnbreakable(b));

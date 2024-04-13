@@ -8,12 +8,17 @@ import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NonNull;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.querz.nbt.tag.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.ServerType;
+import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.ItemStackConverter;
 import ru.shk.commons.utils.items.bungee.BungeeItemStack;
@@ -22,6 +27,7 @@ import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,8 +72,15 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
             } catch (JsonSyntaxException t){
                 return ChatElement.of(stringToComponent(s));
             }
-        } else {
+        } else if(o instanceof Component c) {
+            return ChatElement.of(BungeeComponentSerializer.get().serialize(c));
+        } else if(o instanceof BaseComponent[]){
             return ChatElement.of(o);
+        } else if(o instanceof BaseComponent c) {
+            return ChatElement.of(new BaseComponent[]{c});
+        } else {
+            Logger.warning("Unknown object provided for ChatElement: "+o.getClass().getName());
+            return ChatElement.ofLegacyText("?");
         }
     }
 
@@ -106,6 +119,11 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R lore(java.util.List<?> lore) {
+        if(lore.isEmpty()) {
+            item.lore(Collections.EMPTY_LIST);
+            return (R) this;
+        }
+        if(lore.get(0) instanceof String) return lore((List<String>) lore, false);
         List<ChatElement<?>> newLore = new ArrayList<>();
         for (Object o : lore) {
             newLore.add(elementFromObject(o));
@@ -115,11 +133,20 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     }
 
     @Override
-    public R lore(List<String> lore, boolean minimessage) {
+    public R lore(List<String> lore, boolean minimessage, boolean forceDisableItalic) {
         List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
-        lore.forEach(s -> newLore.add(minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s))));
+        lore.forEach(s -> {
+            Component c;
+            if(s.isEmpty()) {
+                c = Component.text(" ");
+            } else {
+                c = minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s));
+            }
+            if(forceDisableItalic) c = c.decoration(TextDecoration.ITALIC, false);
+            newLore.add(c);
+        });
         List<ChatElement<?>> list = new ArrayList<>();
-        newLore.forEach(component -> list.add(ChatElement.of(component)));
+        newLore.forEach(component -> list.add(elementFromObject(component)));
         item.lore(list);
         return (R) this;
     }
