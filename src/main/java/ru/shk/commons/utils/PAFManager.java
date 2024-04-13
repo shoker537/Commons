@@ -48,13 +48,9 @@ public class PAFManager {
         List<CachedPlayer> players = new ArrayList<>();
         final CachedPlayer[] owner = {null};
         Commons.getInstance().getMysql().Query("SELECT (SELECT player_uuid FROM fr_players players WHERE players.player_id=party.player_member_id LIMIT 1) AS member_uuid, (SELECT player_uuid FROM fr_players players WHERE players.player_id=party.leader_id LIMIT 1) AS owner_uuid FROM fr_party party WHERE leader_id = (SELECT leader_id FROM fr_party WHERE player_member_id=(SELECT player_id FROM fr_players WHERE player_uuid = '"+player+"' LIMIT 1) LIMIT 1)", rs -> {
-            try {
-                while (rs.next()){
-                    players.add(CachedPlayer.of(UUID.fromString(rs.getString(1))));
-                    if(owner[0]==null) owner[0] = CachedPlayer.of(UUID.fromString(rs.getString(2)));
-                }
-            } catch (SQLException e){
-                e.printStackTrace();
+            while (rs.next()){
+                players.add(CachedPlayer.of(UUID.fromString(rs.getString(1))));
+                if(owner[0]==null) owner[0] = CachedPlayer.of(UUID.fromString(rs.getString(2)));
             }
         });
         if(owner[0]==null || players.isEmpty()) return null;

@@ -31,10 +31,8 @@ import ru.shk.mysql.connection.MySQL;
 
 import javax.annotation.Nullable;
 import java.net.URL;
-import java.sql.SQLException;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -70,11 +68,11 @@ public class Commons extends Plugin implements Listener {
             warning("Protocolize not found! &fSome API features are unavailable.");
         } else {
             isProtocolizeInstalled = true;
-        }
-        try {
-            plugins.add(new GUILib());
-        } catch (Throwable e){
-            e.printStackTrace();
+            try {
+                plugins.add(new GUILib());
+            } catch (Throwable e){
+                e.printStackTrace();
+            }
         }
         plugins.forEach(plugin -> {
             try {
@@ -93,13 +91,17 @@ public class Commons extends Plugin implements Listener {
         if(getProxy().getPluginManager().getPlugin("MySQLAPI")==null){
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {
-            mysql = new MySQL(config.getString("database","shield_bungee"));
-            HeadsCache.mysql(mysql);
+            try {
+                mysql = new MySQL(config.getString("database","shield_bungee"));
+                HeadsCache.mysql(mysql);
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
         }
 //        threadPool = new ThreadPoolExecutor(5, 10, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5, new DefaultThreadFactory("Commons Main Pool"));
         threadPool.setKeepAliveTime(15, TimeUnit.SECONDS);
-        teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(2, new DefaultThreadFactory("Commons Teleport Service Pool"));
+        teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(3, new DefaultThreadFactory("Commons Teleport Service Pool"));
         teleportService.setKeepAliveTime(15, TimeUnit.SECONDS);
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("commons:updateinv");
@@ -191,7 +193,7 @@ public class Commons extends Plugin implements Listener {
                     }
                     sendTeleportToServer(selectedTpId, from, to);
                     try {
-                        Thread.sleep(4000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         return;
                     }
@@ -293,12 +295,8 @@ public class Commons extends Plugin implements Listener {
     public CustomHead findCustomHead(int id){
         if(customHeadsCache.containsKey(id)) return (customHeadsCache.get(id));
         CustomHead head = mysql.Query().SELECT("*").FROM("custom_heads").WHERE("id="+id).LIMIT(1).execute(rs -> {
-            try {
-                if(rs.next()){
-                    return new CustomHead(id, rs.getString("key"), rs.getString("texture"));
-                }
-            } catch (SQLException e){
-                e.printStackTrace();
+            if(rs.next()){
+                return new CustomHead(id, rs.getString("key"), rs.getString("texture"));
             }
             return null;
         });
@@ -413,12 +411,17 @@ public class Commons extends Plugin implements Listener {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
 
+    @Deprecated
     public String getOnlineState(CachedPlayer cp){
         if(cp.getId()==-1) return ChatColor.RED+"Ошибка: id=-1";
         ProxiedPlayer pp = getProxy().getPlayer(cp.getUuid());
         if(pp!=null && pp.isConnected() && !isVanished(cp.getUuid())) return ChatColor.GREEN+"Онлайн"+ChatColor.WHITE+" на "+pp.getServer().getInfo().getName();
+        //todo: define custom table and column name, autosave quit time
         long a = mysql.QueryLong("SELECT lastQuit FROM masuite_players WHERE id="+cp.getId()+" LIMIT 1", -1);
-        if(a!=-1) return ChatColor.RED+"Заходил "+ formatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(a), ZoneId.of("Europe/Moscow")));
+        if(a!=-1) {
+            LocalDateTime dt = LocalDateTime.ofEpochSecond(a, 0, ZoneOffset.ofHours(3));
+            return ChatColor.RED+"Заходил "+ formatter.format(dt);
+        }
         return ChatColor.RED+"Ошибка получения данных";
     }
 

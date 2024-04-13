@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.5.5"
+version = "1.5.9"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -74,13 +74,12 @@ repositories {
   maven {
     url = uri("https://simonsator.de/repo")
   }
-  maven { url = uri("https://jitpack.io") }
 }
 
 
 dependencies {
-  paperDevBundle("1.20.1-R0.1-SNAPSHOT")
-  compileOnly("com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4")
+  paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+  compileOnly(files("E:/Libraries/Simple-Yaml.jar"))
   compileOnly("com.github.retrooper.packetevents:spigot:2.0.2")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
@@ -88,17 +87,18 @@ dependencies {
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.3.3")
   compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.2-SNAPSHOT")
-  implementation("net.wesjd:anvilgui:1.9.0-SNAPSHOT")
+  implementation("net.wesjd:anvilgui:1.9.3-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
   compileOnly("com.mojang:authlib:1.5.21")
   compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
+  implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
 
   implementation("org.projectlombok:lombok:1.18.22")
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
-  compileOnly("ru.shk:MySQLAPI:3.1.2")
+  compileOnly("ru.shk:MySQLAPI:3.2.3")
 
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.0.1")
