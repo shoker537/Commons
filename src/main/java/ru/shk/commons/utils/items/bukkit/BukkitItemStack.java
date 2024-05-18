@@ -388,7 +388,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
             profileField.setAccessible(true);
             GameProfile profile = (GameProfile) profileField.get(skullMeta);
             Collection<Property> collection = profile.getProperties().get("textures");
-            return collection.stream().filter(property -> property.getName().equals("textures")).findAny().get().getValue();
+            return collection.stream().filter(property -> property.name().equals("textures")).findAny().get().value();
         } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {
             return null;
         }

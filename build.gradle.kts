@@ -3,12 +3,12 @@ import java.util.*
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.5.5"
+  id("io.papermc.paperweight.userdev") version "1.5.11"
   id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 group = "ru.shk"
-version = "1.5.11"
+version = "1.6.0"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -78,7 +78,7 @@ repositories {
 
 
 dependencies {
-  paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+  paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
   compileOnly(files("E:/Libraries/Simple-Yaml.jar"))
   compileOnly("com.github.retrooper.packetevents:spigot:2.0.2")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))

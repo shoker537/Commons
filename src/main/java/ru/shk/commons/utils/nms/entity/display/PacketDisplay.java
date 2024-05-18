@@ -27,12 +27,12 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     }
     @SneakyThrows
     public synchronized void interpolationDuration(int ticks, boolean sendMetadata){
-        ((Display)entity).setInterpolationDuration(ticks);
+        ((Display)entity).setTransformationInterpolationDuration(ticks);
         if(sendMetadata) metadata();
     }
     @SneakyThrows
     public int interpolationDuration(){
-        return ((Display)entity).getInterpolationDuration();
+        return ((Display)entity).getTransformationInterpolationDuration();
     }
     @SneakyThrows
     public synchronized void startInterpolation(int ticks){
@@ -40,13 +40,13 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     }
     @SneakyThrows
     public synchronized void startInterpolation(int ticks, boolean sendMetadata){
-        ((Display)entity).setInterpolationDelay(ticks);
+        ((Display)entity).setTransformationInterpolationDelay(ticks);
         if(sendMetadata) metadata();
     }
 
     @SneakyThrows
     public int startInterpolation() {
-        return ((Display)entity).getInterpolationDelay();
+        return ((Display)entity).getTransformationInterpolationDelay();
     }
     @SneakyThrows
     public synchronized void transform(org.bukkit.util.Transformation transformation){

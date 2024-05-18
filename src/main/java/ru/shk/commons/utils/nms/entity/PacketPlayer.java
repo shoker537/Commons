@@ -12,8 +12,10 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
 import org.bukkit.Location;
@@ -35,7 +37,7 @@ public class PacketPlayer extends PacketEntity<PacketPlayer> {
         gameProfile.getProperties().put("textures", new Property("texture", "ewogICJ0aW1lc3RhbXAiIDogMTcwMTQwMjQ4NTY3NSwKICAicHJvZmlsZUlkIiA6ICIxMjcxYWE1MzA5NDk0MWFhYjM3ZGY2YjZiZTEwZjgzYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJTSE9LRVIxMzciLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODA2MDllYjljODUwYTY5ZjVlMWMwZThlODRiNmQxZDQ4ZjFkZTYyMmQyYTMxMjNjMWNkODkzYzY3MzE4MjQ4NyIKICAgIH0sCiAgICAiQ0FQRSIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjlhNzY1Mzc2NDc5ODlmOWEwYjZkMDAxZTMyMGRhYzU5MWMzNTllOWU2MWEzMWY0Y2UxMWM4OGYyMDdmMGFkNCIKICAgIH0KICB9Cn0="));
         this.gameProfile = gameProfile;
         try {
-            entity = new ServerPlayer(MinecraftServer.getServer(), (ServerLevel) PacketUtil.getNMSWorld(l.getWorld()), gameProfile);
+            entity = new ServerPlayer(MinecraftServer.getServer(), (ServerLevel) PacketUtil.getNMSWorld(l.getWorld()), gameProfile, ClientInformation.createDefault());
             ((ServerPlayer)entity).connection = new FakeConnection((ServerPlayer) entity);
         } catch (Throwable t){
             throw new RuntimeException(t);
@@ -111,7 +113,7 @@ public class PacketPlayer extends PacketEntity<PacketPlayer> {
     public static class FakeConnection extends ServerGamePacketListenerImpl {
 
         public FakeConnection(ServerPlayer player) {
-            super(MinecraftServer.getServer(), new Connection(PacketFlow.CLIENTBOUND), player);
+            super(MinecraftServer.getServer(), new Connection(PacketFlow.CLIENTBOUND), player, CommonListenerCookie.createInitial(player.gameProfile));
         }
 
         @Override

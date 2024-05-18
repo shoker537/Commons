@@ -23,11 +23,11 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapPalette;
 import ru.shk.commons.Commons;
@@ -142,7 +142,7 @@ public class CurrentVersion {
 
     @SneakyThrows
     protected void spawnPlayer(Player p, Object e){
-        sendPacket(p, new ClientboundAddPlayerPacket((net.minecraft.world.entity.player.Player) e));
+        sendPacket(p, new ClientboundAddEntityPacket((net.minecraft.world.entity.player.Player) e));
     }
     @SneakyThrows
     protected void destroyEntity(Player p, Object e){
