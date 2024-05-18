@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.5.9"
+version = "1.5.11"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -94,8 +94,8 @@ dependencies {
   compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
   implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
 
-  implementation("org.projectlombok:lombok:1.18.22")
-  annotationProcessor("org.projectlombok:lombok:1.18.22")
+  implementation("org.projectlombok:lombok:1.18.30")
+  annotationProcessor("org.projectlombok:lombok:1.18.30")
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
   compileOnly("ru.shk:MySQLAPI:3.2.3")
