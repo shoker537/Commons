@@ -22,10 +22,7 @@ import ru.shk.commons.utils.nms.ItemSlot;
 import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.ReflectionUtil;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -52,6 +49,14 @@ public class PacketEntity<T extends PacketEntity> {
 
     public PacketEntity(String entityClass, String entityTypeId, Location l){
         this(entityClass, entityTypeId, l.getWorld(), l.getX(), l.getY(), l.getZ());
+    }
+
+    public int getId(){
+        return entity.getId();
+    }
+
+    public UUID getUUID(){
+        return entity.getUUID();
     }
 
     @SneakyThrows
