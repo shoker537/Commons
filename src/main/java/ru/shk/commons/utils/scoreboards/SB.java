@@ -34,7 +34,6 @@ public class SB {
 
     public void load(int maxValue) {
         c = (byte) (maxValue - 1);
-//        objective.getScore(" ").setScore(c + 1);
     }
 
     public void addLine(String line) {
