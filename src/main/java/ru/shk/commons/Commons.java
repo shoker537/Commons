@@ -393,9 +393,12 @@ public final class Commons extends JavaPlugin {
     }
 
     public static String secondsToTime(int s){
+        return secondsToTime(s, false);
+    }
+    public static String secondsToTime(int s, boolean fullMinutes){
         int min = s/60;
         int sec = s - (min*60);
-        return min+":"+(sec>9?sec:"0"+sec);
+        return (min>9?min:"0"+min)+":"+(sec>9?sec:"0"+sec);
     }
 
     public static long currentSeconds(){
