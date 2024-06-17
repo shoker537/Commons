@@ -3,6 +3,7 @@ package ru.shk.commons.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.net.URL;
@@ -17,6 +18,7 @@ public class HTTPRequest {
     private String result;
     private static final Gson gson = new Gson();
     private int timeout = 5;
+    @Getter private int responseCode  =  -1;
     private final HashMap<String, String> headers = new HashMap<>();
 
     public HTTPRequest timeout(int seconds){
@@ -44,6 +46,7 @@ public class HTTPRequest {
             headers.forEach(request::setHeader);
             HttpResponse<String> response = client.send(request.build(),
                     HttpResponse.BodyHandlers.ofString());
+            responseCode = response.statusCode();
             result = response.body();
         } catch (Throwable t){
             t.printStackTrace();
@@ -65,6 +68,7 @@ public class HTTPRequest {
                     .timeout(Duration.ofSeconds(timeout));
             headers.forEach(request::setHeader);
             HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+            responseCode = response.statusCode();
             result = response.body();
         } catch (Throwable t){
             t.printStackTrace();
@@ -82,7 +86,6 @@ public class HTTPRequest {
 //            }
         return this;
     }
-
     public JsonObject asJson(){
         return gson.fromJson(result, JsonObject.class);
     }
