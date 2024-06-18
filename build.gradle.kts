@@ -3,12 +3,12 @@ import java.util.*
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "1.5.11"
-  id("com.github.johnrengelman.shadow") version "7.1.0"
+  id("io.papermc.paperweight.userdev") version "1.7.1"
+  id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "ru.shk"
-version = "1.6.1"
+version = "1.7.0"
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -34,7 +34,7 @@ publishing {
   }
 }
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 repositories {
   mavenLocal()
@@ -48,6 +48,9 @@ repositories {
   }
   maven {
     url = uri("https://repo.papermc.io/repository/maven-public/")
+  }
+  maven {
+    url = uri("https://repo.papermc.io/repository/maven-snapshots/")
   }
   maven {
     url = uri("https://oss.sonatype.org/content/groups/public/")
@@ -78,7 +81,7 @@ repositories {
 
 
 dependencies {
-  paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+  paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
   compileOnly(files("E:/Libraries/Simple-Yaml.jar"))
   compileOnly("com.github.retrooper.packetevents:spigot:2.0.2")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
@@ -112,7 +115,7 @@ tasks {
   }
   compileJava {
     options.encoding = Charsets.UTF_8.name()
-    options.release.set(17)
+    options.release.set(21)
   }
   javadoc {
     options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything

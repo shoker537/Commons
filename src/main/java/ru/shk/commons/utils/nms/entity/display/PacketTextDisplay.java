@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -41,7 +42,7 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public synchronized void text(Component component){
-        net.minecraft.network.chat.Component c = net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component));
+        net.minecraft.network.chat.Component c = net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component), RegistryAccess.EMPTY);
         ((Display.TextDisplay)entity).setText(c);
         metadata();
     }
@@ -61,7 +62,7 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public Component text(){
-        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(((Display.TextDisplay)entity).textRenderState().text()));
+        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(((Display.TextDisplay)entity).textRenderState().text(), RegistryAccess.EMPTY));
     }
     @SneakyThrows
     public TextDisplay.TextAlignment alignment(){

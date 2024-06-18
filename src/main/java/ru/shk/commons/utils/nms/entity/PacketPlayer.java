@@ -113,7 +113,7 @@ public class PacketPlayer extends PacketEntity<PacketPlayer> {
     public static class FakeConnection extends ServerGamePacketListenerImpl {
 
         public FakeConnection(ServerPlayer player) {
-            super(MinecraftServer.getServer(), new Connection(PacketFlow.CLIENTBOUND), player, CommonListenerCookie.createInitial(player.gameProfile));
+            super(MinecraftServer.getServer(), new Connection(PacketFlow.CLIENTBOUND), player, CommonListenerCookie.createInitial(player.gameProfile, true));
         }
 
         @Override

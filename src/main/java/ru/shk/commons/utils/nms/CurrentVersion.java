@@ -7,10 +7,12 @@ import lombok.val;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -18,16 +20,17 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_20_R3.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapPalette;
 import ru.shk.commons.Commons;
@@ -51,7 +54,7 @@ public class CurrentVersion {
 
     public Packet<?> createMapPacket(int mapId, BufferedImage image){
         val mapPatch = new MapItemSavedData.MapPatch(0, 0, 128, 128, imageToByteArray(image));
-        return new ClientboundMapItemDataPacket(mapId, (byte) 0, false, Collections.emptyList(), mapPatch);
+        return new ClientboundMapItemDataPacket(new MapId(mapId), (byte) 0, false, Collections.emptyList(), mapPatch);
     }
 
     private static byte[] imageToByteArray(BufferedImage image){
@@ -116,7 +119,7 @@ public class CurrentVersion {
     protected void explodeFirework(Player p, Location l, org.bukkit.inventory.ItemStack firework) {
         p.playSound(l, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
         FireworkRocketEntity fw = new FireworkRocketEntity((ServerLevel)getNMSWorld(l.getWorld()), l.getX(), l.getY(), l.getZ(), asNMSCopy(firework));
-        sendPacket(p, new ClientboundAddEntityPacket(fw, 76));
+        sendPacket(p, new ClientboundAddEntityPacket(fw, 76, new BlockPos(l.getBlockX(), l.getBlockY(), l.getBlockZ())));
         entityMetadata(p, fw, true);
         sendPacket(p, new ClientboundEntityEventPacket(fw, (byte)17));
         destroyEntity(p, fw.getId());
@@ -128,7 +131,8 @@ public class CurrentVersion {
     }
     @SneakyThrows
     protected void spawnEntity(Player p, Object e){
-        sendPacket(p, new ClientboundAddEntityPacket((Entity) e));
+        Entity entity = (Entity) e;
+        sendPacket(p, new ClientboundAddEntityPacket(entity,0, new BlockPos(entity.getBlockX(), entity.getBlockY(), entity.getBlockZ())));
     }
 
     @SneakyThrows
@@ -142,7 +146,8 @@ public class CurrentVersion {
 
     @SneakyThrows
     protected void spawnPlayer(Player p, Object e){
-        sendPacket(p, new ClientboundAddEntityPacket((net.minecraft.world.entity.player.Player) e));
+        net.minecraft.world.entity.player.Player player =(net.minecraft.world.entity.player.Player) e;
+        sendPacket(p, new ClientboundAddEntityPacket(player, 0, new BlockPos(player.getBlockX(), player.getBlockY(), player.getBlockZ())));
     }
     @SneakyThrows
     protected void destroyEntity(Player p, Object e){
@@ -264,12 +269,12 @@ public class CurrentVersion {
         return createScoreboardTeamPacket(createTeam, true,name, prefix, suffix, null, null);
     }
     protected Packet<?> createScoreboardTeamPacket(boolean createTeam, String name, net.kyori.adventure.text.Component prefix, net.kyori.adventure.text.Component suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        return createScoreboardTeamPacket(createTeam, true, name, net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(prefix)), net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(suffix)), null, null);
+        return createScoreboardTeamPacket(createTeam, true, name, net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(prefix), RegistryAccess.EMPTY), net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(suffix), RegistryAccess.EMPTY), null, null);
     }
 
     @SneakyThrows
     protected void playRiptideAnimation(Player p, int ticks){
-        getNMSPlayer(p).startAutoSpinAttack(ticks);
+        getNMSPlayer(p).startAutoSpinAttack(ticks, 0, null);
     }
 
 }

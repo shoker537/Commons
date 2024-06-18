@@ -10,6 +10,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -26,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 @SuppressWarnings({"unused", "unchecked"})
 public class PacketEntity<T extends PacketEntity> {
@@ -80,12 +83,6 @@ public class PacketEntity<T extends PacketEntity> {
     @SneakyThrows
     public void createEntity(World world){
         entity = (net.minecraft.world.entity.Entity) ReflectionUtil.constructObject(Class.forName(entityClass), net.minecraft.world.entity.EntityType.byString(entityTypeEnum).get(), PacketUtil.getNMSWorld(world));
-    }
-
-    public synchronized void changeWorld(World world){
-        receivers.forEach(this::despawn);
-        receivers.clear();
-        entity.changeDimension((ServerLevel) PacketUtil.getNMSWorld(world));
     }
 
     @SneakyThrows
@@ -192,8 +189,11 @@ public class PacketEntity<T extends PacketEntity> {
     }
     @SneakyThrows
     public synchronized void teleport(World w, double x, double y, double z, float yaw, float pitch, boolean sendPackets) {
-        if(!w.getUID().equals(getWorld().getUID())) entity.changeDimension((ServerLevel) PacketUtil.getNMSWorld(w));
-        entity.moveTo(x,y,z, yaw, pitch);
+        if(!w.getUID().equals(getWorld().getUID())) {
+            crossDimensionTeleport(w,x,y,z,yaw, pitch);
+        } else {
+            entity.moveTo(x,y,z, yaw, pitch);
+        }
         if(sendPackets && isSpawned) receivers.forEach(this::sendTeleportPacket);
     }
     @SneakyThrows
@@ -201,10 +201,27 @@ public class PacketEntity<T extends PacketEntity> {
         teleport(w,x,y,z,yaw, pitch, true);
     }
     @SneakyThrows
+    public synchronized void crossDimensionTeleport(World w, double x, double y, double z, float yaw, float pitch)  {
+        entity.changeDimension(new DimensionTransition((ServerLevel) PacketUtil.getNMSWorld(w), new Vec3(x,y,z), Vec3.ZERO, yaw, pitch, entity -> this.entity = entity));
+    }
+    @SneakyThrows
+    public synchronized void crossDimensionTeleport(World w, double x, double y, double z, float yaw, float pitch, Consumer<T> afterTeleported)  {
+        entity.changeDimension(new DimensionTransition((ServerLevel) PacketUtil.getNMSWorld(w), new Vec3(x,y,z), Vec3.ZERO, yaw, pitch, entity -> {
+            this.entity = entity;
+            afterTeleported.accept((T)this);
+        }));
+    }
+    @SneakyThrows
+    public synchronized void crossDimensionTeleport(Location l)  {
+        crossDimensionTeleport(l.getWorld(),l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
+    }
+    @SneakyThrows
+    public synchronized void crossDimensionTeleport(Location l, Consumer<T> afterTeleported)  {
+        crossDimensionTeleport(l.getWorld(),l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch(), afterTeleported);
+    }
+    @SneakyThrows
     public synchronized void teleport(World w, double x, double y, double z, boolean sendPackets) {
-        World oldWorld = getWorld();
-        if(oldWorld==null || !oldWorld.getUID().equals(w.getUID())) changeWorld(w);
-        teleport(x,y,z, sendPackets);
+        teleport(w,x,y,z, 0,0, sendPackets);
     }
     @SneakyThrows
     public synchronized void teleport(World w, double x, double y, double z) {

@@ -255,12 +255,7 @@ public class ItemStackBuilder {
     }
 
     public ItemStackBuilder disableFlags() {
-        return flags(ItemFlag.HIDE_ATTRIBUTES,
-                ItemFlag.HIDE_DYE,
-                ItemFlag.HIDE_DESTROYS,
-                ItemFlag.HIDE_ENCHANTS,
-                ItemFlag.HIDE_PLACED_ON,
-                ItemFlag.HIDE_POTION_EFFECTS);
+        return flags(ItemFlag.values());
     }
 
     public ItemStackBuilder flags(@NonNull ItemFlag... flags) {

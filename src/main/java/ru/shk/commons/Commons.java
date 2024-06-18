@@ -454,7 +454,7 @@ public final class Commons extends JavaPlugin {
     }
 
     public void firework(Location l, Color color){
-        Firework fw = (Firework) l.getWorld().spawnEntity(l, EntityType.FIREWORK);
+        Firework fw = (Firework) l.getWorld().spawnEntity(l, EntityType.FIREWORK_ROCKET);
         FireworkMeta fireworkMeta = fw.getFireworkMeta();
         FireworkEffect.Builder builder = FireworkEffect.builder();
         builder.withColor(color);
@@ -471,7 +471,7 @@ public final class Commons extends JavaPlugin {
     }
 
     public void firework(Location l, FireworkEffect.Builder builder){
-        Firework fw = (Firework) l.getWorld().spawnEntity(l, EntityType.FIREWORK);
+        Firework fw = (Firework) l.getWorld().spawnEntity(l, EntityType.FIREWORK_ROCKET);
         FireworkMeta fireworkMeta = fw.getFireworkMeta();
         FireworkEffect effect = builder.build();
         fireworkMeta.addEffect(effect);

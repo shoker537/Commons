@@ -6,7 +6,7 @@ import net.minecraft.world.level.Level;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_20_R3.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
 import ru.shk.commons.utils.nms.PacketUtil;
 
 public class PacketFallingBlock extends PacketEntity<PacketFallingBlock> {

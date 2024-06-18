@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 public class Events implements Listener {
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent e){
-        if(e.getDamager().getType()!=EntityType.FIREWORK) return;
+        if(e.getDamager().getType()!=EntityType.FIREWORK_ROCKET) return;
         if(e.getDamager().hasMetadata("effect")) e.setCancelled(true);
     }
 }
