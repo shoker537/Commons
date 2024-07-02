@@ -1,6 +1,7 @@
 package ru.shk.velocity.commons;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
@@ -27,6 +28,7 @@ import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 import ru.shk.mysql.connection.MySQL;
 import ru.shk.velocity.commons.config.Config;
 import ru.shk.velocity.commons.gui.GUILib;
+import ru.shk.velocity.commons.utils.PluginMessage;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -48,6 +50,7 @@ public class Commons {
     private final Config config;
     private final ProxyServer proxy;
     private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(15, new DefaultThreadFactory("Commons Main Pool"));
+    private final PlayerLocationReceiver playerLocationReceiver;
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
@@ -64,7 +67,7 @@ public class Commons {
         registerMessagingChannel("commons:updateinv");
         registerMessagingChannel("BungeeCord");
         plugins.add(new GUILib());
-
+        playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
             try {
                 plugin.load();
@@ -215,5 +218,9 @@ public class Commons {
     }
     public void warn(String s){
         ru.shk.commons.utils.Logger.warning("§c"+s);
+    }
+
+    protected void sendFindPlayer(Player pp) {
+        pp.getCurrentServer().ifPresent(s -> new PluginMessage("commons:location").writeUTF(pp.getUniqueId().toString()).send(s));
     }
 }
