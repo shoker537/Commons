@@ -8,7 +8,9 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.0"
+version = "1.7.1"
+
+paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
 val nexusRepository = Properties()
 nexusRepository.load(file("nexus.properties").inputStream())
@@ -110,7 +112,6 @@ dependencies {
 
 tasks {
   assemble {
-    dependsOn(reobfJar)
     dependsOn(shadowJar)
   }
   compileJava {
@@ -136,17 +137,12 @@ tasks {
 
   shadowJar {
     exclude("META-INF/*","release-timestamp.txt","README.md","LICENSE","latestchanges.html","changelog.txt","AUTHORS", "Class50/*")
-  }
-
-  reobfJar {
-    // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
-    // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
-    outputJar.set(layout.buildDirectory.file("libs/${project.name}.jar"))
+    archiveFileName = "${project.name}.jar"
   }
 }
 //task("deleteUnused") {
 //  delete("build/libs/*-dev*.jar")
 //}
 tasks.create<Delete>("deleteUnused"){
-  delete("build/libs/${project.name}-${project.version}-dev.jar", "build/libs/${project.name}-${project.version}-dev-all.jar")
+  delete("build/libs/${project.name}-${project.version}-dev.jar", "build/libs/${project.name}-${project.version}-dev-all.jar", "build/libs/${project.name}-${project.version}.jar")
 }
