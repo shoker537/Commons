@@ -90,7 +90,6 @@ public class PacketEntity<T extends PacketEntity> {
         this.entityClass = entityClass;
         this.entityTypeEnum = entityTypeEnum;
         createEntity(world);
-        spawn();
     }
 
     @SneakyThrows
