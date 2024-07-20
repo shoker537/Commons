@@ -31,7 +31,7 @@ publishing {
       artifactId = "${project.name}"
       version = "${version}"
 
-      artifact("/build/libs/${project.name}.jar")
+      artifact(tasks.shadowJar)
     }
   }
 }
@@ -111,6 +111,9 @@ dependencies {
 }
 
 tasks {
+  publish {
+    dependsOn(shadowJar)
+  }
   assemble {
     dependsOn(shadowJar)
   }
@@ -140,9 +143,6 @@ tasks {
     archiveFileName = "${project.name}.jar"
   }
 }
-//task("deleteUnused") {
-//  delete("build/libs/*-dev*.jar")
-//}
 tasks.create<Delete>("deleteUnused"){
   delete("build/libs/${project.name}-${project.version}-dev.jar", "build/libs/${project.name}-${project.version}-dev-all.jar", "build/libs/${project.name}-${project.version}.jar")
 }
