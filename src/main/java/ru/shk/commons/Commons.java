@@ -21,6 +21,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.shk.commons.utils.*;
+import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.configapi.Config;
@@ -69,6 +70,11 @@ public final class Commons extends JavaPlugin {
         }
         info(" ");
         instance = this;
+        try {
+            plugins.add(new GUIManager());
+        } catch (Throwable e){
+            e.printStackTrace();
+        }
         try {
             plugins.add(new GUILib());
         } catch (Throwable e){

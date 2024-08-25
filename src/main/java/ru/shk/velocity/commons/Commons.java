@@ -24,6 +24,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.Plugin;
+import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 import ru.shk.mysql.connection.MySQL;
 import ru.shk.velocity.commons.config.Config;
@@ -67,6 +68,7 @@ public class Commons {
         registerMessagingChannel("commons:updateinv");
         registerMessagingChannel("BungeeCord");
         plugins.add(new GUILib());
+        plugins.add(new GUIManager());
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
             try {
