@@ -11,6 +11,7 @@ import ru.shk.velocity.commons.utils.PluginMessage;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 public class GUI extends ProtocolizeGUI<Object, Player> {
     public GUI(Object pl, String name, InventoryType type) {
         super(pl, name, type);

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@Getter
+@Getter@Deprecated
 public class GUIPageGenerator {
     @Getter private static final Consumer<InventoryClick> EMPTY_ACTION = click -> {};
     private final int slotOffset;
@@ -33,7 +33,7 @@ public class GUIPageGenerator {
     @Getter private final ProxiedPlayer viewer;
     private ItemStack leftButton = new ItemStackBuilder(ItemType.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-left.cmd", 0)).displayName("&b<< Назад").build();
     private ItemStack rightButton = new ItemStackBuilder(ItemType.PAPER).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.arrow-right.cmd", 0)).displayName("&b>> Дальше").build();
-    private ItemStack backgroundItem = new ItemStackBuilder(ItemType.AIR).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0)).build();
+    private ItemStack backgroundItem = new ItemStackBuilder(ItemType.AIR).customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-stack.cmd", 0)).build();
 
     public GUIPageGenerator(ProxiedPlayer viewer, GUI gui, int skipLinesCount, int linesCountOfGeneratedItems, ItemStack nothingItem, int nothingSlot, Function<Integer, List<Pair<ItemStack, Consumer<InventoryClick>>>> pageGenerator, Function<Integer, Boolean> pageExistsCheck, ItemStack fillerItem) {
         this(viewer,gui, skipLinesCount, linesCountOfGeneratedItems, nothingItem, nothingSlot, fillerItem);
@@ -58,7 +58,7 @@ public class GUIPageGenerator {
     public void setBackgroundItem(ItemStack backgroundItem) {
         ItemStackBuilder b = new ItemStackBuilder(backgroundItem);
         if(b.customModelData()==null) {
-            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0));
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-stack.cmd", 0));
         }
         this.backgroundItem = b.build();
     }

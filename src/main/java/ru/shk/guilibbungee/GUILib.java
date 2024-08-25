@@ -17,6 +17,7 @@ import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Deprecated
 public class GUILib implements Plugin {
     @Getter private static GUILib instance;
     @Getter private final ConcurrentHashMap<UUID, GUI> guis = new ConcurrentHashMap<>();

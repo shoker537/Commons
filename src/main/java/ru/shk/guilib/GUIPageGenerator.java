@@ -13,7 +13,7 @@ import ru.shk.commons.utils.ItemStackBuilder;
 import java.util.List;
 import java.util.function.Function;
 
-@Getter
+@Getter@Deprecated
 public class GUIPageGenerator {
     
     private static final Runnable EMPTY_ACTION = () -> {};
@@ -58,7 +58,7 @@ public class GUIPageGenerator {
     public void setBackgroundItem(ItemStack item) {
         ItemStackBuilder b = new ItemStackBuilder(item);
         if(b.customModelData()<1 && item.getType()!=Material.AIR) {
-            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-item.cmd", 0));
+            b.customModelData(Commons.getInstance().getConfig().getInt("gui.generator.bg-stack.cmd", 0));
         }
         this.backgroundItem = b.build();
     }

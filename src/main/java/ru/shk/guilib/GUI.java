@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
-
+@Deprecated
 @Getter
 public class GUI {
     private JavaPlugin ownerPlugin;
