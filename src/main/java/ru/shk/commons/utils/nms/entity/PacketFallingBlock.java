@@ -10,7 +10,7 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
 import ru.shk.commons.utils.nms.PacketUtil;
 
 public class PacketFallingBlock extends PacketEntity<PacketFallingBlock> {
-    private static final String entityClass = "net.minecraft.world.entity.item.EntityFallingBlock";
+    private static final String entityClass = "net.minecraft.world.entity.stack.EntityFallingBlock";
     private static final String entityTypeId = "L";
     @Getter private final BlockData blockData;
     @Getter private final Location startPosition;

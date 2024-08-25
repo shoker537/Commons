@@ -51,7 +51,7 @@ public class Notification {
         JsonObject display = new JsonObject();
 
         JsonObject icon = new JsonObject();
-        icon.addProperty("item", this.icon);
+        icon.addProperty("stack", this.icon);
 
         display.add("icon", icon);
         display.addProperty("title", Commons.colorizeWithHex(this.header + "\n" + this.footer));

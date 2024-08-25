@@ -1,23 +1,19 @@
 package ru.shk.commons.utils.items.bungee;
 
-import dev.simplix.protocolize.api.item.ItemStack;
+import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import ru.shk.commons.utils.CustomHead;
-import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.protocolize.ProtocolizeItemStack;
 import ru.shk.commonsbungee.Commons;
-
-import java.util.List;
 
 @NoArgsConstructor
 public class BungeeItemStack extends ProtocolizeItemStack<BungeeItemStack> {
 
-    public BungeeItemStack(@NonNull ItemStack stack) {
+    public BungeeItemStack(@NonNull BaseItemStack stack) {
         super(stack);
     }
 

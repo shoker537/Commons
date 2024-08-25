@@ -136,7 +136,7 @@ public class ItemStackBuilder {
                 ItemFlag flag = ItemFlag.valueOf(s.toUpperCase());
                 flags(flag);
             } catch (Exception e){
-                Bukkit.getLogger().warning("Wrong ItemFlag provided for item "+type+": "+s+": "+e.getMessage()+". It's being ignored.");
+                Bukkit.getLogger().warning("Wrong ItemFlag provided for stack "+type+": "+s+": "+e.getMessage()+". It's being ignored.");
             }
         }));
         if(section.contains("attributes")) section.getMapList("attributes").forEach(map -> {

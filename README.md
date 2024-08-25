@@ -107,98 +107,66 @@ Config.getIfHasString(config, "config-key", (string) -> this::keyFound);
 Config.getIfHasStringList(config, "config-key", (list) -> this::keyFound);
 ```
 
-# GUILib (spigot-side)
+# GUILib is deprecated for all platforms.
+## Now you can use modern utils.gui.* classes:
 
-GUI examples:
+Generic GUI example:
 ```java
-GUI gui = new GUI(plugin, 27, "&cSelect a player");
-
-gui.addItem(14, new BukkitItemStack(Material.PLAYER_HEAD).headOwner("shoker137"), this::clicked);
-
-gui.addItem(20, new ItemStack(Material.REDSTONE));
-gui.addSlotAction(20, this::slotAction);
-
-gui.open(player);
-```
-
-```java
-new GUI(plugin, 27, "&cSelect a player")
-        .addItem(14, new BukkitItemStack(Material.PLAYER_HEAD).headOwner("shoker137").build())
-        .withUniversalAction((type, slot, itemStack) -> player.sendMessage("You clicked at "+slot))
-        .open(player);
-```
-
-Updating items in GUI after its creation:
-```java
-gui.setItemRaw(2, new ItemStack(Material.PAPER));
-```
-
-# GUILib (bungee)
-
-Uses [Protocolize](https://github.com/Exceptionflug/protocolize)
-```java
-new GUI(plugin, "&cTitle", InventoryType.GENERIC_9X5)
-.item(12, new BungeeItemStack(ItemType.ALLIUM).displayName("example").build(), this::action)
-.open(player);
-```
-
-Also there's a TextInputGUI class which creates a text-input menu.
-
-### Page-generator
-If you need to make a GUI with pages, use GUIPageGenerator. 
-
-It can be used as a new instance or you can make your own class and extend it with GUIPageGenerator:
-```java
-public class FriendsGUI extends GUI {
-    public FriendsGUI(Plugin plugin, ProxiedPlayer player){
-        super(plugin, "&eYour BROs", InventoryType.GENERIC_9X5);
-        new FriendsPageGenerator(player, this);
-    }
-}
-
-public class FriendsPageGenerator extends GUIPageGenerator {
-    private final List<Friend> friends;
-    private final ProxiedPlayer player;
+    // for Bukkit
+    var gui = new BukkitGUI(plugin, GUIType.CHEST, player, Component.text("Title"))
+            .lines(3) // making it a 3-row chest gui
+            .item(18, new BukkitItemStack(Material.ARROW).displayName("&c< Back"), e -> back()) // adding an item with click handler
+            ;
+    // for velocity
+    var gui = new VelocityGUI(plugin, GUIType.ANVIL, player, Component.text("Title"))
+            .item(0, new VelocityItemStack(ItemType.PLAYER_HEAD).headOwner(player.getUniqueId()).displayName(player.getUsername())) // adding an item without click action
+            .universalClick(click -> onClick(click)) // universal item click handler
+            ;
     
-    public FriendsPageGenerator(ProxiedPlayer player, FriendsGUI gui) {
-        super(player,
-                gui,
-                0, // How many lines to skip (0 if you want the generator to work from the first slot)
-                5, // Count of lines for generation items (the entries which the page should show)
-                new BungeeItemStack(ItemType.RED_STAINED_GLASS).displayName("&cNo friends found :(").build(), // The item shown when the page is empty
-                22, // The slot for nothing-found item
-                new BungeeItemStack(ItemType.YELLOW_STAINED_GLASS_PANE).build() // The item which covers the last line of the GUI, it is a 'system' line with controls of a page (prev/next page buttons)
-                );
-        // Receive a list of entries the page should show
-        friends = FriendsPlugin.getFriends(player.getUniqueId());
-        // Now we need to set a function which checks if next or previous page exists to show buttons or not:
-        setPageExistsCheck(page -> {
-            if(page<0) return false; // Disabling 'back' on the first page, means the first opened page is the leftmost
-            return page*getCountOfGeneratedItems()<friends.size();
-        });
-        // Now a function which generates a list of entries to show on a specific page
-        setPageGenerator(page -> {
-            List<Pair<ItemStack, Consumer<InventoryClick>>> items = new ArrayList<>();
-            
-            friends.stream().skip(page* 27L).limit(27).forEachOrdered(friend -> {
-                items.add(Pair.of(new BungeeItemStack(ItemType.PLAYER_HEAD).headOwner(friend.getName()).build(), null)); // null if no action required or a click consumer
-            });
-            
-            return items;
-        });
-        generatePage(); // You have to call generatePage yourself if you use the constructor without pageExistsCheck and pageGenerator params (like this)
-    }
+    // OR if you need a platform-independent code you can use premade static methods:
+    GUI.chest(plugin, player, title, lines).item(0, ItemStackBuilder.newEmptyStack().type("obsidian").displayName("Click me!"));
+    GUI.anvil(plugin, player, title);
     
-    @Override
-    public void fillBottomPanes(){
-        super.fillBottomPanes();
-        // Here you can override items on the last (system) line of the GUI (where prev/next buttons appear)
-        // Note that prev/next buttons take first and the last slots on this line, so you should not use them in any way
-        item(49, new BungeeItemStack(ItemType.BARRIER).displayName("Close"), click -> {
-            getGui().close(player);
-        });
-    }
-}
+    // Of course you can use a regular variable to achieve the same:
+    gui.lines();
+    gui.item();
+    gui.universalClick();
+    
+    // And for sure you have to open it to a player as well as manage its state
+    gui.open();
+    gui.update();
+    gui.close();
+    
+```
+
+## Paged GUIs
+A new Paged system appears:
+
+```java
+    // Let's imagine we have a GUI
+    var gui = GUI.chest(plugin, player, Component.text("title"), 3);
+    
+    // Then we can create Paged and attach it to our GUI
+    var paged = new Paged<SomeItem>()
+            .lineStartsAt(1)
+            .lineEndsAt(2)
+            // It's a generator: it converts page number and items on page to a list of items you need to display
+            .pageGenerator((pageNumber, itemsOnPage) -> generateItems(pageNumber, itemsOnPage))
+            // The page checker checks if there's a page depending on the page number and items per page
+            .pageChecker((pageNumber, itemsOnPage) -> true)
+            // Item converter generates an ItemStackBuilder for each SomeItem
+            .itemConverter(item -> new VelocityItemStack())
+            // Called each time any SomeItem is clicked
+            .onClickItem(click -> clicked(click))
+            // [Optional] Overlays are service buttons like arrows to change the page, they are being placed on bottom of the GUI
+            // If you need to show some service items (in addition to page arrows), you can use this provider
+            // Keep in mind that 0 and 8 slots are always reserved for arrows
+            .overlaysGenerator(overlays -> overlays.item(3, item, onClicked()))
+            // [Optional]
+            // If you don't want a service line to take place, set it to false. Defaults to true.
+            .useServiceLine(false)
+    ;
+    
 ```
 
 # Utility classes (spigot-side)

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import dev.simplix.protocolize.api.chat.ChatElement;
+import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NonNull;
@@ -40,8 +41,8 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         item = new ItemStack(ItemType.AIR);
     }
 
-    public ProtocolizeItemStack(@NonNull ItemStack stack) {
-        this.item = stack;
+    public ProtocolizeItemStack(@NonNull BaseItemStack stack) {
+        this.item = new ItemStack(stack);
     }
 
     public ProtocolizeItemStack(@NonNull ItemType item) {

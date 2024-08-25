@@ -1,6 +1,6 @@
 package ru.shk.commons.utils.items.velocity;
 
-import dev.simplix.protocolize.api.item.ItemStack;
+import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -11,7 +11,7 @@ import ru.shk.velocity.commons.Commons;
 @NoArgsConstructor
 public class VelocityItemStack extends ProtocolizeItemStack<VelocityItemStack> {
 
-    public VelocityItemStack(@NonNull ItemStack stack) {
+    public VelocityItemStack(@NonNull BaseItemStack stack) {
         super(stack);
     }
 
