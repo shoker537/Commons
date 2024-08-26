@@ -2,6 +2,7 @@ package ru.shk.commons.utils.gui.paged;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.*;
 
-@Setter@Accessors(fluent = true, chain = true)
+@Setter@Accessors(fluent = true, chain = true)@NoArgsConstructor
 public class Paged<ITEM> {
     private int lineStartsAt = 0;
     private int lineEndsAt = 1; // keep in mind that next line (lineEndsAt + 1) will be a service line for buttons
@@ -28,6 +29,10 @@ public class Paged<ITEM> {
 
     private ItemStackBuilder prevArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6< НАЗАД");
     private ItemStackBuilder nextArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6ВПЕРЕД >");
+
+    public Paged(GUI attachedGUI){
+        this.attachedGUI = attachedGUI;
+    }
 
     @Getter(AccessLevel.NONE) private List<ITEM> currentPageItems = new ArrayList<>();
     private int currentPageIndex = 0;
@@ -83,7 +88,6 @@ public class Paged<ITEM> {
     }
 
     private List<ItemStackBuilder> convertItemsInParallel(List<ITEM> items){
-//        if(items.size()<5) return items.stream().map(item -> itemConverter.apply(item)).toList();
         HashMap<Integer, ItemStackBuilder> stacksMap = new HashMap<>();
         ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Math.max(2, items.size()/9));
         for (int i = 0; i < items.size(); i++) {
@@ -125,7 +129,7 @@ public class Paged<ITEM> {
     }
 
     private int itemsOnPage(){
-        return (lineEndsAt-lineStartsAt) * 9;
+        return (lineEndsAt-lineStartsAt+1) * 9;
     }
 
     public void nextPage(){
