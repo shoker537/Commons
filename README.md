@@ -144,12 +144,12 @@ A new Paged system appears:
 
 ```java
     // Let's imagine we have a GUI
-    var gui = GUI.chest(plugin, player, Component.text("title"), 3);
+    var gui = GUI.chest(plugin, player, Component.text("title"), 3); // gui with 3 lines
     
     // Then we can create Paged and attach it to our GUI
     var paged = new Paged<SomeItem>()
-            .lineStartsAt(1)
-            .lineEndsAt(2)
+            .lineStartsAt(1) // skip first line in our 3-line GUI
+            .lineEndsAt(1) // made the generator take only one line
             // It's a generator: it converts page number and items on page to a list of items you need to display
             .pageGenerator((pageNumber, itemsOnPage) -> generateItems(pageNumber, itemsOnPage))
             // The page checker checks if there's a page depending on the page number and items per page
@@ -164,8 +164,10 @@ A new Paged system appears:
             .overlaysGenerator(overlays -> overlays.item(3, item, onClicked()))
             // [Optional]
             // If you don't want a service line to take place, set it to false. Defaults to true.
+            // Keep in mind that service line goes after the last generated line (lineEndsAt + 1)
             .useServiceLine(false)
     ;
+    paged.generate(); // fills attached GUI with current page
     
 ```
 
