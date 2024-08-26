@@ -4,9 +4,9 @@
 
 ![Latest version](https://img.shields.io/nexus/r/ru.shk/Commons?server=https%3A%2F%2Fnexus.shoker.su&nexusVersion=3&style=for-the-badge&logo=Commons&color=%2313ba59)
 
-Compiled with Java 17
+Compiled with Java 21
 
-Modules which use NMS support v1.20.1
+Modules which use NMS support v1.21 / 1.21.1
 
 # Usage
 
@@ -19,7 +19,7 @@ repositories {
     maven { url = 'https://nexus.shoker.su/repository/maven-releases/' }
 }
 dependencies {
-    compileOnly 'ru.shk:Commons:1.5.8' // LOOK AT THE LATEST VERSION ON TOP ^^^
+    compileOnly 'ru.shk:Commons:1.7.2' // LOOK AT THE LATEST VERSION ON TOP ^^^
 }
 ```
 All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-releases:ru%2Fshk%2FCommons)
@@ -29,7 +29,7 @@ All versions can be found [here](https://nexus.shoker.su/#browse/browse:maven-re
 - **Commons** - spigot library for common methods. Can be found using **Commons.*** or **Commons.getInstance().***
 - **ConfigAPI** - simple config-management interface (spigot side only for now). ConfigAPI.getServerName() returns readable name of current server (from 'server-name' in server.properties)
 - **GUILib** - spigot library for creating GUIs
-- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Supports 1.20.1 version. Explore nms package!
+- **PacketUtil** - simply send packets with no nms* imports (only implementations needed for me). Explore nms package!
 - **GUILibBungee** - bungee library for GUIs (requires Protocolize)
 - **PlayerLocationReceiver** - receives player coordinates from Bungee (Commons.getInstance().getPlayerLocationReceiver())
 
