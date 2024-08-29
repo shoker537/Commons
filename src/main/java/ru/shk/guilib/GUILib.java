@@ -18,11 +18,13 @@ import ru.shk.commons.utils.Plugin;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-
+import java.util.concurrent.ConcurrentHashMap;
+@Deprecated
 public class GUILib implements Plugin, Listener {
     @Getter private static GUILib instance;
-    @Getter private final HashMap<UUID, GUI> guis = new HashMap<>();
+    @Getter private final Map<UUID, GUI> guis = new ConcurrentHashMap<>();
     private static final GUI waitingGui = new GUI(45, "&6Загрузка...");
 
     static {

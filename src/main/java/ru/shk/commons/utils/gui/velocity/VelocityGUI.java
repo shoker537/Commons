@@ -6,7 +6,9 @@ import dev.simplix.protocolize.api.Protocolize;
 import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.inventory.Inventory;
 import dev.simplix.protocolize.api.item.BaseItemStack;
+import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
+import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import dev.simplix.protocolize.data.packets.WindowItems;
 import lombok.NonNull;
@@ -21,20 +23,23 @@ import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 import ru.shk.velocity.commons.Commons;
 import ru.shk.velocity.commons.utils.PluginMessage;
-import dev.simplix.protocolize.api.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class VelocityGUI extends GUI<VelocityGUI> {
     private static final ThreadPoolExecutor syncExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     private Inventory inventory;
-    private int windowId = -1;
+    private final AtomicInteger windowId = new AtomicInteger(-1);
     private int state = 0;
+    private final AtomicBoolean needsUpdate = new AtomicBoolean();
 
     public VelocityGUI(Object plugin, GUIType type, Player player, Component title) {
         super(plugin, type, player, title);
@@ -42,11 +47,12 @@ public class VelocityGUI extends GUI<VelocityGUI> {
 
     @Override
     public void open() {
-        super.open();
         if(inventory==null) {
             inventory = new Inventory(typeAsProtocolize(type(), lines()));
             inventory.title(ChatElement.of(title()));
             inventory.onClick(click -> {
+                click.cancelled(true);
+                updateLocalInv();
                 if(click.clickedItem()==null) return;
                 ClickType type = switch (click.clickType()) {
                     case LEFT_CLICK, SHIFT_LEFT_CLICK -> ClickType.LEFT;
@@ -61,15 +67,29 @@ public class VelocityGUI extends GUI<VelocityGUI> {
         }
         ProtocolizePlayer player = Protocolize.playerProvider().player(player().getUniqueId());
         if(player==null) return;
+        refillInv();
         player.openInventory(inventory);
-        windowId = getInvId();
+        for (int i = 0; i < 5; i++) {
+            windowId.set(getInvId());
+            if(windowId.get()!=-1) break;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {}
+        }
+        super.open();
+        update();
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
     }
 
     @Override
     public VelocityGUI item(int slot, @Nullable ItemStackBuilder stack) {
         if (stack==null) {
-            inventory.removeItem(slot);
-            if(isOpen()) update();
+            items().remove(slot);
+            if(isOpen()) refillInv();
             return this;
         }
         return super.item(slot, stack);
@@ -102,7 +122,7 @@ public class VelocityGUI extends GUI<VelocityGUI> {
         int windowId = -1;
         ProtocolizePlayer player = Protocolize.playerProvider().player(player().getUniqueId());
         for (Integer id : player.registeredInventories().keySet()) {
-            if(player.registeredInventories().get(id).equals(this)) {
+            if(Objects.equals(player.registeredInventories().get(id), inventory)) {
                 windowId = id;
                 break;
             }
@@ -128,19 +148,30 @@ public class VelocityGUI extends GUI<VelocityGUI> {
 
     @Override
     public void refillInv() {
+        needsUpdate.set(true);
+    }
+
+    public void doRefillInv(){
+        if(!needsUpdate.get()) return;
+        needsUpdate.set(false);
         state++;
-        for (int i = 0; i < items().length; i++) {
-            Item item = items()[i];
-            inventory.item(i, (ItemStack) item.stack().build());
+        int max = type()==GUIType.CHEST?lines()*9:type().maxSlots();
+        for (int i = 0; i < max; i++) {
+            Item item = items().get(i);
+            if(item==null || item.stack().type().name().equals("AIR")) {
+                inventory.item(i, new ItemStack(ItemType.AIR));
+            } else {
+                inventory.item(i, (ItemStack) item.stack().build());
+            }
         }
         ProtocolizePlayer player = Protocolize.playerProvider().player(player().getUniqueId());
         if(player==null) return;
-        if(windowId==-1) {
-            Logger.info("WindowID not found for GUI of player "+player().getUsername());
+        if(windowId.get()==-1) {
+            if(isOpen()) Logger.info("WindowID not found for GUI of player "+player().getUsername());
             return;
         }
         List<BaseItemStack> items = new ArrayList<>(Lists.newArrayList(inventory.itemsIndexed(player.protocolVersion())));
-        Commons.getInstance().async(() -> player.sendPacket(new WindowItems((short) windowId, items, state)));
+        player.sendPacket(new WindowItems((short) windowId.get(), items, state));
     }
 
     @Override

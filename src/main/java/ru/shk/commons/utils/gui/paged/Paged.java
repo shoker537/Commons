@@ -11,8 +11,13 @@ import ru.shk.commons.utils.gui.GUI;
 import ru.shk.commons.utils.gui.Item;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
 @Setter@Accessors(fluent = true, chain = true)@NoArgsConstructor
@@ -80,6 +85,8 @@ public class Paged<ITEM> {
                         Item item = overlays.items[i];
                         if(item!=null) {
                             attachedGUI.item(overlaysStartIndex+i, item.stack(), item.onClick());
+                        } else {
+                            attachedGUI.item(overlaysStartIndex+i, null);
                         }
                     }
                 }
@@ -88,7 +95,8 @@ public class Paged<ITEM> {
     }
 
     private List<ItemStackBuilder> convertItemsInParallel(List<ITEM> items){
-        HashMap<Integer, ItemStackBuilder> stacksMap = new HashMap<>();
+        final HashMap<Integer, ItemStackBuilder> stacksMap = new HashMap<>();
+        //todo: possible too many ThreadPools when many inventories are open
         ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Math.max(2, items.size()/9));
         for (int i = 0; i < items.size(); i++) {
             int index = i;

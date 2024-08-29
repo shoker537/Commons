@@ -2,8 +2,10 @@ package ru.shk.commons.utils.gui;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.Plugin;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +23,18 @@ public class GUIManager implements Plugin {
 
     @Override
     public void enable() {
-
+        if(ServerType.get()==ServerType.VELOCITY) {
+            ru.shk.velocity.commons.Commons.getInstance().repeat(() -> {
+                // Possible too many threads when a huge amount of players have a GUI open
+                openGUIs.values().parallelStream().forEach(gui -> {
+                    try {
+                        ((ru.shk.commons.utils.gui.velocity.VelocityGUI)gui).doRefillInv();
+                    } catch (Throwable t){
+                        t.printStackTrace();
+                    }
+                });
+            }, Duration.ofMillis(50), Duration.ofMillis(50));
+        }
     }
 
     public GUI customGUI(Object inventory) {

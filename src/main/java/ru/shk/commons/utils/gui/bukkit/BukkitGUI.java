@@ -66,8 +66,9 @@ public class BukkitGUI extends GUI<BukkitGUI> {
 
     @Override
     public void refillInv() {
-        for (int i = 0; i < items().length; i++) {
-            Item item = items()[i];
+        int max = type()==GUIType.CHEST?lines()*9:type().maxSlots();
+        for (int i = 0; i < max; i++) {
+            Item item = items().get(i);
             inventory.setItem(i, (ItemStack) item.stack().build());
         }
     }

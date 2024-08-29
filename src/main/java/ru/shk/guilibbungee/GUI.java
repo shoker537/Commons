@@ -14,7 +14,7 @@ import ru.shk.guilib.protocolize.ProtocolizeGUI;
 
 import java.util.UUID;
 import java.util.function.Consumer;
-
+@Deprecated
 public class GUI extends ProtocolizeGUI<Plugin, ProxiedPlayer> {
 
     public GUI(Plugin pl, String name, InventoryType type) {
