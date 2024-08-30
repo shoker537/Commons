@@ -1,10 +1,12 @@
 package ru.shk.commons.utils.items.bungee;
 
+import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.data.ItemType;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.items.protocolize.ProtocolizeItemStack;
@@ -49,4 +51,13 @@ public class BungeeItemStack extends ProtocolizeItemStack<BungeeItemStack> {
         return TextComponent.fromLegacyText(colored, ChatColor.WHITE);
     }
 
+    @Override
+    public ChatElement<?> elementFromObject(Object o) {
+         if(o instanceof BaseComponent[]){
+            return ChatElement.of(o);
+        } else if(o instanceof BaseComponent c) {
+            return ChatElement.of(new BaseComponent[]{c});
+        }
+        return super.elementFromObject(o);
+    }
 }

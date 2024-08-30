@@ -65,7 +65,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         return (R) this;
     }
 
-    private ChatElement<?> elementFromObject(Object o){
+    public ChatElement<?> elementFromObject(Object o){
         if(o instanceof String s){
             try {
                 gson.fromJson(s, JsonObject.class);
@@ -74,11 +74,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
                 return ChatElement.of(stringToComponent(s));
             }
         } else if(o instanceof Component c) {
-            return ChatElement.of(BungeeComponentSerializer.get().serialize(c));
-        } else if(o instanceof BaseComponent[]){
-            return ChatElement.of(o);
-        } else if(o instanceof BaseComponent c) {
-            return ChatElement.of(new BaseComponent[]{c});
+            return ChatElement.of(c);
         } else {
             Logger.warning("Unknown object provided for ChatElement: "+o.getClass().getName());
             return ChatElement.ofLegacyText("?");
