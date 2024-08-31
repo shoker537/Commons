@@ -129,7 +129,7 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public synchronized void textOpacity(@Range(from = 0, to = 252) int opacity){
-        ((Display.TextDisplay)entity).setTextOpacity(intOpacityToByte(opacity));
+        textOpacityRaw(intOpacityToByte(opacity));
         metadata();
     }
     @SneakyThrows
@@ -138,9 +138,23 @@ public class PacketTextDisplay extends PacketDisplay {
         metadata();
     }
 
+    @Range(from = 0, to = 252) public int textOpacity(){
+        return byteOpacityToInt(textOpacityRaw());
+    }
+
+    public byte textOpacityRaw(){
+        return ((Display.TextDisplay)entity).getTextOpacity();
+    }
+
     private static byte intOpacityToByte(int opacity){
         opacity+=4;
         if(opacity>=128) return (byte) -(256-opacity);
         return (byte) (opacity);
+    }
+
+    private static int byteOpacityToInt(byte opacity){
+        int opacityInt = opacity;
+        if(opacityInt<0) opacityInt = 256 + opacityInt;
+        return opacityInt-4;
     }
 }
