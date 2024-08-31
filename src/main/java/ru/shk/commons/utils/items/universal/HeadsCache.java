@@ -7,9 +7,9 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.HTTPRequest;
+import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.CachedPlayerProcessor;
 import ru.shk.commons.utils.items.PlayerProcessor;
-import ru.shk.commonsbungee.Commons;
 import ru.shk.mysql.connection.MySQL;
 
 import java.net.URL;
@@ -141,7 +141,7 @@ public class HeadsCache {
             JsonObject o = new HTTPRequest(url).get().asJson();
             return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
         } catch (Exception e){
-            Commons.getInstance().warning(e.getMessage());
+            Logger.warning(e.getMessage());
             return null;
         }
     }
