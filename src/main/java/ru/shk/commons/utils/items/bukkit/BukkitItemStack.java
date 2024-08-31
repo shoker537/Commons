@@ -197,11 +197,15 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
         return this;
     }
 
-    @Override
     public BukkitItemStack flags(int flags) {
         List<ru.shk.commons.utils.items.universal.ItemFlag> f = ru.shk.commons.utils.items.universal.ItemFlag.fromInt(flags);
-        item.editMeta(meta -> f.forEach(itemFlag -> meta.addItemFlags(ItemFlag.valueOf(itemFlag.bukkitName()))));
-        return this;
+        return flags(f);
+    }
+
+    @Override
+    public BukkitItemStack flags(List<ru.shk.commons.utils.items.universal.ItemFlag> flags) {
+        item.editMeta(meta -> flags.forEach(itemFlag -> meta.addItemFlags(ItemFlag.valueOf(itemFlag.bukkitName()))));
+        return null;
     }
 
     @Override

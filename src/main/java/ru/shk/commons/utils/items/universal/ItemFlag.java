@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public enum ItemFlag {
     HIDE_ENCHANTMENTS(1, "HIDE_ENCHANTS"),
@@ -14,10 +15,12 @@ public enum ItemFlag {
     HIDE_UNBREAKABLE(4, "HIDE_UNBREAKABLE"),
     HIDE_CAN_DESTROY(8, "HIDE_DESTROYS"),
     HIDE_CAN_PLACE(16, "HIDE_PLACED_ON"),
-    HIDE_ADDITIONAL(32, "HIDE_POTION_EFFECTS"),
-    HIDE_DYE(64, "HIDE_DYE");
+    HIDE_ADDITIONAL(32, "HIDE_ADDITIONAL_TOOLTIP"),
+    HIDE_DYE(64, "HIDE_DYE"),
+    HIDE_ARMOR_TRIM(0, "HIDE_ARMOR_TRIM"),
+    HIDE_STORED_ENCHANTS(0, "HIDE_STORED_ENCHANTS"),;
 
-    private final int value;
+    @Deprecated(forRemoval = true) private final int value;
     @Getter@Accessors(fluent = true)
     private final String bukkitName;
 
@@ -26,8 +29,8 @@ public enum ItemFlag {
         this.bukkitName = bukkitName;
     }
 
-    public static int asInt(@NonNull List<ItemFlag> flags){
-        return flags.stream().mapToInt(value1 -> value1.value).sum();
+    public static String asStringArray(@NonNull List<ItemFlag> flags){
+        return "["+flags.stream().map(itemFlag -> itemFlag.name()).collect(Collectors.joining(","))+"]";
     }
 
     @NonNull

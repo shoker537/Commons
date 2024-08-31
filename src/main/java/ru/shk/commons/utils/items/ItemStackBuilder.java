@@ -73,29 +73,20 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
         return (R) this;
     }
     public R allHideFlags(){
-        return flags(127);
+        return flags(Arrays.asList(ItemFlag.values()));
     }
     /**
      *  Adds all flags from a list, does not override already applied flags.
-     *  See ItemStackBuilder#flags(int) to override flags.
      */
-    public R flags(List<ItemFlag> flags){
-        List<ItemFlag> f = new ArrayList<>();
-        for (ItemFlag flag : flags) {
-            if(!f.contains(flag)) f.add(flag);
-        }
-        return flags(ItemFlag.asInt(f));
-    }
+    public abstract R flags(List<ItemFlag> flags);
     /**
      *  Adds all flags from a list, does not override already applied flags.
-     *  See ItemStackBuilder#flags(int) to override flags.
      */
     public R flags(ItemFlag... flags){
         List<ItemFlag> f = new ArrayList<>(Arrays.asList(flags));
         return (R) flags(f);
     }
 
-    public abstract R flags(int flags);
     public abstract R customHeadId(int id);
     public abstract R amount(int amount);
     public abstract R damage(int damage);

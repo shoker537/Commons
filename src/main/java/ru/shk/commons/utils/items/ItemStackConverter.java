@@ -30,7 +30,7 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"amount", b -> new StringValue().value(String.valueOf(b.amount())), (b, s) -> b.amount(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"potionColor", b -> new StringValue().value(b.potionColor()==null?null:String.valueOf(b.potionColor())), (b, s) -> b.potionColor(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.LEATHER_ARMOR,"leather-color", b -> new StringValue().value(b.leatherColorAsHexString()), (b, s) -> b.leatherColor(Color.decode(s.stringValue()))));
-        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringValue().value(String.valueOf(ItemFlag.asInt(b.flags()))), (b, s) -> b.flags(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringListValue().value(b.flags().stream().map(o -> ((ItemFlag)o).name()).toList()), (b, s) -> b.flags(((StringListValue)s).value().stream().map(s1 -> ItemFlag.valueOf(s1.toUpperCase())).toList())));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"CMD", b -> new StringValue().value(b.customModelData()==null?null:String.valueOf(b.customModelData())), (b, s) -> b.customModelData(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"damage", b -> new StringValue().value(b.damage()==null?null:String.valueOf(b.damage())), (b, s) -> b.damage(Integer.parseInt(s.stringValue()))));
     }

@@ -7,14 +7,18 @@ import com.google.gson.JsonSyntaxException;
 import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.api.item.ItemStack;
+import dev.simplix.protocolize.api.item.MobEffectInstance;
+import dev.simplix.protocolize.api.item.component.*;
+import dev.simplix.protocolize.api.util.Property;
 import dev.simplix.protocolize.data.ItemType;
+import dev.simplix.protocolize.data.MobEffect;
+import dev.simplix.protocolize.data.Potion;
+import dev.simplix.protocolize.data.item.component.*;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.querz.nbt.tag.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,10 +31,8 @@ import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
 
 public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> extends ItemStackBuilder<ItemStack, ItemType, R> {
     private static final Gson gson = new GsonBuilder().create();
@@ -83,22 +85,26 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R customModelData(int id) {
-        item.nbtData().put("CustomModelData", new IntTag(id));
+        CustomModelDataComponent c = item.getComponent(CustomModelDataComponent.class);
+        if(c==null) c = CustomModelDataComponent.create(id); else c.setCustomModelData(id);
+        item.addComponent(c);
         return (R) this;
     }
 
     @Override
     public R leatherColor(Color color) {
-        CompoundTag tag = item.nbtData().getCompoundTag("display");
-        tag.put("color", new IntTag(color.getRGB()));
+        //todo: leather color component
+//        CompoundTag tag = item.nbtData().getCompoundTag("display");
+//        tag.put("color", new IntTag(color.getRGB()));
         return (R) this;
     }
 
     @Override
     public R leatherColor(String hexColor) {
-        Color color = Color.decode(hexColor);
-        CompoundTag tag = item.nbtData().getCompoundTag("display");
-        tag.put("color", new IntTag(color.getRGB()));
+        //todo: leather color component
+//        Color color = Color.decode(hexColor);
+//        CompoundTag tag = item.nbtData().getCompoundTag("display");
+//        tag.put("color", new IntTag(color.getRGB()));
         return (R) this;
     }
 
@@ -150,36 +156,34 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R unbreakable(boolean b) {
-        item.nbtData().put("Unbreakable", new ByteTag((byte)(b?1:0)));
+        if(b) item.addComponent(UnbreakableComponent.create(true)); else item.removeComponent(UnbreakableComponentImpl.Type.INSTANCE);
         return (R) this;
     }
 
     @Override
     public R enchant(EnchantmentType e, int level) {
-        ListTag<?> array = item.nbtData().getListTag("Enchantments");
-        if(array!=null) {
-            for (int i = 0; i < array.size(); i++) {
-                CompoundTag enchantment = (CompoundTag) array.get(i);
-                String id = enchantment.getString("id");
-                if(!id.equals("minecraft:"+e.namespacedKey())) continue;
-                int l = enchantment.getInt("lvl");
-                if(l!=level) enchantment.put("lvl", new IntTag(level));
-                return (R) this;
-            }
-        }
-        ListTag<CompoundTag> newList = new ListTag<>(CompoundTag.class);
-        if(array!=null) array.forEach(tag -> newList.add((CompoundTag) tag));
-        CompoundTag eTag = new CompoundTag();
-        eTag.put("id", new StringTag("minecraft:"+e.namespacedKey()));
-        eTag.put("lvl", new ShortTag((short) level));
-        newList.add(eTag);
-        item.nbtData().put("Enchantments", newList);
-        return (R) this;
-    }
-
-    @Override
-    public R flags(int flags) {
-        item.nbtData().put("HideFlags", new IntTag(flags));
+        EnchantmentsComponent c = item.getComponent(EnchantmentsComponent.class);
+        if(c==null) c = EnchantmentsComponent.create(new HashMap<>());
+        c.addEnchantment(dev.simplix.protocolize.data.Enchantment.valueOf(e.namespacedKey().toUpperCase()), level);
+        item.addComponent(c);
+//        ListTag<?> array = item.nbtData().getListTag("Enchantments");
+//        if(array!=null) {
+//            for (int i = 0; i < array.size(); i++) {
+//                CompoundTag enchantment = (CompoundTag) array.get(i);
+//                String id = enchantment.getString("id");
+//                if(!id.equals("minecraft:"+e.namespacedKey())) continue;
+//                int l = enchantment.getInt("lvl");
+//                if(l!=level) enchantment.put("lvl", new IntTag(level));
+//                return (R) this;
+//            }
+//        }
+//        ListTag<CompoundTag> newList = new ListTag<>(CompoundTag.class);
+//        if(array!=null) array.forEach(tag -> newList.add((CompoundTag) tag));
+//        CompoundTag eTag = new CompoundTag();
+//        eTag.put("id", new StringTag("minecraft:"+e.namespacedKey()));
+//        eTag.put("lvl", new ShortTag((short) level));
+//        newList.add(eTag);
+//        item.nbtData().put("Enchantments", newList);
         return (R) this;
     }
 
@@ -191,91 +195,74 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R damage(int damage) {
-        item.nbtData().put("Damage", new IntTag(damage));
+        item.addComponent(DamageComponent.create(damage));
         return (R) this;
     }
 
     @Override
     public R potionColor(int rgb) {
-        item.nbtData().put("CustomPotionColor", new IntTag(rgb));
+        PotionContentsComponent c = item.getComponent(PotionContentsComponent.class);
+        if(c==null) c = PotionContentsComponent.create(Potion.MUNDANE);
+        c.setCustomColor(rgb);
+        item.addComponent(c);
         return (R) this;
     }
 
     @Override
     public Integer potionColor() {
-        if(!item.nbtData().containsKey("CustomPotionColor")) return null;
-        return item.nbtData().getInt("CustomPotionColor");
+        PotionContentsComponent c = item.getComponent(PotionContentsComponent.class);
+        if(c==null) return null;
+        return c.getCustomColor();
     }
 
     @Override
     public R localHeadOwner(String name) {
         customHeadId = -1;
-        clearHeadOwnerTag();
-        item.nbtData().put("SkullOwner", new StringTag(name));
+        item.addComponent(ProfileComponent.create(name, null, Collections.EMPTY_LIST));
         return (R) this;
     }
 
-    private void clearHeadOwnerTag(){
-        item.nbtData().remove("SkullOwner");
+    public void clearComponentTag(StructuredComponentType<?> type){
+        item.removeComponent(type);
+    }
+
+    public void addComponent(StructuredComponent component){
+        item.addComponent(component);
     }
 
     @Override
     public R localHeadOwner(UUID uuid) {
         customHeadId = -1;
-        clearHeadOwnerTag();
-        item.nbtData().put("SkullOwner", new StringTag(uuid.toString()));
+        item.addComponent(ProfileComponent.create("#", uuid, Collections.EMPTY_LIST));
         return (R) this;
     }
 
     @Override
     public R base64head(String base64) {
         customHeadId = -1;
-        final @NotNull CompoundTag tag = item.nbtData();
-        @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
-        @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
-        final @NotNull ListTag<@NotNull CompoundTag> texturesTag = new ListTag<>(CompoundTag.class);
-        final @NotNull CompoundTag textureTag = new CompoundTag();
-
-        if (skullOwnerTag == null) {
-            skullOwnerTag = new CompoundTag();
-        }
-        if (propertiesTag == null) {
-            propertiesTag = new CompoundTag();
-        }
-
-        textureTag.put("Value", new StringTag(base64));
-        texturesTag.add(textureTag);
-        propertiesTag.put("textures", texturesTag);
-        skullOwnerTag.put("Properties", propertiesTag);
-        skullOwnerTag.put("Name", new StringTag("##aboba"));
-
-        tag.put("SkullOwner", skullOwnerTag);
-
-        tag.put("HideFlags", new IntTag(99));
-        tag.put("overrideMeta", new ByteTag((byte)1));
-        item.nbtData(tag);
+        item.addComponent(ProfileComponent.create("#", new UUID(0,0), List.of(new Property("textures", base64, null))));
         return (R) this;
     }
 
     @Override
     public R potionData(PotionData potionData) {
-        String potion = (potionData.extended()?"long_":"")+(potionData.upgraded()?"strong_":"")+potionData.type().name().toLowerCase();
-        item.nbtData().put("Potion", new StringTag(potion));
+        String potion = "";
+        if(potionData.extended()) potion+="LONG_"; else if (potionData.upgraded()) potion+="STRONG_";
+        potion+=potionData.type().name().toUpperCase();
+        Potion p = Potion.valueOf(potion);
+        PotionContentsComponent c = item.getComponent(PotionContentsComponent.class);
+        if(c==null) c = PotionContentsComponent.create(p); else c.setPotion(p);
+        item.addComponent(c);
         return (R) this;
     }
 
     @Override
     public R customPotion(PotionEffect potionEffect) {
-        final @NotNull ListTag<@NotNull CompoundTag> effects = new ListTag<>(CompoundTag.class);
-        CompoundTag tag = new CompoundTag();
-        tag.put("id", new IntTag(potionEffect.type().id()));
-        tag.put("Duration", new IntTag(potionEffect.duration()));
-        tag.put("Amplifier", new IntTag(potionEffect.amplifier()));
-        tag.put("Ambient", new ByteTag((byte) (potionEffect.ambient()?1:0)));
-        tag.put("ShowParticles", new ByteTag((byte) (potionEffect.particles()?1:0)));
-        tag.put("ShowIcon", new ByteTag((byte) (potionEffect.icon()?1:0)));
-        effects.add(tag);
-        item.nbtData().put("CustomPotionEffects", effects);
+        PotionContentsComponent c = item.getComponent(PotionContentsComponent.class);
+        if(c==null) c = PotionContentsComponent.create(Potion.MUNDANE);
+        c.getCustomEffects().clear();
+        c.addCustomEffect(new MobEffectInstance(MobEffect.valueOf(potionEffect.type().minecraftKey().toUpperCase()), new MobEffectInstance.Details(potionEffect.amplifier(), potionEffect.duration(), potionEffect.ambient(), potionEffect.particles(), potionEffect.icon(), null)));
+        item.addComponent(c);
         return (R) this;
     }
 
@@ -297,14 +284,32 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public Integer customModelData() {
-        return item.nbtData().containsKey("CustomModelData")?item.nbtData().getInt("CustomModelData"):null;
+        CustomModelDataComponent c = item.getComponent(CustomModelDataComponent.class);
+        if(c==null) return null;
+        return c.getCustomModelData();
+    }
+
+    @Override
+    public R flags(List<ItemFlag> flags) {
+        for (StructuredComponent c : item.getComponents()) {
+            if(c instanceof EnchantmentsComponentImpl e && flags.contains(ItemFlag.HIDE_ENCHANTMENTS)) e.setShowInTooltip(false);
+            else if(c instanceof AttributeModifiersComponentImpl e && flags.contains(ItemFlag.HIDE_MODIFIERS)) e.setShowInTooltip(false);
+            else if(c instanceof UnbreakableComponentImpl e && flags.contains(ItemFlag.HIDE_UNBREAKABLE)) e.setShowInTooltip(false);
+            //todo: add destroys
+            //todo: add placed on
+            else if(c instanceof DyedColorComponentImpl e && flags.contains(ItemFlag.HIDE_DYE)) e.setShowInTooltip(false);
+        }
+        if(flags.contains(ItemFlag.HIDE_ADDITIONAL)) item.addComponent(new HideAdditionalTooltipComponentImpl());
+        return (R) this;
     }
 
     @Override
     public Color leatherColor() {
-        if(!item.nbtData().containsKey("display") || !item.nbtData().getCompoundTag("display").containsKey("color")) return null;
-        int color = item.nbtData().getCompoundTag("display").getInt("color");
-        return new Color(color);
+        //todo leather armor component
+//        if(!item.nbtData().containsKey("display") || !item.nbtData().getCompoundTag("display").containsKey("color")) return null;
+//        int color = item.nbtData().getCompoundTag("display").getInt("color");
+//        return new Color(color);
+        return null;
     }
 
     @Override
@@ -326,26 +331,32 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public boolean isUnbreakable() {
-        return item.nbtData().containsKey("Unbreakable") && item.nbtData().getByte("Unbreakable")==1;
+        UnbreakableComponent c = item.getComponent(UnbreakableComponent.class);
+        return c != null;
     }
 
     @Override
     public java.util.List<Enchantment> enchantments() {
+        EnchantmentsComponent c = item.getComponent(EnchantmentsComponent.class);
+        if(c==null) return Collections.EMPTY_LIST;
         java.util.List<Enchantment> list = new ArrayList<>();
-        ListTag<?> array = item.nbtData().getListTag("Enchantments");
-        array.forEach(tag -> {
-            CompoundTag enchantment = (CompoundTag) tag;
-            String id = enchantment.getString("id");
-            int l = enchantment.getInt("lvl");
-            list.add(new Enchantment(EnchantmentType.fromString(id), l));
-        });
+        c.getEnchantments().forEach((enchantment, integer) -> list.add(new Enchantment(EnchantmentType.fromString(enchantment.name()), integer)));
         return list;
     }
 
     @Override
     public java.util.List<ItemFlag> flags() {
-        if(!item.nbtData().containsKey("HideFlags")) return new ArrayList<>();
-        return ItemFlag.fromInt(item.nbtData().getInt("HideFlags"));
+        List<ItemFlag> hidden = new ArrayList<>();
+        for (StructuredComponent c : item.getComponents()) {
+            if(c instanceof EnchantmentsComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_ENCHANTMENTS);
+            else if(c instanceof AttributeModifiersComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_MODIFIERS);
+            else if(c instanceof UnbreakableComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_UNBREAKABLE);
+            //todo: add destroys
+            //todo: add placed on
+            else if(c instanceof HideAdditionalTooltipComponentImpl) hidden.add(ItemFlag.HIDE_ADDITIONAL);
+            else if(c instanceof DyedColorComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_DYE);
+        }
+        return hidden;
     }
 
     @Override
@@ -355,52 +366,52 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public Integer damage() {
-        return item.nbtData().containsKey("Damage")?item.nbtData().getInt("Damage"):null;
+        DamageComponent damage = item.getComponent(DamageComponentImpl.class);
+        if(damage==null) return null;
+        return damage.getDamage();
     }
 
     @Override
     public String headOwnerName() {
-        @Nullable CompoundTag skullOwnerTag = item.nbtData().getCompoundTag("SkullOwner");
-        if(skullOwnerTag==null) return null;
-        return skullOwnerTag.containsKey("Name")?skullOwnerTag.getString("Name"):null;
+        ProfileComponent component = item.getComponent(ProfileComponent.class);
+        if(component==null) return null;
+        if(component.getName()!=null) return component.getName();
+        return null;
     }
 
     @Override
     public String base64head() {
-        final @NotNull CompoundTag tag = item.nbtData();
-        @Nullable CompoundTag skullOwnerTag = tag.getCompoundTag("SkullOwner");
-        if(skullOwnerTag==null) return null;
-        @Nullable CompoundTag propertiesTag = tag.getCompoundTag("Properties");
-        if(propertiesTag==null) return null;
-        if(!propertiesTag.containsKey("textures")) return null;
-        final @NotNull ListTag<@NotNull CompoundTag> texturesTag = (ListTag<CompoundTag>) propertiesTag.getListTag("textures");
-        final @NotNull CompoundTag textureTag = texturesTag.get(0);
-        return textureTag.getString("Value");
+        ProfileComponent component = item.getComponent(ProfileComponent.class);
+        if(component==null) return null;
+        if(component.getUniqueId()!=null) return component.getUniqueId().toString();
+        return null;
     }
 
     @Override
     public String potionData() {
-        if(!item.nbtData().containsKey("Potion")) return null;
-        String potionNbt = item.nbtData().getString("Potion");
-        String type = potionNbt.replace("long_","").replace("strong_", "").toUpperCase();
-        boolean extended = potionNbt.startsWith("long_");
-        boolean upgraded = potionNbt.startsWith("strong_");
+        PotionContentsComponent potion = item.getComponent(PotionContentsComponent.class);
+        if(potion==null) return null;
+        if(potion.getPotion()==null) return null;
+        String potionNbt = potion.getPotion().name();
+        String type = potionNbt.replace("LONG_","").replace("STRONG_", "");
+        boolean extended = potionNbt.startsWith("LONG_");
+        boolean upgraded = potionNbt.startsWith("STRONG_");
         return new PotionData(PotionData.Type.valueOf(type), extended, upgraded).toString();
     }
 
     @Override
     public String customPotion() {
-        if(!item.nbtData().containsKey("CustomPotionEffects")) return null;
-        ListTag<CompoundTag> list = (ListTag<CompoundTag>) item.nbtData().getListTag("CustomPotionEffects");
-        if(list.size()==0) return null;
-        CompoundTag tag = list.get(0);
-        int id = tag.getInt("id");
-        int duration = tag.getInt("Duration");
-        int amplifier = tag.getInt("Amplifier");
-        boolean ambient = tag.getBoolean("Ambient");
-        boolean particles = tag.getBoolean("ShowParticles");;
-        boolean icon = tag.getBoolean("ShowIcon");
-        return new PotionEffect(PotionType.byId(id), duration, amplifier, ambient, particles, icon).toString();
+        PotionContentsComponent potion = item.getComponent(PotionContentsComponent.class);
+        if(potion==null) return null;
+        if(potion.getCustomEffects()==null || potion.getCustomEffects().isEmpty()) return null;
+        MobEffectInstance effect = potion.getCustomEffects().iterator().next(); // todo all effects
+        MobEffect type = effect.getMobEffect();
+        int duration = effect.getDetails().getDuration();
+        int amplifier = effect.getDetails().getAmplifier();
+        boolean ambient = effect.getDetails().isAmbient();
+        boolean particles = effect.getDetails().isShowParticles();
+        boolean icon = effect.getDetails().isShowIcon();
+        return new PotionEffect(PotionType.byKey(type.name()), duration, amplifier, ambient, particles, icon).toString();
     }
 
     @Override
