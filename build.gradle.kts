@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.2.3"
+version = "1.7.2.4"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -91,7 +91,7 @@ dependencies {
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.4.1")
-  implementation("net.wesjd:anvilgui:1.9.3-SNAPSHOT")
+  implementation("net.wesjd:anvilgui:1.10.2-SNAPSHOT")
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
   compileOnly("com.mojang:authlib:1.5.21")
