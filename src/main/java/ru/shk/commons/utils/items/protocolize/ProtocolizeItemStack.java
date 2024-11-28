@@ -19,9 +19,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.querz.nbt.tag.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.ItemStackBuilder;
@@ -31,20 +28,22 @@ import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> extends ItemStackBuilder<ItemStack, ItemType, R> {
     private static final Gson gson = new GsonBuilder().create();
     private int customHeadId = -1;
-    private ItemStack item;
+    private final ItemStack item;
 
     public ProtocolizeItemStack() {
         item = new ItemStack(ItemType.AIR);
     }
 
     public ProtocolizeItemStack(@NonNull BaseItemStack stack) {
-        this.item = new ItemStack(stack);
+        this.item = (ItemStack) stack.deepClone();
     }
 
     public ProtocolizeItemStack(@NonNull ItemType item) {
@@ -52,7 +51,13 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     }
 
     public ProtocolizeItemStack(@NonNull String type) {
-        type(type);
+        this.item = new ItemStack(ItemType.valueOf(type.toUpperCase()));
+    }
+
+    @Override
+    public R enchantingGlint(boolean value) {
+        item.addComponent(EnchantmentGlintComponent.create(value));
+        return (R) this;
     }
 
     @Override
@@ -143,7 +148,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
             if(s.isEmpty()) {
                 c = Component.text(" ");
             } else {
-                c = minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacySection().deserialize(colorize(s));
+                c = minimessage ? MiniMessage.miniMessage().deserialize(s) : LegacyComponentSerializer.legacyAmpersand().deserialize(colorize(s));
             }
             if(forceDisableItalic) c = c.decoration(TextDecoration.ITALIC, false);
             newLore.add(c);
@@ -162,28 +167,13 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R enchant(EnchantmentType e, int level) {
-        EnchantmentsComponent c = item.getComponent(EnchantmentsComponent.class);
-        if(c==null) c = EnchantmentsComponent.create(new HashMap<>());
-        c.addEnchantment(dev.simplix.protocolize.data.Enchantment.valueOf(e.namespacedKey().toUpperCase()), level);
-        item.addComponent(c);
-//        ListTag<?> array = item.nbtData().getListTag("Enchantments");
-//        if(array!=null) {
-//            for (int i = 0; i < array.size(); i++) {
-//                CompoundTag enchantment = (CompoundTag) array.get(i);
-//                String id = enchantment.getString("id");
-//                if(!id.equals("minecraft:"+e.namespacedKey())) continue;
-//                int l = enchantment.getInt("lvl");
-//                if(l!=level) enchantment.put("lvl", new IntTag(level));
-//                return (R) this;
-//            }
-//        }
-//        ListTag<CompoundTag> newList = new ListTag<>(CompoundTag.class);
-//        if(array!=null) array.forEach(tag -> newList.add((CompoundTag) tag));
-//        CompoundTag eTag = new CompoundTag();
-//        eTag.put("id", new StringTag("minecraft:"+e.namespacedKey()));
-//        eTag.put("lvl", new ShortTag((short) level));
-//        newList.add(eTag);
-//        item.nbtData().put("Enchantments", newList);
+        // ! Proxy does not know enchantments anymore
+//        EnchantmentsComponent c = item.getComponent(EnchantmentsComponent.class);
+//        if(c==null) c = EnchantmentsComponent.create(new HashMap<>());
+//        c.addEnchantment(dev.simplix.protocolize.data.Enchantment.TICK,1);
+//        c.addEnchantment(dev.simplix.protocolize.data.Enchantment.valueOf(e.namespacedKey().toUpperCase()), level);
+//        item.addComponent(c);
+        enchantingGlint(true);
         return (R) this;
     }
 

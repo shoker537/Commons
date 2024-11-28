@@ -1,23 +1,18 @@
 package ru.shk.commons.utils.gui.paged;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.gui.ClickEvent;
 import ru.shk.commons.utils.gui.GUI;
 import ru.shk.commons.utils.gui.Item;
+import ru.shk.commons.utils.gui.ItemsContainer;
 import ru.shk.commons.utils.items.ItemStackBuilder;
+import ru.shk.commons.utils.runnables.Schedule;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
 @Setter@Accessors(fluent = true, chain = true)@NoArgsConstructor
@@ -28,15 +23,33 @@ public class Paged<ITEM> {
     private BiFunction<Integer, Integer, List<ITEM>> pageGenerator; // page number, items on page, result
     private BiPredicate<Integer, Integer> pageChecker; // page number, items on page
     private BiConsumer<Integer, ITEM> onClickItem;
+    private BiConsumer<Integer, ITEM> onShiftClickItem;
+    private BiConsumer<ClickEvent, ITEM> onUniversalClickItem;
     private boolean useServiceLine = true;
     private Consumer<OverlayItemsProvider> overlaysGenerator;
-    private GUI attachedGUI;
+    private ItemsContainer<?> attachedGUI;
+    private int notFoundItemSlot = -1;
+    private ItemStackBuilder notFoundItem = null;
 
     private ItemStackBuilder prevArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6< НАЗАД");
     private ItemStackBuilder nextArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6ВПЕРЕД >");
 
+    public Paged(ItemsContainer<?> attachedGUI){
+        this.attachedGUI = attachedGUI;
+    }
     public Paged(GUI attachedGUI){
         this.attachedGUI = attachedGUI;
+    }
+
+    public Paged<ITEM> attachedGUI(GUI gui){
+        attachedGUI = gui;
+        return this;
+    }
+
+    public Paged<ITEM> items(@NonNull List<ITEM> items){
+        pageGenerator = (number, limit) -> items.stream().skip(number*limit).limit(limit).toList();
+        pageChecker = (page, limit) -> page >= 0 && page*limit<=items.size();
+        return this;
     }
 
     @Getter(AccessLevel.NONE) private List<ITEM> currentPageItems = new ArrayList<>();
@@ -45,76 +58,75 @@ public class Paged<ITEM> {
     public List<ITEM> getCurrentPageItems() {
         return new ArrayList<>(currentPageItems);
     }
-
     public void generate(){
-        attachedGUI.async(() -> {
+        generate(false);
+    }
+
+    public void generate(boolean goAsync){
+        if(notFoundItem!=null && notFoundItemSlot==-1) notFoundItemSlot = (((lineEndsAt - lineStartsAt + 1) / 2)*9) + 4;
+
+        Runnable r = () -> {
             List<ITEM> currentPageItems = pageGenerator.apply(currentPageIndex, itemsOnPage());
             List<ItemStackBuilder> stacks = convertItemsInParallel(currentPageItems);
             boolean hasLeft = pageChecker.test(currentPageIndex-1, itemsOnPage());
             boolean hasRight = pageChecker.test(currentPageIndex+1, itemsOnPage());
-            attachedGUI.sync(() -> {
-                this.currentPageItems = currentPageItems;
-                if(currentPageItems.isEmpty()) {
-                    ItemStackBuilder fill = ItemStackBuilder.newEmptyStack().type("red_stained_glass_pane").displayName("&cНичего не найдено");
-                    fillGeneratedArea(fill);
-                } else {
-                    clearGeneratedArea();
-                    int startSlot = lineStartsAt*9;
-                    for (int i = 0; i < stacks.size(); i++) {
-                        int finalStartSlot = startSlot;
-                        int finalI = i;
-                        attachedGUI.item(startSlot, stacks.get(i), clickEvent -> clickItem(finalStartSlot, currentPageItems.get(finalI)), true);
-                        startSlot++;
+            this.currentPageItems = currentPageItems;
+            clearGeneratedArea();
+            if(currentPageItems.isEmpty()) {
+                if(notFoundItem!=null) attachedGUI.item(notFoundItemSlot, notFoundItem);
+            } else {
+                int startSlot = lineStartsAt*9;
+                for (int i = 0; i < stacks.size(); i++) {
+                    int finalI = i;
+                    attachedGUI.item(startSlot, stacks.get(i), clickEvent -> clickItem(clickEvent, currentPageItems.get(finalI)), true);
+                    startSlot++;
+                }
+            }
+            if (useServiceLine) {
+                OverlayItemsProvider overlays = new OverlayItemsProvider();
+                if(overlaysGenerator!=null) {
+                    try {
+                        overlaysGenerator.accept(overlays);
+                    } catch (Throwable t){
+                        t.printStackTrace();
                     }
                 }
-                if (useServiceLine) {
-                    OverlayItemsProvider overlays = new OverlayItemsProvider();
-                    if(overlaysGenerator!=null) {
-                        try {
-                            overlaysGenerator.accept(overlays);
-                        } catch (Throwable t){
-                            t.printStackTrace();
-                        }
-                    }
 
-                    if(hasLeft) overlays.item(0, prevArrow, clickEvent -> prevPage());
-                    if(hasRight) overlays.item(8, nextArrow, clickEvent -> nextPage());
+                if(hasLeft) overlays.item(0, prevArrow, clickEvent -> prevPage());
+                if(hasRight) overlays.item(8, nextArrow, clickEvent -> nextPage());
 
-                    int overlaysStartIndex = (lineEndsAt+1) * 9;
-                    for (int i = 0; i < overlays.items.length; i++) {
-                        Item item = overlays.items[i];
-                        if(item!=null) {
-                            attachedGUI.item(overlaysStartIndex+i, item.stack(), item.onClick());
-                        } else {
-                            attachedGUI.item(overlaysStartIndex+i, null);
-                        }
+                int overlaysStartIndex = (lineEndsAt+1) * 9;
+                for (int i = 0; i < overlays.items.length; i++) {
+                    Item item = overlays.items[i];
+                    if(item!=null) {
+                        attachedGUI.item(overlaysStartIndex+i, item.stack(), item.onClick());
+                    } else {
+                        attachedGUI.item(overlaysStartIndex+i, null);
                     }
                 }
-            });
-        });
+            }
+        };
+
+        if (goAsync) Schedule.async(r); else r.run();
     }
 
     private List<ItemStackBuilder> convertItemsInParallel(List<ITEM> items){
         final HashMap<Integer, ItemStackBuilder> stacksMap = new HashMap<>();
-        //todo: possible too many ThreadPools when many inventories are open
-        ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Math.max(2, items.size()/9));
-        for (int i = 0; i < items.size(); i++) {
-            int index = i;
-            ITEM item = items.get(i);
-            pool.submit(() -> {
-                ItemStackBuilder result = itemConverter.apply(item);
-                synchronized (stacksMap) {
-                    stacksMap.put(index, result);
-                }
-            });
-        }
-        pool.shutdown();
-        try {
-            pool.awaitTermination(60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return Collections.EMPTY_LIST;
-        }
+        record IndexedItem<ITEM>(int index, ITEM item){}
+        List<IndexedItem<ITEM>> indexed = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) indexed.add(new IndexedItem<>(i, items.get(i)));
+        indexed.parallelStream().forEach(indexedItem -> {
+            ItemStackBuilder result;
+            try {
+                result = itemConverter.apply(indexedItem.item);
+            } catch (Throwable t){
+                t.printStackTrace();
+                result = ItemStackBuilder.newEmptyStack();
+            }
+            synchronized (stacksMap) {
+                stacksMap.put(indexedItem.index, result);
+            }
+        });
         List<ItemStackBuilder> stacks = new ArrayList<>();
         for (int i = 0; i < 54; i++) {
             ItemStackBuilder stack = stacksMap.get(i);
@@ -129,11 +141,23 @@ public class Paged<ITEM> {
     }
 
     public void fillGeneratedArea(@Nullable ItemStackBuilder stack){
-        for (int i = lineStartsAt*9; i < (lineEndsAt * 9) + 8; i++) attachedGUI.item(i, stack);
+        for (int i = lineStartsAt*9; i < (lineEndsAt * 9) + 9; i++) {
+            if (stack==null) attachedGUI.clear(i); else attachedGUI.item(i, stack);
+        }
     }
 
-    private void clickItem(int slot, ITEM item){
-        if(onClickItem!=null) onClickItem.accept(slot, item);
+    private void clickItem(ClickEvent click, ITEM item){
+        if (onUniversalClickItem!=null) {
+            onUniversalClickItem.accept(click, item);
+        } else {
+            boolean shift = click.shift();
+            int slot = click.slot();
+            if (shift && onShiftClickItem!=null) {
+                onShiftClickItem.accept(slot, item);
+            } else {
+                if(onClickItem!=null) onClickItem.accept(slot, item);
+            }
+        }
     }
 
     private int itemsOnPage(){

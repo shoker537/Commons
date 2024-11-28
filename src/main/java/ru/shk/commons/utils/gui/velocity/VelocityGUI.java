@@ -88,17 +88,20 @@ public class VelocityGUI extends GUI<VelocityGUI> {
     @Override
     public VelocityGUI item(int slot, @Nullable ItemStackBuilder stack) {
         if (stack==null) {
-            items().remove(slot);
-            if(isOpen()) refillInv();
+            clear(slot);
             return this;
         }
         return super.item(slot, stack);
     }
 
     @Override
-    public void title(Component title) {
-        inventory.title(ChatElement.of(title));
-        reopen();
+    public VelocityGUI title(Component title) {
+        if (inventory!=null){
+            inventory.title(ChatElement.of(title));
+            reopen();
+        }
+        super.title(title);
+        return this;
     }
 
     @Override
@@ -106,12 +109,7 @@ public class VelocityGUI extends GUI<VelocityGUI> {
         syncExecutor.submit(r);
     }
 
-    @Override
-    public void async(Runnable r) {
-        Commons.getInstance().async(r);
-    }
-
-    public VelocityGUI item(int slot, ItemStack stack) {
+    public VelocityGUI item(int slot, @NonNull ItemStack stack) {
         return item(slot, new VelocityItemStack(stack));
     }
     public VelocityGUI item(int slot, @NonNull ItemStack stack, Consumer<ClickEvent> onClick) {
@@ -149,6 +147,12 @@ public class VelocityGUI extends GUI<VelocityGUI> {
     @Override
     public void refillInv() {
         needsUpdate.set(true);
+    }
+
+    @Override
+    public void doTick() {
+        super.doTick();
+        doRefillInv();
     }
 
     public void doRefillInv(){

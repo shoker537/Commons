@@ -18,7 +18,8 @@ public enum ItemFlag {
     HIDE_ADDITIONAL(32, "HIDE_ADDITIONAL_TOOLTIP"),
     HIDE_DYE(64, "HIDE_DYE"),
     HIDE_ARMOR_TRIM(0, "HIDE_ARMOR_TRIM"),
-    HIDE_STORED_ENCHANTS(0, "HIDE_STORED_ENCHANTS"),;
+    HIDE_STORED_ENCHANTS(0, "HIDE_STORED_ENCHANTS"),
+    ;
 
     @Deprecated(forRemoval = true) private final int value;
     @Getter@Accessors(fluent = true)

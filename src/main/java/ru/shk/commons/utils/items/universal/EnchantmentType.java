@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 import ru.shk.commons.utils.Logger;
 
 public enum EnchantmentType {
-
     PROTECTION_ENVIRONMENTAL("protection"),
     PROTECTION_FIRE("fire_protection"),
     PROTECTION_FALL("feather_falling"),
@@ -32,7 +31,7 @@ public enum EnchantmentType {
     ARROW_KNOCKBACK("punch"),
     ARROW_FIRE("flame"),
     ARROW_INFINITY("infinity"),
-    LUCK_OF_THE_SEA,
+    LUCK_OF_THE_SEA(),
     LURE,
     LOYALTY,
     IMPALING,

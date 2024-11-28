@@ -13,13 +13,12 @@ import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import dev.simplix.protocolize.data.packets.WindowItems;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.kyori.adventure.text.Component;
 import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.bungee.BungeeItemStack;
-import ru.shk.guilibbungee.GUILib;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -112,7 +111,7 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
     }
 
     @Override
-    public Inventory item(int slot, ItemStack stack) {
+    public Inventory item(int slot, @NonNull ItemStack stack) {
         super.item(slot, stack);
         update();
         return this;

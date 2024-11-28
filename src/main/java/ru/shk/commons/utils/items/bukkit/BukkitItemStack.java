@@ -1,7 +1,10 @@
 package ru.shk.commons.utils.items.bukkit;
 
+import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ItemEnchantments;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -10,6 +13,7 @@ import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.minecraft.world.item.component.ResolvableProfile;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -39,7 +43,7 @@ import java.util.*;
 
 public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, BukkitItemStack> {
     private int customHeadId = -1;
-    private ItemStack item;
+    private ItemStack item = new ItemStack(Material.AIR);
 
     public BukkitItemStack() {
         item = new ItemStack(Material.AIR);
@@ -59,8 +63,16 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     }
 
     @Override
+    public BukkitItemStack enchantingGlint(boolean value) {
+        item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value);
+        return this;
+    }
+
+    @Override
     public BukkitItemStack customHead(int id) {
-        base64head(Commons.getInstance().getCustomHeadTexture(id));
+        String texture = Commons.getInstance().getCustomHeadTexture(id);
+        if (texture==null) return this;
+        base64head(texture);
         this.customHeadId = id;
         return this;
     }
@@ -68,7 +80,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     @Override
     public BukkitItemStack customHead(String key) {
         CustomHead h = Commons.getInstance().findCustomHead(key);
-        if(h==null) return null;
+        if(h==null) return this;
         base64head(h.getTexture());
         this.customHeadId = h.getId();
         return this;
@@ -205,7 +217,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     @Override
     public BukkitItemStack flags(List<ru.shk.commons.utils.items.universal.ItemFlag> flags) {
         item.editMeta(meta -> flags.forEach(itemFlag -> meta.addItemFlags(ItemFlag.valueOf(itemFlag.bukkitName()))));
-        return null;
+        return this;
     }
 
     @Override
@@ -265,14 +277,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
         SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
         GameProfile profile = new GameProfile(new UUID(0,0), "");
         profile.getProperties().put("textures", new Property("textures", base64));
-        Field profileField;
-        try {
-            profileField = skullMeta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(skullMeta, profile);
-        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-            e.printStackTrace();
-        }
+        skullMeta.setPlayerProfile(new CraftPlayerProfile(profile));
         this.customHeadId = -1;
         item.setItemMeta(skullMeta);
         return this;

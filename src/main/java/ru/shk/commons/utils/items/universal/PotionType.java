@@ -45,7 +45,7 @@ public enum PotionType {
     RAID_OMEN()
     ;
 
-    @Getter@Accessors(fluent = true)
+    @Accessors(fluent = true)
     private final String minecraftKey;
     PotionType (){
         this.minecraftKey = name().toLowerCase();

@@ -2,6 +2,7 @@ package ru.shk.commons.utils.items.universal;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class HeadsCache {
+    private static final Object mojangQueryLock = new Object();
     @Getter@Setter@Accessors(fluent = true)
     private static MySQL mysql;
     private final ConcurrentLinkedQueue<Pair<Long, String>> cachedHeads = new ConcurrentLinkedQueue<>();
@@ -126,23 +128,29 @@ public class HeadsCache {
     @Nullable
     private String getSkinTexture(long id){
         UUID uuid = playerProcessor().UUIDFromId(id);
+        if (uuid==null){
+            Logger.warning("Unable to get UUID from id "+id);
+            return null;
+        }
         if(mysql==null || !mysql.isConnected()) return getSkinTextureFromMojang(uuid);
-        String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+id+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
+        String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+id+" AND "+System.currentTimeMillis()+"-updated_at<259200000 LIMIT 1;", null);
         if(texture==null) texture = getSkinTextureFromMojang(uuid);
         if(texture==null) return null;
         mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+id+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
     }
 
-    private static synchronized String getSkinTextureFromMojang(UUID uuid) {
-        try {
-            String trimmedUUID = uuid.toString().replace("-", "");
-            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"+trimmedUUID+"?unsigned=false");
-            JsonObject o = new HTTPRequest(url).get().asJson();
-            return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
-        } catch (Exception e){
-            Logger.warning(e.getMessage());
-            return null;
+    public static String getSkinTextureFromMojang(@NonNull UUID uuid) {
+        synchronized (mojangQueryLock){
+            try {
+                String trimmedUUID = uuid.toString().replace("-", "");
+                URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"+trimmedUUID+"?unsigned=false");
+                JsonObject o = new HTTPRequest(url).get().asJson();
+                return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
+            } catch (Throwable e){
+                Logger.warning(e.getMessage());
+                return null;
+            }
         }
     }
 

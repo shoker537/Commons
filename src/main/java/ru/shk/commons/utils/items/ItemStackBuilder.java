@@ -43,6 +43,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     }
 
     // SETTERS
+    public abstract R enchantingGlint(boolean value);
     public abstract R customHead(int id);
     public abstract R customHead(String key);
     public abstract R displayName(String name);

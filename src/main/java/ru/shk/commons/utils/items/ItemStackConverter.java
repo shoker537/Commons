@@ -2,6 +2,7 @@ package ru.shk.commons.utils.items;
 
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.universal.parse.type.StringListValue;
 import ru.shk.commons.utils.items.universal.parse.type.StringValue;
@@ -22,7 +23,7 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"lore", b -> new StringListValue().value(b.lore()), (b, value) -> b.lore(((StringListValue)value).value())));
         stringRules.add(new StringConverterRule(ConvertMaterial.POTIONS,"potion-data", b -> new StringValue().value(b.potionData()), (b, value) -> b.potionData(PotionData.fromList(((StringListValue)value).value()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.POTIONS,"custom-potion", b -> new StringValue().value(b.customPotion()), (b, value) -> b.customPotion(PotionEffect.fromList(((StringListValue)value).value()))));
-        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"enchant", b -> new StringListValue().value(enchantsToStringList(b.enchantments())), (b, s) -> b.enchant(enchantsFromString((StringListValue) s))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"enchant", b -> new StringListValue().value(enchantsToStringList(b.enchantments())), (b, s) -> handleEnchants(b, (StringListValue) s)));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"unbreakable", b -> new StringValue().value(String.valueOf(b.isUnbreakable())), (b, s) -> b.unbreakable(Boolean.parseBoolean(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"texture", b -> new StringValue().value(b.base64head()==null?null:b.base64head().replace("=", "\\u003d")), (b, value) -> b.base64head(value.stringValue().replace("\\u003d", "="))));
         stringRules.add(new StringConverterRule(ConvertMaterial.HEADS,"player", b -> new StringValue().value(b.headOwnerName()), (b, value) -> b.headOwner(value.stringValue())));
@@ -42,6 +43,15 @@ public class ItemStackConverter {
             list1.add(e.type().namespacedKey()+":"+e.level());
         }
         return list1;
+    }
+
+    private static void handleEnchants(ItemStackBuilder b, StringListValue value){
+        if (ServerType.get()==ServerType.SPIGOT) {
+            b.enchant(enchantsFromString(value));
+            return;
+        }
+        // Workaround for proxy
+        b.enchantingGlint(true);
     }
 
     private static List<Enchantment> enchantsFromString(StringListValue s){

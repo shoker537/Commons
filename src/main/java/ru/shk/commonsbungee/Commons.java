@@ -41,8 +41,6 @@ import java.util.regex.Pattern;
 
 public class Commons extends Plugin implements Listener {
     @Getter private ThreadPoolExecutor threadPool;
-    private ThreadPoolExecutor teleportService;
-    private final HashMap<UUID, Future<?>> runningTeleports = new HashMap<>();
     @Getter private static Commons instance;
     @Getter private boolean isProtocolizeInstalled = false;
     private final List<ru.shk.commons.utils.Plugin> plugins = new ArrayList<>();
@@ -52,6 +50,8 @@ public class Commons extends Plugin implements Listener {
     @Getter private PAFManager pafManager;
     @Getter private Config config;
 
+    private ThreadPoolExecutor teleportService;
+    private final HashMap<UUID, Future<?>> runningTeleports = new HashMap<>();
     private final List<Integer> tpInProcess = new ArrayList<>();
     private int lastTpId = 0;
 
@@ -92,7 +92,7 @@ public class Commons extends Plugin implements Listener {
             warning("MySQLAPI not found! &fSome features may be unavailable.");
         } else {
             try {
-                mysql = new MySQL(config.getString("database","shield_bungee"));
+                mysql = new MySQL(config.getString("default-connection","minigames"));
                 HeadsCache.mysql(mysql);
             } catch (Throwable t){
                 t.printStackTrace();

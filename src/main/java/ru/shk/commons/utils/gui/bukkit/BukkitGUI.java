@@ -12,6 +12,7 @@ import ru.shk.commons.utils.gui.ClickEvent;
 import ru.shk.commons.utils.gui.GUI;
 import ru.shk.commons.utils.gui.Item;
 import ru.shk.commons.utils.items.bukkit.BukkitItemStack;
+import ru.shk.commons.utils.runnables.Schedule;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -25,6 +26,10 @@ public class BukkitGUI extends GUI<BukkitGUI> {
 
     @Override
     public void open() {
+        if(Bukkit.isPrimaryThread()) doOpen(); else Commons.getInstance().sync(this::doOpen);
+    }
+
+    private void doOpen(){
         super.open();
         if (inventory==null) {
             if(type()==GUIType.CHEST) {
@@ -66,10 +71,18 @@ public class BukkitGUI extends GUI<BukkitGUI> {
 
     @Override
     public void refillInv() {
+        if (Bukkit.isPrimaryThread()) doRefillInv(); else Schedule.sync(this::doRefillInv);
+    }
+
+    private void doRefillInv(){
         int max = type()==GUIType.CHEST?lines()*9:type().maxSlots();
         for (int i = 0; i < max; i++) {
             Item item = items().get(i);
-            inventory.setItem(i, (ItemStack) item.stack().build());
+            if(item==null){
+                inventory.setItem(i, null);
+            } else {
+                inventory.setItem(i, (ItemStack) item.stack().build());
+            }
         }
     }
 
@@ -79,19 +92,11 @@ public class BukkitGUI extends GUI<BukkitGUI> {
     }
 
     @Override
-    public void title(Component title) {
+    public BukkitGUI title(Component title) {
+        super.title(title);
         inventory = null;
         reopen();
-    }
-
-    @Override
-    public void sync(Runnable r) {
-        Commons.getInstance().sync(r);
-    }
-
-    @Override
-    public void async(Runnable r) {
-        Commons.getInstance().async(r);
+        return this;
     }
 
     private static InventoryType typeAsBukkit(GUIType type) {

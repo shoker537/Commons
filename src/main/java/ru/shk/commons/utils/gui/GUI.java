@@ -3,6 +3,7 @@ package ru.shk.commons.utils.gui;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
@@ -10,31 +11,48 @@ import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.gui.bukkit.BukkitGUI;
 import ru.shk.commons.utils.gui.velocity.VelocityGUI;
 import ru.shk.commons.utils.items.ItemStackBuilder;
+import ru.shk.commons.utils.runnables.Schedule;
 
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 @Getter
 @Accessors(fluent = true)
-public abstract class GUI<G extends GUI> {
+public abstract class GUI<G extends GUI> extends ItemsContainer<G> {
     private final Object plugin;
-    private final GUIType type;
     private final Object player;
-    private final Component title;
-    private final ConcurrentHashMap<Integer, Item> items;
+    @Setter private Component title;
     private Consumer<UniversalClick> universalClick = null;
-    private int lines = 1;
     @Getter(AccessLevel.NONE) private boolean isOpen = false; // todo: atomic?
     @Getter(AccessLevel.NONE) private final AtomicBoolean isInClickProcessing = new AtomicBoolean(false);
+    private Runnable onTick;
 
     public GUI(Object plugin, GUIType type, Object player, Component title) {
+        super(type);
         this.plugin = plugin;
-        this.type = type;
         this.player = player;
         this.title = title;
-        items = new ConcurrentHashMap<>(type.maxSlots);
+    }
+
+    @Override
+    public G parent() {
+        return (G) this;
+    }
+
+    public void doTick(){
+        if(onTick!=null) {
+            try {
+                onTick.run();
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        }
+    }
+
+    public G onTick(Runnable onTick) {
+        this.onTick = onTick;
+        return (G) this;
     }
 
     public void startClickProcessing(){
@@ -50,7 +68,7 @@ public abstract class GUI<G extends GUI> {
     }
 
     public G lines(int lines) {
-        this.lines = lines;
+        super.lines(lines);
         return (G) this;
     }
 
@@ -58,6 +76,7 @@ public abstract class GUI<G extends GUI> {
         isOpen = true;
         GUIManager.instance().add(playerUUID(), this);
     }
+
     public abstract void close();
     public void onClose(){
         isOpen = false;
@@ -70,7 +89,7 @@ public abstract class GUI<G extends GUI> {
     public void onClick(UniversalClick click){
         if(isInClickProcessing.get()) return;
         startClickProcessing();
-        Item item = items.get(click.slot());
+        Item item = items().get(click.slot());
         if(item!=null && item.onClick()!=null) {
             if(item.runAsync()) {
                 async(() -> {
@@ -106,35 +125,31 @@ public abstract class GUI<G extends GUI> {
         return (G) this;
     }
 
+    @Override
+    public G clear(int slot) {
+        super.clear(slot);
+        if(isOpen) refillInv();
+        return (G) this;
+    }
+
+    @Override
     public G item(int slot, @Nullable ItemStackBuilder stack) {
-        checkSlotBounds(slot);
-        if(stack==null) {
-            items.remove(slot);
-        } else {
-            items.put(slot, new Item(stack, null));
-        }
+        super.item(slot, stack);
         if(isOpen) refillInv();
         return (G) this;
     }
 
+    @Override
     public G item(int slot, @NonNull ItemStackBuilder stack, Consumer<ClickEvent> onClick) {
-        return item(slot, stack, onClick, false);
-    }
-    public G item(int slot, @NonNull ItemStackBuilder stack, Consumer<ClickEvent> onClick, boolean runAsync) {
-        checkSlotBounds(slot);
-        items.put(slot, new Item(stack, onClick, runAsync));
-        if(isOpen) refillInv();
+        item(slot, stack, onClick, false);
         return (G) this;
     }
 
-    private void checkSlotBounds(int slot){
-        int max;
-        if(type==GUIType.CHEST) {
-            max = lines * 9;
-        } else {
-            max = type.maxSlots;
-        }
-        if(slot<0 || slot >= max) throw new IllegalArgumentException("Slot "+slot+" does not exist in "+type.name()+" gui with "+max+" slots");
+    @Override
+    public G item(int slot, @NonNull ItemStackBuilder stack, Consumer<ClickEvent> onClick, boolean runAsync) {
+        super.item(slot, stack, onClick, runAsync);
+        if(isOpen) refillInv();
+        return (G) this;
     }
 
     public void update(){
@@ -171,13 +186,16 @@ public abstract class GUI<G extends GUI> {
             case VELOCITY -> new VelocityGUI(plugin, GUIType.ANVIL, (com.velocitypowered.api.proxy.Player) player, title);
         };
     }
-    public abstract void title(Component title);
     public void reopen(){
         close();
         open();
     }
 
-    public abstract void sync(Runnable r);
-    public abstract void async(Runnable r);
+    public void sync(Runnable r){
+        Schedule.sync(r);
+    }
+    public void async(Runnable r){
+        Schedule.async(r);
+    }
 
 }

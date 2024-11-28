@@ -13,7 +13,6 @@ import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 import ru.shk.guilib.protocolize.packet.RenameItemPacket;
-import ru.shk.velocity.commons.Commons;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -43,7 +42,6 @@ public class TextInputGUI extends Inventory {
             }
         });
         GUILib.getTextInputGUIS().add(this);
-        open(player);
         listener = new AbstractPacketListener<>(RenameItemPacket.class, Direction.UPSTREAM, 0) {
             @Override
             public void packetReceive(PacketReceiveEvent<RenameItemPacket> event) {
@@ -57,14 +55,22 @@ public class TextInputGUI extends Inventory {
 
             }
         };
-        onClose(inventoryClose -> Commons.getInstance().proxy().getPlayer(inventoryClose.player().uniqueId()).ifPresent(TextInputGUI::close));
+        onClose(inventoryClose -> {
+            unregisterListener();
+            GUILib.getTextInputGUIS().remove(this);
+        });
+        open(player);
     }
     public boolean closed(Player p){
         if(!p.getUniqueId().equals(player.getUniqueId())) return false;
+        unregisterListener();
+        return true;
+    }
+
+    private void unregisterListener(){
         try {
             Protocolize.listenerProvider().unregisterListener(listener);
         } catch (Throwable t){}
-        return true;
     }
 
     private void open(Player p){
@@ -74,8 +80,9 @@ public class TextInputGUI extends Inventory {
         Protocolize.listenerProvider().registerListener(listener);
     }
 
-    private static void close(Player p){
+    private void close(Player p){
         ProtocolizePlayer player = Protocolize.playerProvider().player(p.getUniqueId());
         player.closeInventory();
+        unregisterListener();
     }
 }

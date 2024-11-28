@@ -12,11 +12,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,6 +39,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class CurrentVersion {
@@ -192,8 +193,9 @@ public class CurrentVersion {
 
     @SneakyThrows
     protected void teleportEntity(Player p, Entity e){
-        sendPacket(p, new ClientboundTeleportEntityPacket(e));
+        sendPacket(p, ClientboundTeleportEntityPacket.teleport(e.getId(), PositionMoveRotation.of(e), Set.of(), e.onGround));
     }
+
     @SneakyThrows
     protected void leashPacket(Player p, org.bukkit.entity.Entity owner, org.bukkit.entity.Entity attached){
         ClientboundSetEntityLinkPacket packet = new ClientboundSetEntityLinkPacket(getNMSEntity(attached), getNMSEntity(owner));

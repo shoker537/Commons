@@ -24,6 +24,7 @@ import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.nms.PacketVersion;
+import ru.shk.commons.utils.runnables.Schedule;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
 import ru.shk.guilib.GUILib;
@@ -93,6 +94,16 @@ public final class Commons extends JavaPlugin {
                 e.printStackTrace();
             }
         });
+        setupSchedule();
+    }
+
+    private void setupSchedule(){
+        Schedule.setAsync(this::async);
+        Schedule.setSync(this::sync);
+        Schedule.setAsyncLater((r, d) -> asyncLater(r, (int)(d.toMillis()/50)));
+        Schedule.setSyncLater((r, delay) -> syncLater(() -> sync(r), (int)(delay.toMillis()/50)));
+        Schedule.setAsyncRepeating((r, d, p) -> asyncRepeating(r, (int)(d.toMillis()/50), (int)(p.toMillis()/50)));
+        Schedule.setSyncRepeating((r, delay, period) -> syncRepeating(r, (int)(delay.toMillis()/50), (int)(period.toMillis()/50)));
     }
 
     public long getPlayerPlayedTime(String uuid){
@@ -172,12 +183,12 @@ public final class Commons extends JavaPlugin {
             warning("&cMySQLAPI not loaded! &rSome features may be not available.");
         } else {
             Config config = new Config(getDataFolder(), true);
-            if(config.contains("mysql-database")){
-                info("Connecting to database "+org.bukkit.ChatColor.GREEN+config.getString("mysql-database"));
-                mysql = new MySQL(config.getString("mysql-database"));
+            if(config.contains("default-connection")){
+                info("Connecting to "+org.bukkit.ChatColor.GREEN+config.getString("default-connection"));
+                mysql = new MySQL(config.getString("default-connection"));
                 HeadsCache.mysql(mysql);
             } else {
-                warning("&cMySQL database is not defined in config! &rMySQL won't connect.");
+                warning("&cMySQL connection is not defined in config! &rMySQL won't connect.");
             }
         }
         if(Bukkit.getPluginManager().getPlugin("WorldEdit")==null){
@@ -341,7 +352,6 @@ public final class Commons extends JavaPlugin {
         return h.getTexture();
     }
 
-
     @Nullable
     public String getSkinTexture(CachedPlayer cp){
         String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
@@ -404,7 +414,7 @@ public final class Commons extends JavaPlugin {
     public static String secondsToTime(int s, boolean fullMinutes){
         int min = s/60;
         int sec = s - (min*60);
-        return (min>9?min:"0"+min)+":"+(sec>9?sec:"0"+sec);
+        return (min>9 || !fullMinutes ? min : "0"+min)+":"+(sec>9?sec:"0"+sec);
     }
 
     public static long currentSeconds(){
@@ -415,7 +425,7 @@ public final class Commons extends JavaPlugin {
         pl.getServer().getPluginManager().registerEvents(l, pl);
     }
     public void sync(Runnable r){
-        getServer().getScheduler().runTask(this, r);
+        if (Bukkit.isPrimaryThread()) r.run(); else getServer().getScheduler().runTask(this, r);
     }
     public void async(Runnable r){
         pool.submit(r);
