@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.5.0"
+version = "1.7.4.5"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -40,6 +40,8 @@ java {
 repositories {
   mavenLocal()
   mavenCentral()
+  maven("https://jitpack.io")
+  maven("https://nexus.prgm.in/repository/maven-public/")
   maven("https://repo.md5lukas.de/public")
   maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
   maven {
@@ -81,21 +83,22 @@ repositories {
   }
 }
 dependencies {
-  paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
-  compileOnly(files("E:/Libraries/Simple-Yaml.jar"))
+  paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
+  implementation("com.github.Carleslc.Simple-YAML:Simple-Configuration:1.8.4")
   compileOnly("com.github.retrooper:packetevents-spigot:2.5.0")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
-  compileOnly("dev.simplix:protocolize-api:2.4.2")
+  compileOnly("dev.simplix:protocolize-api:2.4.3")
   implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
     isTransitive = false
   }
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
   compileOnly("com.mojang:authlib:6.0.54")
-  compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.86")
+  compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.92")
+  compileOnly("de.simonsator:VelocityPoweredPartyAndFriends:1.0.91")
   implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
 
   compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.3-SNAPSHOT")

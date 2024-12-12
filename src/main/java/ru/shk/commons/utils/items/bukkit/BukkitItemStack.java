@@ -3,8 +3,6 @@ package ru.shk.commons.utils.items.bukkit;
 import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.ItemEnchantments;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -64,7 +62,7 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
 
     @Override
     public BukkitItemStack enchantingGlint(boolean value) {
-        item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value);
+        item.editMeta(itemMeta -> itemMeta.setEnchantmentGlintOverride(true));
         return this;
     }
 

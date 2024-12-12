@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -193,7 +192,8 @@ public class CurrentVersion {
 
     @SneakyThrows
     protected void teleportEntity(Player p, Entity e){
-        sendPacket(p, ClientboundTeleportEntityPacket.teleport(e.getId(), PositionMoveRotation.of(e), Set.of(), e.onGround));
+//        sendPacket(p, ClientboundTeleportEntityPacket.teleport(e.getId(), PositionMoveRotation.of(e), Set.of(), e.onGround)); // 1.21.3+
+        sendPacket(p, new ClientboundTeleportEntityPacket(e));
     }
 
     @SneakyThrows

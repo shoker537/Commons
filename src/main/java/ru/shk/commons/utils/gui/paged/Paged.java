@@ -34,7 +34,7 @@ public class Paged<ITEM> {
     private ItemStackBuilder prevArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6< НАЗАД");
     private ItemStackBuilder nextArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6ВПЕРЕД >");
 
-    public Paged(ItemsContainer<?> attachedGUI){
+    public Paged(ItemsContainer attachedGUI){
         this.attachedGUI = attachedGUI;
     }
     public Paged(GUI attachedGUI){
@@ -43,6 +43,11 @@ public class Paged<ITEM> {
 
     public Paged<ITEM> attachedGUI(GUI gui){
         attachedGUI = gui;
+        return this;
+    }
+
+    public Paged<ITEM> lines(int lines){
+        lineEndsAt = lineStartsAt + lines;
         return this;
     }
 
@@ -63,7 +68,7 @@ public class Paged<ITEM> {
     }
 
     public void generate(boolean goAsync){
-        if(notFoundItem!=null && notFoundItemSlot==-1) notFoundItemSlot = (((lineEndsAt - lineStartsAt + 1) / 2)*9) + 4;
+        if(notFoundItem!=null && notFoundItemSlot==-1) notFoundItemSlot = (9 * lineStartsAt) + (((lineEndsAt - lineStartsAt + 1) / 2)*9) + 4;
 
         Runnable r = () -> {
             List<ITEM> currentPageItems = pageGenerator.apply(currentPageIndex, itemsOnPage());

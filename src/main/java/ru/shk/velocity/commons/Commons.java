@@ -63,6 +63,7 @@ public class Commons {
     private final List<Integer> tpInProcess = new ArrayList<>();
     private int lastTpId = 0;
     private final Object tpSyncObject = new Object();
+    private PAFManager PAFManager;
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
@@ -128,6 +129,7 @@ public class Commons {
                 t.printStackTrace();
             }
         });
+        PAFManager = new PAFManager(this);
         setupSchedule();
         proxy.getChannelRegistrar().register(MinecraftChannelIdentifier.from("commons:generic"));
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("find").build(), new FindCMD(this));
@@ -240,10 +242,16 @@ public class Commons {
     @Subscribe
     public void onDisable(ProxyShutdownEvent e){
         threadPool.shutdown();
+        singleThreadPool.shutdown();
         try {
-            if(!threadPool.awaitTermination(30, TimeUnit.SECONDS)) threadPool.shutdownNow();
+            if(!threadPool.awaitTermination(10, TimeUnit.SECONDS)) threadPool.shutdownNow();
         } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
+        }
+        try {
+            if(!singleThreadPool.awaitTermination(10, TimeUnit.SECONDS)) singleThreadPool.shutdownNow();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
         plugins.forEach(plugin -> {
             try {

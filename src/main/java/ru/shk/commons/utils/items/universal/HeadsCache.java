@@ -129,8 +129,7 @@ public class HeadsCache {
     private String getSkinTexture(long id){
         UUID uuid = playerProcessor().UUIDFromId(id);
         if (uuid==null){
-            Logger.warning("Unable to get UUID from id "+id);
-            return null;
+            throw new IllegalArgumentException("Unable to get UUID from id "+id);
         }
         if(mysql==null || !mysql.isConnected()) return getSkinTextureFromMojang(uuid);
         String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+id+" AND "+System.currentTimeMillis()+"-updated_at<259200000 LIMIT 1;", null);

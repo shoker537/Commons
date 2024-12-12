@@ -115,6 +115,9 @@ public class VelocityGUI extends GUI<VelocityGUI> {
     public VelocityGUI item(int slot, @NonNull ItemStack stack, Consumer<ClickEvent> onClick) {
         return item(slot, new VelocityItemStack(stack), onClick);
     }
+    public VelocityGUI item(int slot, @NonNull ItemStack stack, Consumer<ClickEvent> onClick, boolean runAsync) {
+        return item(slot, new VelocityItemStack(stack), onClick, runAsync);
+    }
 
     public int getInvId(){
         int windowId = -1;
@@ -175,7 +178,7 @@ public class VelocityGUI extends GUI<VelocityGUI> {
             return;
         }
         List<BaseItemStack> items = new ArrayList<>(Lists.newArrayList(inventory.itemsIndexed(player.protocolVersion())));
-        player.sendPacket(new WindowItems((short) windowId.get(), items, state));
+        player.sendPacket(new WindowItems(windowId.get(), items, state));
     }
 
     @Override
