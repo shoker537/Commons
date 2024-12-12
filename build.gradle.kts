@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.4.5"
+version = "1.7.5.0"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -83,7 +83,7 @@ repositories {
   }
 }
 dependencies {
-  paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
+  paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
   implementation("com.github.Carleslc.Simple-YAML:Simple-Configuration:1.8.4")
   compileOnly("com.github.retrooper:packetevents-spigot:2.5.0")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
@@ -91,9 +91,10 @@ dependencies {
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.4.3")
-  implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
-    isTransitive = false
-  }
+//  implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
+//    isTransitive = false
+//  }
+  implementation(files("E:/Libraries/AnvilGUI.jar"))
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
   compileOnly("com.mojang:authlib:6.0.54")
