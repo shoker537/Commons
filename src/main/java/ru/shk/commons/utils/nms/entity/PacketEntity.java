@@ -36,7 +36,7 @@ public class PacketEntity<T extends PacketEntity> {
     protected final List<Player> excludedReceivers = new CopyOnWriteArrayList<>();
     private final String entityClass;
     private final String entityTypeEnum;
-    @Getter protected net.minecraft.world.entity.Entity entity;
+    protected net.minecraft.world.entity.Entity entity;
     @Getter protected HashMap<ItemSlot, ItemStack> equipment;
     protected boolean isSpawned = false;
     @Getter private boolean isTicking = false;
@@ -52,6 +52,14 @@ public class PacketEntity<T extends PacketEntity> {
 
     public PacketEntity(String entityClass, String entityTypeId, Location l){
         this(entityClass, entityTypeId, l.getWorld(), l.getX(), l.getY(), l.getZ());
+    }
+
+    public Object getEntity(){
+        return entity;
+    }
+
+    public Entity getBukkitEntity(){
+        return PacketUtil.bukkitEntityFromNMS(entity);
     }
 
     public int getId(){
