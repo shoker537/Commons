@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.4.5"
+version = "1.7.4.6"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
