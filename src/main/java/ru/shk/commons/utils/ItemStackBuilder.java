@@ -1,5 +1,7 @@
 package ru.shk.commons.utils;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import lombok.Getter;
@@ -330,33 +332,22 @@ public class ItemStackBuilder {
         return ((SkullMeta)stack.getItemMeta()).getOwningPlayer().getUniqueId();
     }
     public ItemStackBuilder base64Head(String texture) {
-        SkullMeta skullMeta = (SkullMeta) meta;
-        GameProfile profile = new GameProfile(new UUID(0,0), "");
-        profile.getProperties().put("textures", new Property("textures", texture));
-        Field profileField;
-        try {
-            profileField = skullMeta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(skullMeta, profile);
-        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-            e.printStackTrace();
-        }
+        SkullMeta skullMeta = (SkullMeta) stack.getItemMeta();
+        PlayerProfile profile = Bukkit.createProfile(new UUID(0,0), "#");
+        profile.setProperty(new ProfileProperty("textures", texture));
+        skullMeta.setPlayerProfile(profile);
         this.customHeadId = -1;
-        this.meta = skullMeta;
+        stack.setItemMeta(skullMeta);
         return this;
     }
 
     public String base64Head() {
-        SkullMeta skullMeta = (SkullMeta) meta;
+        SkullMeta skullMeta = (SkullMeta) stack.getItemMeta();
         try {
-            Field profileField = skullMeta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            GameProfile profile = (GameProfile) profileField.get(skullMeta);
-            Collection<Property> collection = profile.getProperties().get("textures");
-            return collection.stream().filter(property -> property.name().equals("textures")).findAny().get().value();
-        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {}
-        this.customHeadId = -1;
-        return null;
+            return skullMeta.getPlayerProfile().getProperties().stream().filter(profileProperty -> profileProperty.getName().equals("textures")).map(ProfileProperty::getValue).findAny().orElse(null);
+        } catch (Throwable t){
+            return null;
+        }
     }
 
     public ItemStackBuilder bannerPattern(@NonNull Pattern pattern) {

@@ -1,6 +1,5 @@
 package ru.shk.commons.utils.gui.velocity;
 
-import com.google.common.collect.Lists;
 import com.velocitypowered.api.proxy.Player;
 import dev.simplix.protocolize.api.Protocolize;
 import dev.simplix.protocolize.api.chat.ChatElement;
@@ -177,8 +176,16 @@ public class VelocityGUI extends GUI<VelocityGUI> {
             if(isOpen()) Logger.info("WindowID not found for GUI of player "+player().getUsername());
             return;
         }
-        List<BaseItemStack> items = new ArrayList<>(Lists.newArrayList(inventory.itemsIndexed(player.protocolVersion())));
-        player.sendPacket(new WindowItems(windowId.get(), items, state));
+//        List<BaseItemStack> items = new ArrayList<>();
+//        var all = inventory.itemsIndexed(player.protocolVersion());
+//        Logger.warning("indexed: "+all.size()+", lines: "+lines()+", type: "+type().name()+", maxslots: "+type().maxSlots()+", protocolizeType: "+typeAsProtocolize(GUIType.CHEST, lines()).name());
+//        for (BaseItemStack baseItemStack : all) {
+//            if (items.size()==54) {
+//                break;
+//            }
+//            items.add(new ItemStack(baseItemStack.itemType()));
+//        }
+        player.sendPacket(new WindowItems(windowId.get(), new ArrayList<>(inventory.itemsIndexed(player.protocolVersion())), state));
     }
 
     @Override

@@ -1,6 +1,8 @@
 package ru.shk.commons.utils.items.bukkit;
 
 import com.destroystokyo.paper.profile.CraftPlayerProfile;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.kyori.adventure.text.Component;
@@ -35,7 +37,6 @@ import ru.shk.commons.utils.items.universal.EnchantmentType;
 import ru.shk.commons.utils.items.universal.PotionData;
 
 import java.awt.*;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.*;
 
@@ -273,9 +274,9 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     @Override
     public BukkitItemStack base64head(String base64) {
         SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
-        GameProfile profile = new GameProfile(new UUID(0,0), "");
-        profile.getProperties().put("textures", new Property("textures", base64));
-        skullMeta.setPlayerProfile(new CraftPlayerProfile(profile));
+        PlayerProfile profile = Bukkit.createProfile(new UUID(0,0), "#");
+        profile.setProperty(new ProfileProperty("textures", base64));
+        skullMeta.setPlayerProfile(profile);
         this.customHeadId = -1;
         item.setItemMeta(skullMeta);
         return this;
@@ -391,14 +392,20 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     public String base64head() {
         SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
         try {
-            Field profileField = skullMeta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            GameProfile profile = (GameProfile) profileField.get(skullMeta);
-            Collection<Property> collection = profile.getProperties().get("textures");
-            return collection.stream().filter(property -> property.name().equals("textures")).findAny().get().value();
-        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {
+            return skullMeta.getPlayerProfile().getProperties().stream().filter(profileProperty -> profileProperty.getName().equals("textures")).map(ProfileProperty::getValue).findAny().orElse(null);
+        } catch (Throwable t){
             return null;
         }
+//        skullMeta.setPlayerProfile(new CraftPlayerProfile(profile));
+//        try {
+//            Field profileField = skullMeta.getClass().getDeclaredField("profile");
+//            profileField.setAccessible(true);
+//            GameProfile profile = (GameProfile) profileField.get(skullMeta);
+//            Collection<Property> collection = profile.getProperties().get("textures");
+//            return collection.stream().filter(property -> property.name().equals("textures")).findAny().get().value();
+//        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ignored) {
+//            return null;
+//        }
     }
 
     @Override

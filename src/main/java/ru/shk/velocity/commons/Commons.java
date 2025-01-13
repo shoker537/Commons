@@ -14,9 +14,6 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
-import dev.simplix.protocolize.api.PacketDirection;
-import dev.simplix.protocolize.api.Protocol;
-import dev.simplix.protocolize.api.Protocolize;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.FastThreadLocalThread;
 import lombok.Getter;
@@ -32,7 +29,6 @@ import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.commons.utils.items.PlayerProcessor;
 import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.runnables.Schedule;
-import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 import ru.shk.mysql.connection.MySQL;
 import ru.shk.mysql.connection.data.Rows;
 import ru.shk.velocity.commons.cmd.FindCMD;
@@ -54,7 +50,7 @@ public class Commons {
     private MySQL mysql;
     private final Config config;
     private final ProxyServer proxy;
-    private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(15, new DefaultThreadFactory("Commons Main Pool"));
+    private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(25, new DefaultThreadFactory("Commons Main Pool"));
     private final ThreadPoolExecutor singleThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1, new SingleThreadFactory("Commons Single Pool"));
     private final PlayerLocationReceiver playerLocationReceiver;
 
@@ -67,7 +63,7 @@ public class Commons {
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
-    private final HashMap<Integer, CustomHead> customHeadsCache = new HashMap<>();
+    private final Map<Integer, CustomHead> customHeadsCache = new ConcurrentHashMap<>();
     private final List<Plugin> plugins = new ArrayList<>();
 
     private class SinglePoolThread extends FastThreadLocalThread {
@@ -114,7 +110,6 @@ public class Commons {
         proxy.getConsoleCommandSource().sendMessage(colorize("              for Velocity"));
         proxy.getConsoleCommandSource().sendMessage(colorize(""));
         mysql = new MySQL(config.getString("default-connection","minigames"));
-        Protocolize.protocolRegistration().registerPacket(RenameItemPacket.MAPPINGS, Protocol.PLAY, PacketDirection.SERVERBOUND, RenameItemPacket.class);
         mysql.UpdateSync("CREATE TABLE IF NOT EXISTS `custom_heads` (" +
                 "  `id` int NOT NULL AUTO_INCREMENT," +
                 "  `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
@@ -133,6 +128,7 @@ public class Commons {
         setupSchedule();
         proxy.getChannelRegistrar().register(MinecraftChannelIdentifier.from("commons:generic"));
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("find").build(), new FindCMD(this));
+        proxy.getPluginManager().getPlugin("protocolize").ifPresent(pluginContainer -> ProtocolizeHook.register());
     }
 
     private void setupSchedule(){
@@ -277,7 +273,8 @@ public class Commons {
 
     @Subscribe
     public void onPluginMessage(PluginMessageEvent e){
-        String tag = ((MinecraftChannelIdentifier)e.getIdentifier()).getId();
+        if(!(e.getIdentifier() instanceof MinecraftChannelIdentifier identifier)) return;
+        String tag = identifier.getId();
         if(tag.equals("bungeecord:main")) {
             ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
             String type = in.readUTF();

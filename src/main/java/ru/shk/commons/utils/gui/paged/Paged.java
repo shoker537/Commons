@@ -10,9 +10,13 @@ import ru.shk.commons.utils.gui.ItemsContainer;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.runnables.Schedule;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 
 @Setter@Accessors(fluent = true, chain = true)@NoArgsConstructor
@@ -27,6 +31,7 @@ public class Paged<ITEM> {
     private BiConsumer<ClickEvent, ITEM> onUniversalClickItem;
     private boolean useServiceLine = true;
     private Consumer<OverlayItemsProvider> overlaysGenerator;
+    private BiFunction<ITEM, ItemStackBuilder, ItemStackBuilder> delayedGenerate;
     private ItemsContainer<?> attachedGUI;
     private int notFoundItemSlot = -1;
     private ItemStackBuilder notFoundItem = null;
@@ -72,7 +77,7 @@ public class Paged<ITEM> {
 
         Runnable r = () -> {
             List<ITEM> currentPageItems = pageGenerator.apply(currentPageIndex, itemsOnPage());
-            List<ItemStackBuilder> stacks = convertItemsInParallel(currentPageItems);
+            List<IndexedItem<ITEM>> stacks = convertItemsInParallel(currentPageItems);
             boolean hasLeft = pageChecker.test(currentPageIndex-1, itemsOnPage());
             boolean hasRight = pageChecker.test(currentPageIndex+1, itemsOnPage());
             this.currentPageItems = currentPageItems;
@@ -83,7 +88,7 @@ public class Paged<ITEM> {
                 int startSlot = lineStartsAt*9;
                 for (int i = 0; i < stacks.size(); i++) {
                     int finalI = i;
-                    attachedGUI.item(startSlot, stacks.get(i), clickEvent -> clickItem(clickEvent, currentPageItems.get(finalI)), true);
+                    attachedGUI.item(startSlot, stacks.get(i).stack.get(), clickEvent -> clickItem(clickEvent, currentPageItems.get(finalI)), true);
                     startSlot++;
                 }
             }
@@ -97,8 +102,8 @@ public class Paged<ITEM> {
                     }
                 }
 
-                if(hasLeft) overlays.item(0, prevArrow, clickEvent -> prevPage());
-                if(hasRight) overlays.item(8, nextArrow, clickEvent -> nextPage());
+                if(hasLeft) overlays.item(0, prevArrow, clickEvent -> Schedule.async(this::prevPage));
+                if(hasRight) overlays.item(8, nextArrow, clickEvent -> Schedule.async(this::nextPage));
 
                 int overlaysStartIndex = (lineEndsAt+1) * 9;
                 for (int i = 0; i < overlays.items.length; i++) {
@@ -110,17 +115,36 @@ public class Paged<ITEM> {
                     }
                 }
             }
+            if (delayedGenerate!=null){
+                AtomicInteger pageSaved = new AtomicInteger(currentPageIndex);
+                int startSlot = lineStartsAt*9;
+                for (IndexedItem<ITEM> item : stacks) {
+                    Schedule.async(() -> {
+                        ItemStackBuilder result = delayedGenerate.apply(item.item, item.stack.get());
+                        Schedule.sync(() -> {
+                            Item currentItem = attachedGUI.items().get(startSlot+item.index);
+                            Consumer<ClickEvent> click = null;
+                            if (currentItem!=null) click = currentItem.onClick();
+                            if (pageSaved.get()==currentPageIndex) {
+                                attachedGUI.item(startSlot+item.index, result, click);
+                            }
+                        });
+                    });
+                }
+            }
         };
 
         if (goAsync) Schedule.async(r); else r.run();
     }
 
-    private List<ItemStackBuilder> convertItemsInParallel(List<ITEM> items){
-        final HashMap<Integer, ItemStackBuilder> stacksMap = new HashMap<>();
-        record IndexedItem<ITEM>(int index, ITEM item){}
+    private record IndexedItem<ITEM>(int index, ITEM item, AtomicReference<ItemStackBuilder> stack){}
+
+
+    private List<IndexedItem<ITEM>> convertItemsInParallel(List<ITEM> items){
+//        final HashMap<Integer, ItemStackBuilder> stacksMap = new HashMap<>();
         List<IndexedItem<ITEM>> indexed = new ArrayList<>();
-        for (int i = 0; i < items.size(); i++) indexed.add(new IndexedItem<>(i, items.get(i)));
-        indexed.parallelStream().forEach(indexedItem -> {
+        for (int i = 0; i < items.size(); i++) indexed.add(new IndexedItem<>(i, items.get(i), new AtomicReference<>(null)));
+        Consumer<IndexedItem<ITEM>> action = indexedItem -> {
             ItemStackBuilder result;
             try {
                 result = itemConverter.apply(indexedItem.item);
@@ -128,17 +152,36 @@ public class Paged<ITEM> {
                 t.printStackTrace();
                 result = ItemStackBuilder.newEmptyStack();
             }
-            synchronized (stacksMap) {
-                stacksMap.put(indexedItem.index, result);
-            }
-        });
-        List<ItemStackBuilder> stacks = new ArrayList<>();
-        for (int i = 0; i < 54; i++) {
-            ItemStackBuilder stack = stacksMap.get(i);
-            if(stack==null) break;
-            stacks.add(stack);
+            indexedItem.stack.set(result);
+        };
+        if (items.size()<5) {
+            for (IndexedItem<ITEM> itemIndexedItem : indexed) action.accept(itemIndexedItem);
+            return indexed;
         }
-        return stacks;
+        final ThreadPoolExecutor itemsConverterPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Math.min(indexed.size(), 8));
+        for (IndexedItem<ITEM> itemIndexedItem : indexed) {
+            itemsConverterPool.submit(() -> action.accept(itemIndexedItem));
+        }
+        itemsConverterPool.shutdown();
+        try {
+            itemsConverterPool.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return indexed;
+        }
+//        indexed.parallelStream().forEach(indexedItem -> {
+
+//            synchronized (stacksMap) {
+//                stacksMap.put(indexedItem.index, result);
+//            }
+//        });
+//        List<ItemStackBuilder> stacks = new ArrayList<>();
+//        for (int i = 0; i < 54; i++) {
+//            ItemStackBuilder stack = stacksMap.get(i);
+//            if(stack==null) break;
+//            stacks.add(stack);
+//        }
+        return indexed.stream().sorted(Comparator.comparingInt(value -> value.index)).limit(54).toList();
     }
 
     public void clearGeneratedArea(){

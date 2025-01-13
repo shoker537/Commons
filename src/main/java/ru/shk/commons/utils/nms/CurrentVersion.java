@@ -108,8 +108,7 @@ public class CurrentVersion {
 
     @SneakyThrows
     public net.minecraft.world.level.block.Block getBlock(Material m) {
-        Class<?> c = craftMagicNumbers();
-        return (net.minecraft.world.level.block.Block) c.getMethod("getBlock", Material.class).invoke(null, m);
+        return CraftMagicNumbers.getBlock(m);
     }
 
     public Item getItem(Material m) {
@@ -261,6 +260,9 @@ public class CurrentVersion {
         return ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(t, createTeam);
     }
 
+    protected Packet<?> createScoreboardTeamPacket(boolean createTeam, boolean collideTeammates, String name, net.kyori.adventure.text.Component prefix, net.kyori.adventure.text.Component suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return createScoreboardTeamPacket(createTeam, collideTeammates, true, false, name, toMojangComponent(prefix), toMojangComponent(suffix), color, entries);
+    }
     protected Packet<?> createScoreboardTeamPacket(boolean createTeam, boolean collideTeammates, String name, Component prefix, Component suffix, ChatColor color, List<String> entries) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return createScoreboardTeamPacket(createTeam, collideTeammates, true, false, name, prefix, suffix, color, entries);
     }
@@ -272,6 +274,10 @@ public class CurrentVersion {
     }
     protected Packet<?> createScoreboardTeamPacket(boolean createTeam, String name, net.kyori.adventure.text.Component prefix, net.kyori.adventure.text.Component suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return createScoreboardTeamPacket(createTeam, true, name, net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(prefix), RegistryAccess.EMPTY), net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(suffix), RegistryAccess.EMPTY), null, null);
+    }
+
+    protected Component toMojangComponent(net.kyori.adventure.text.Component c){
+        return Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(c), RegistryAccess.EMPTY);
     }
 
     @SneakyThrows

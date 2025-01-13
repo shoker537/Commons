@@ -24,7 +24,9 @@ import static dev.simplix.protocolize.api.util.ProtocolVersions.*;
 public class RenameItemPacket extends AbstractPacket {
     public static final List<ProtocolIdMapping> MAPPINGS = List.of(
             AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_20_1, MINECRAFT_1_20_4, 0x23),
-            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_20_5, MINECRAFT_LATEST, 0x2A)
+            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_20_5, MINECRAFT_1_21_1, 0x2A),
+            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_21_2, MINECRAFT_1_21_3, 0x2C),
+            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_21_4, MINECRAFT_LATEST, 0x2E)
     );
 
     private String itemName;

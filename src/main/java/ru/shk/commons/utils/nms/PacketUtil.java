@@ -57,6 +57,13 @@ public class PacketUtil {
     public static void createAndSendTeam(boolean createTeam, String name, String prefix, String suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
         for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeam, true,name, prefix, suffix, color, entries));
     }
+    /**
+     *  @param createTeam true - create, false - update
+     */
+    public static void createAndSendTeam(boolean createTeam, String name, Component prefix, Component suffix, ChatColor color, List<String> entries, Player... toSend) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        for (Player player : toSend) sendPacket(player, versionClass.createScoreboardTeamPacket(createTeam, true,name, prefix, suffix, color, entries));
+    }
+
     public static Object createMapPacket(int mapId, BufferedImage image){
         return versionClass.createMapPacket(mapId, image);
     }
@@ -119,6 +126,10 @@ public class PacketUtil {
         versionClass.removePlayerProfiles(p, toRemove);
     }
 
+    public static void sendScoreboardTeamPacket(Player p, String name, Component prefix, Component suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
+        Packet<?> packet = versionClass.createScoreboardTeamPacket(false,name, prefix, suffix);
+        sendPacket(p, packet);
+    }
     public static void sendScoreboardTeamPacket(Player p, String name, String prefix, String suffix) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
         Packet<?> packet = versionClass.createScoreboardTeamPacket(false,name, prefix, suffix);
         sendPacket(p, packet);

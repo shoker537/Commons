@@ -105,7 +105,8 @@ public class WorldEditManager {
     public Region getPlayerSelection(Player p){
         try {
             LocalSession s = worldEdit.getSessionManager().get(BukkitAdapter.adapt(p));
-            return s.getRegionSelector(s.getSelectionWorld()).getRegion();
+            return s.getSelection();
+//            return s.getRegionSelector(s.getSelectionWorld()).getRegion();
         } catch (IncompleteRegionException ignored) {}
         return null;
     }

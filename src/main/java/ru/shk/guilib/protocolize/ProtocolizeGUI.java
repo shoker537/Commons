@@ -186,7 +186,16 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
                 return;
             }
             List<BaseItemStack> items = new ArrayList<>(Lists.newArrayList(itemsIndexed(player.protocolVersion())));
-            player.sendPacket(new WindowItems((short) windowId, items, state));
+//            List<BaseItemStack> items = new ArrayList<>();
+//            var all = itemsIndexed(player.protocolVersion());
+//            Logger.warning("WindowItems packet with "+all.size()+" items");
+//            for (BaseItemStack baseItemStack : all) {
+//                if (items.size()==54) {
+//                    break;
+//                }
+//                items.add(new ItemStack(baseItemStack.itemType()));
+//            }
+            player.sendPacket(new WindowItems(windowId, items, state));
         } catch (Throwable t){
             t.printStackTrace();
         }

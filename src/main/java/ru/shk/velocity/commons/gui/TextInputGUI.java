@@ -11,6 +11,8 @@ import dev.simplix.protocolize.api.listener.PacketSendEvent;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.inventory.InventoryType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 import ru.shk.guilib.protocolize.packet.RenameItemPacket;
 
@@ -36,7 +38,10 @@ public class TextInputGUI extends Inventory {
         onClick(click -> {
             click.cancelled(true);
             if(click.slot()==2){
-                if(text.isEmpty()) return;
+                if(text.isEmpty()) {
+                    player.sendActionBar(Component.text("Вы ничего не написали").color(NamedTextColor.RED));
+                    return;
+                }
                 close(player);
                 result.accept(text);
             }
@@ -61,6 +66,7 @@ public class TextInputGUI extends Inventory {
         });
         open(player);
     }
+
     public boolean closed(Player p){
         if(!p.getUniqueId().equals(player.getUniqueId())) return false;
         unregisterListener();

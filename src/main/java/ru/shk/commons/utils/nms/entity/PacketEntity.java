@@ -10,6 +10,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -207,13 +209,16 @@ public class PacketEntity<T extends PacketEntity> {
     }
     @SneakyThrows
     public synchronized void crossDimensionTeleport(World w, double x, double y, double z, float yaw, float pitch)  {
-//        entity.teleport(new TeleportTransition((ServerLevel) PacketUtil.getNMSWorld(w), new Vec3(x,y,z), Vec3.ZERO, yaw, pitch, entity -> this.entity = entity));
-        entity.teleportTo((ServerLevel) PacketUtil.getNMSWorld(w), x,y,z, new HashSet<>(), yaw, pitch);
+        entity.teleport(new TeleportTransition((ServerLevel) PacketUtil.getNMSWorld(w), new Vec3(x,y,z), Vec3.ZERO, yaw, pitch, entity -> this.entity = entity));
+//        entity.teleportTo((ServerLevel) PacketUtil.getNMSWorld(w), x,y,z, new HashSet<>(), yaw, pitch, false);
     }
     @SneakyThrows
     public synchronized void crossDimensionTeleport(World w, double x, double y, double z, float yaw, float pitch, Consumer<T> afterTeleported)  {
-        entity.teleportTo((ServerLevel) PacketUtil.getNMSWorld(w), x,y,z, new HashSet<>(), yaw, pitch);
-//        afterTeleported.accept();
+//        entity.teleportTo((ServerLevel) PacketUtil.getNMSWorld(w), x,y,z, new HashSet<>(), yaw, pitch, false);
+        entity.teleport(new TeleportTransition((ServerLevel) PacketUtil.getNMSWorld(w), new Vec3(x,y,z), Vec3.ZERO, yaw, pitch, entity -> {
+            this.entity = entity;
+            afterTeleported.accept((T) (Object) entity);
+        }));
     }
     @SneakyThrows
     public synchronized void crossDimensionTeleport(Location l)  {

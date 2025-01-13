@@ -6,6 +6,6 @@
   "authors": ["shoker137"],
   "dependencies": [
     {"id": "mysqlapi"},
-    {"id": "protocolize"}
+    {"id": "protocolize", "optional": true}
   ]
 }

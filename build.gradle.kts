@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.5.1"
+version = "1.7.6.0"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -83,18 +83,18 @@ repositories {
   }
 }
 dependencies {
-  paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
-  implementation("com.github.Carleslc.Simple-YAML:Simple-Configuration:1.8.4")
+  paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
+  implementation("com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4")
   compileOnly("com.github.retrooper:packetevents-spigot:2.5.0")
   compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.11.0")
   compileOnly("dev.simplix:protocolize-api:2.4.3")
-//  implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
-//    isTransitive = false
-//  }
-  implementation(files("E:/Libraries/AnvilGUI.jar"))
+  implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
+    isTransitive = false
+  }
+//  implementation(files("E:/Libraries/AnvilGUI.jar"))
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
   compileOnly("com.mojang:authlib:6.0.54")
@@ -103,15 +103,16 @@ dependencies {
   implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
 
   compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.3-SNAPSHOT")
-  implementation("org.projectlombok:lombok:1.18.34")
-  annotationProcessor("org.projectlombok:lombok:1.18.34")
+  implementation("org.projectlombok:lombok:1.18.36")
+  annotationProcessor("org.projectlombok:lombok:1.18.36")
+  implementation("redis.clients:jedis:5.2.0")
 
   compileOnly("land.shield:PlayerAPI:1.5.1")
-  compileOnly("ru.shk:MySQLAPI:3.2.3")
+  compileOnly("ru.shk:MySQLAPI:3.4.0")
 
   compileOnly(files("D:/Libraries/ProtocolLib.jar"))
-  compileOnly("com.velocitypowered:velocity-api:3.0.1")
-  annotationProcessor("com.velocitypowered:velocity-api:3.0.1")
+  compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
+  annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
 }
 
 tasks {
