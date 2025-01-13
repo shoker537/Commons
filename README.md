@@ -6,7 +6,7 @@
 
 Compiled with Java 21
 
-Modules which use NMS support v1.21 / 1.21.1
+Modules which use NMS support 1.21.2 / 1.21.3
 
 # Usage
 
