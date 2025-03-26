@@ -10,5 +10,6 @@ softdepend:
 commands:
   commonsbukkit:
     permission: commons.admin
+folia-supported: true
 libraries:
   - net.kyori:adventure-platform-bungeecord:4.3.2

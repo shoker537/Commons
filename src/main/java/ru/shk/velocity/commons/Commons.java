@@ -1,12 +1,10 @@
 package ru.shk.velocity.commons;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
@@ -21,20 +19,24 @@ import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import redis.clients.jedis.JedisPooled;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.CustomHead;
 import ru.shk.commons.utils.Plugin;
 import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.commons.utils.items.PlayerProcessor;
 import ru.shk.commons.utils.items.universal.HeadsCache;
+import ru.shk.commons.utils.redis.RedisCredentials;
+import ru.shk.commons.utils.redis.channels.ChannelListener;
 import ru.shk.commons.utils.runnables.Schedule;
 import ru.shk.mysql.connection.MySQL;
 import ru.shk.mysql.connection.data.Rows;
+import ru.shk.velocity.commons.cmd.CTPCommand;
 import ru.shk.velocity.commons.cmd.FindCMD;
 import ru.shk.velocity.commons.config.Config;
 import ru.shk.velocity.commons.gui.GUILib;
-import ru.shk.velocity.commons.utils.PluginMessage;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -47,6 +49,7 @@ import java.util.logging.Logger;
 @Getter@Accessors(fluent = true)
 //@Plugin(id = "commons", name = "Commons", authors = {"shoker137"}, version = "1.3.81", dependencies = {@Dependency(id = "mysqlapi")})
 public class Commons {
+    public static final String REDIS_GENERAL_CHANNEL = "commons:general";
     private MySQL mysql;
     private final Config config;
     private final ProxyServer proxy;
@@ -54,12 +57,14 @@ public class Commons {
     private final ThreadPoolExecutor singleThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1, new SingleThreadFactory("Commons Single Pool"));
     private final PlayerLocationReceiver playerLocationReceiver;
 
-    private final ThreadPoolExecutor teleportService = new ThreadPoolExecutor(0, 5, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    private final ThreadPoolExecutor teleportService = new ThreadPoolExecutor(0, 5, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     private final HashMap<UUID, Future<?>> runningTeleports = new HashMap<>();
     private final List<Integer> tpInProcess = new ArrayList<>();
     private int lastTpId = 0;
     private final Object tpSyncObject = new Object();
     private PAFManager PAFManager;
+    private JedisPooled jedis;
+    private ChannelListener redisListener;
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
@@ -128,7 +133,16 @@ public class Commons {
         setupSchedule();
         proxy.getChannelRegistrar().register(MinecraftChannelIdentifier.from("commons:generic"));
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("find").build(), new FindCMD(this));
+        proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("ctp").build(), new CTPCommand(this));
         proxy.getPluginManager().getPlugin("protocolize").ifPresent(pluginContainer -> ProtocolizeHook.register());
+        if (config.getBoolean("redis.enabled", true)) {
+            RedisCredentials redisCredentials = new RedisCredentials(config.getString("redis.host", "127.0.0.1"), config.getInt("redis.port", 6379), config.getString("redis.user"), config.getString("redis.password"));
+            RedisCredentials.DEFAULT = redisCredentials;
+            if (config.getBoolean("redis.use-general-channel", true)) {
+                jedis = redisCredentials.newJedis(1,1,1);
+                redisListener = new ChannelListener(redisCredentials, REDIS_GENERAL_CHANNEL, this::onRedisMessage);
+            }
+        }
     }
 
     private void setupSchedule(){
@@ -138,6 +152,44 @@ public class Commons {
         Schedule.setSyncLater((r, delay) -> later(() -> sync(r), delay));
         Schedule.setAsyncRepeating(this::repeat);
         Schedule.setSyncRepeating((r, delay, period) -> repeat(() -> sync(r), delay, period));
+    }
+
+    private void onRedisMessage(JsonObject o){
+        String type = o.get("type").getAsString();
+        switch (type){
+            case "teleportfeedback" -> {
+                int id = o.get("tpId").getAsInt();
+                tpInProcess.removeIf(integer -> integer==id);
+            }
+            case "executeAtProxy" -> {
+                UUID uuid = UUID.fromString(o.get("playerUUID").getAsString());
+                String command = o.get("command").getAsString();
+                proxy.getPlayer(uuid).ifPresent(player -> proxy.getCommandManager().executeAsync(player, command));
+            }
+            case "broadcast" -> {
+                String message = o.get("message").getAsString();
+                String permission = o.has("permission") ? o.get("permission").getAsString() : null;
+                Component msg = MiniMessage.miniMessage().deserialize(message);
+                if (permission==null) {
+                    proxy.getAllPlayers().forEach(player -> player.sendMessage(msg));
+                } else {
+                    proxy.getAllPlayers().stream().filter(player -> player.hasPermission(permission)).forEach(player -> player.sendMessage(msg));
+                }
+            }
+            case "message" -> {
+                UUID uuid = UUID.fromString(o.get("playerUUID").getAsString());
+                String message = o.get("message").getAsString();
+                proxy.getPlayer(uuid).ifPresent(player -> player.sendRichMessage(message));
+            }
+            case "locationfeedback" -> {
+                UUID uuid = UUID.fromString(o.get("playerUUID").getAsString());
+                String world = o.get("world").getAsString();
+                int x = o.get("x").getAsInt();
+                int y = o.get("y").getAsInt();
+                int z = o.get("z").getAsInt();
+                playerLocationReceiver.receivedLocation(uuid, world, x, y, z);
+            }
+        }
     }
 
     public void teleport(Player from, Player to){
@@ -220,12 +272,14 @@ public class Commons {
     }
 
     private void sendTeleportToServer(int tpId, Player who, Player to){
-        to.getCurrentServer().ifPresent(s -> new PluginMessage("commons:generic")
-                .writeUTF("tp")
-                .writeInt(tpId)
-                .writeUTF(who.getUniqueId().toString())
-                .writeUTF(to.getUniqueId().toString())
-                .send(s));
+        to.getCurrentServer().ifPresent(s -> {
+            JsonObject o = new JsonObject();
+            o.addProperty("type", "teleportrequest");
+            o.addProperty("tpId", tpId);
+            o.addProperty("playerUUID", who.getUniqueId().toString());
+            o.addProperty("toUUID", to.getUniqueId().toString());
+            jedis.publish(REDIS_GENERAL_CHANNEL, o.toString());
+        });
     }
 
     public void async(Runnable r){
@@ -240,12 +294,12 @@ public class Commons {
         threadPool.shutdown();
         singleThreadPool.shutdown();
         try {
-            if(!threadPool.awaitTermination(10, TimeUnit.SECONDS)) threadPool.shutdownNow();
+            if(!threadPool.awaitTermination(5, TimeUnit.SECONDS)) threadPool.shutdownNow();
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
         try {
-            if(!singleThreadPool.awaitTermination(10, TimeUnit.SECONDS)) singleThreadPool.shutdownNow();
+            if(!singleThreadPool.awaitTermination(5, TimeUnit.SECONDS)) singleThreadPool.shutdownNow();
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
@@ -256,6 +310,13 @@ public class Commons {
                 t.printStackTrace();
             }
         });
+        if(jedis!=null) {
+            try {
+                jedis.close();
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        }
     }
 
     public void later(Runnable r, Duration delay){
@@ -269,45 +330,6 @@ public class Commons {
     public void registerMessagingChannel(String channel){
         if(channel.equalsIgnoreCase("bungeecord")) channel = "bungeecord:main";
         proxy.getChannelRegistrar().register(MinecraftChannelIdentifier.from(channel));
-    }
-
-    @Subscribe
-    public void onPluginMessage(PluginMessageEvent e){
-        if(!(e.getIdentifier() instanceof MinecraftChannelIdentifier identifier)) return;
-        String tag = identifier.getId();
-        if(tag.equals("bungeecord:main")) {
-            ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
-            String type = in.readUTF();
-            switch (type){
-                case "executeAtBungee","executeAtProxy" -> {
-                    String cmd = in.readUTF();
-                    Player p = (Player) e.getTarget();
-                    proxy.getCommandManager().executeAsync(p, cmd);
-                }
-                case "location" -> {
-                    UUID uuid = UUID.fromString(in.readUTF());
-                    String world = in.readUTF();
-                    int x = in.readInt();
-                    int y = in.readInt();
-                    int z = in.readInt();
-                    playerLocationReceiver.receivedLocation(uuid, world, x, y, z);
-                }
-                case "tpFeedback" -> {
-                    int teleportId = in.readInt();
-                    tpInProcess.removeIf(integer -> integer==teleportId);
-                }
-            }
-            return;
-        }
-        if(!tag.startsWith("commons:")) return;
-        String type = tag.split(":")[1];
-        switch (type) {
-            case "broadcast" -> {
-                ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
-                String msg = in.readUTF();
-                proxy.sendMessage(colorize(msg));
-            }
-        }
     }
 
     @Subscribe(order = PostOrder.LAST)
@@ -386,7 +408,13 @@ public class Commons {
         ru.shk.commons.utils.Logger.warning("§c"+s);
     }
 
-    protected void sendFindPlayer(Player pp) {
-        pp.getCurrentServer().ifPresent(s -> new PluginMessage("commons:location").writeUTF(pp.getUniqueId().toString()).send(s));
-    }
+//    protected void sendFindPlayer(Player pp) {
+//        pp.getCurrentServer().ifPresent(s -> {
+//            new PluginMessage("commons:location").writeUTF(pp.getUniqueId().toString()).send(s);
+//            JsonObject o = new JsonObject();
+//            o.addProperty("type", "locationrequest");
+//            o.addProperty("playerUUID", pp.getUniqueId().toString());
+//
+//        });
+//    }
 }

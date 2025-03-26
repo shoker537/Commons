@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.Plugin;
+import ru.shk.commons.utils.runnables.Schedule;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -31,11 +32,12 @@ public class GUIManager implements Plugin {
                 }
             });
         };
-        if(ServerType.get()==ServerType.VELOCITY) {
-            ru.shk.velocity.commons.Commons.getInstance().repeat(tickTask, Duration.ofMillis(50), Duration.ofMillis(50));
-        } else if (ServerType.get()==ServerType.SPIGOT) {
-            ru.shk.commons.Commons.getInstance().syncRepeating(tickTask, 1,1);
-        }
+        Schedule.syncRepeating(tickTask, Duration.ofMillis(50), Duration.ofMillis(50));
+//        if(ServerType.get()==ServerType.VELOCITY) {
+//            ru.shk.velocity.commons.Commons.getInstance().repeat(tickTask, Duration.ofMillis(50), Duration.ofMillis(50));
+//        } else if (ServerType.get()==ServerType.SPIGOT) {
+//            ru.shk.commons.Commons.getInstance().syncRepeating(tickTask, 1,1);
+//        }
     }
 
     public GUI customGUI(Object inventory) {

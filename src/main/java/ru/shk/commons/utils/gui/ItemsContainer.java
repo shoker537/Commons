@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public abstract class ItemsContainer<T extends ItemsContainer> {
     private final GUI.GUIType type;
     private final ConcurrentHashMap<Integer, Item> items;
-    @Setter private int lines = 1;
+    @Setter private int lines = 6;
 
     public ItemsContainer(GUI.GUIType type){
         items = new ConcurrentHashMap<>();

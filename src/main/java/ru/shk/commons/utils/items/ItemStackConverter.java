@@ -34,6 +34,7 @@ public class ItemStackConverter {
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"hide-flags", b -> new StringListValue().value(b.flags().stream().map(o -> ((ItemFlag)o).name()).toList()), (b, s) -> b.flags(((StringListValue)s).value().stream().map(s1 -> ItemFlag.valueOf(s1.toUpperCase())).toList())));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"CMD", b -> new StringValue().value(b.customModelData()==null?null:String.valueOf(b.customModelData())), (b, s) -> b.customModelData(Integer.parseInt(s.stringValue()))));
         stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"damage", b -> new StringValue().value(b.damage()==null?null:String.valueOf(b.damage())), (b, s) -> b.damage(Integer.parseInt(s.stringValue()))));
+        stringRules.add(new StringConverterRule(ConvertMaterial.ANY,"max-stack-size", b -> new StringValue().value(b.maxStackSize()==null?null:String.valueOf(b.maxStackSize())), (b, s) -> b.maxStackSize(Integer.parseInt(s.stringValue()))));
     }
 
     private static List<String> enchantsToStringList(List<Enchantment> list){

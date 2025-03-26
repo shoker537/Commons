@@ -1,17 +1,23 @@
 package ru.shk.velocity.commons;
 
+import com.google.gson.JsonObject;
 import com.velocitypowered.api.proxy.Player;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ru.shk.commons.utils.Coordinates;
+import ru.shk.commons.utils.Logger;
+import ru.shk.commons.utils.redis.RedisCredentials;
+import ru.shk.commons.utils.redis.channels.ChannelListener;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 public class PlayerLocationReceiver {
-    public HashMap<UUID, Coordinates> receivedCoordinates = new HashMap<>();
+    public Map<UUID, Coordinates> receivedCoordinates = new ConcurrentHashMap<>();
     public ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3, new DefaultThreadFactory("Commons Location Receiver Pool"));
     private final Commons pl;
     private int awaiting = 0;
@@ -26,7 +32,7 @@ public class PlayerLocationReceiver {
 
     public Coordinates findPlayer(Player pp){
         awaiting++;
-        pl.sendFindPlayer(pp);
+        sendFindPlayer(pp);
         int a = 0;
         while (a<5+Math.min(1+awaiting, 30)){
             a++;
@@ -38,7 +44,7 @@ public class PlayerLocationReceiver {
             if(receivedCoordinates.containsKey(pp.getUniqueId())){
                 Coordinates c = receivedCoordinates.get(pp.getUniqueId());
                 if(c.getWorld().equals("player-not-found-error")){
-                    pl.sendFindPlayer(pp);
+                    sendFindPlayer(pp);
                     continue;
                 }
                 receivedCoordinates.remove(pp.getUniqueId());
@@ -50,8 +56,21 @@ public class PlayerLocationReceiver {
         return null;
     }
 
+    private void sendFindPlayer(Player p){
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "locationrequest");
+        o.addProperty("playerUUID", p.getUniqueId().toString());
+        pl.jedis().publish(Commons.REDIS_GENERAL_CHANNEL, o.toString());
+    }
+
     public void findPlayer(Player pp, Consumer<Coordinates> whenDone){
-        executor.submit(() -> whenDone.accept(findPlayer(pp)));
+        executor.submit(() -> {
+            try {
+                whenDone.accept(findPlayer(pp));
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        });
     }
 
 }

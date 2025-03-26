@@ -26,6 +26,12 @@ public class SB {
     private byte space = 1;
     private int last_entry = 0;
 
+    public SB(Component title, String objective, int maxValue) {
+        this.objective = board.registerNewObjective(objective, "dummy", title);
+        this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        if (maxValue != -1) load(maxValue);
+    }
+
     public SB(String title, String objective, int maxValue) {
         this.objective = board.registerNewObjective(objective, "dummy", (title.replace("&", "§")));
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);

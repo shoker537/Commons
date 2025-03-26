@@ -55,6 +55,12 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     }
 
     @Override
+    public R maxStackSize(int size) {
+        item.addComponent(MaxStackSizeComponent.create(size));
+        return (R) this;
+    }
+
+    @Override
     public R enchantingGlint(boolean value) {
         item.addComponent(EnchantmentGlintComponent.create(value));
         return (R) this;
@@ -356,9 +362,16 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public Integer damage() {
-        DamageComponent damage = item.getComponent(DamageComponentImpl.class);
+        DamageComponent damage = item.getComponent(DamageComponent.class);
         if(damage==null) return null;
         return damage.getDamage();
+    }
+
+    @Override
+    public Integer maxStackSize() {
+        MaxStackSizeComponent max = item.getComponent(MaxStackSizeComponent.class);
+        if(max==null) return null;
+        return max.getMaxStackSize();
     }
 
     @Override

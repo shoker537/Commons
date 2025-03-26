@@ -1,10 +1,9 @@
 package ru.shk.commons.utils.items.bukkit;
 
-import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -13,7 +12,6 @@ import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.world.item.component.ResolvableProfile;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -37,8 +35,10 @@ import ru.shk.commons.utils.items.universal.EnchantmentType;
 import ru.shk.commons.utils.items.universal.PotionData;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.UUID;
 
 public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, BukkitItemStack> {
     private int customHeadId = -1;
@@ -273,12 +273,10 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
 
     @Override
     public BukkitItemStack base64head(String base64) {
-        SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(new UUID(0,0), "#");
+        PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "aboba");
         profile.setProperty(new ProfileProperty("textures", base64));
-        skullMeta.setPlayerProfile(profile);
         this.customHeadId = -1;
-        item.setItemMeta(skullMeta);
+        item.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(profile));
         return this;
     }
 
@@ -297,6 +295,12 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
             PotionMeta m = (PotionMeta) meta;
             m.addCustomEffect(new PotionEffect(PotionEffectType.getByKey(NamespacedKey.minecraft(effect.type().minecraftKey())), effect.duration(), effect.amplifier(), effect.ambient(), effect.particles(), effect.icon()), true);
         });
+        return this;
+    }
+
+    @Override
+    public BukkitItemStack maxStackSize(int size) {
+        item.setData(DataComponentTypes.MAX_STACK_SIZE, size);
         return this;
     }
 
@@ -421,6 +425,11 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
         if(meta.getCustomEffects().size()==0) return null;
         PotionEffect effect = meta.getCustomEffects().get(0);
         return new ru.shk.commons.utils.items.universal.PotionEffect(ru.shk.commons.utils.items.universal.PotionType.byKey(effect.getType().getKey().getKey()), effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.hasParticles(), effect.hasIcon()).toString();
+    }
+
+    @Override
+    public Integer maxStackSize() {
+        return item.getData(DataComponentTypes.MAX_STACK_SIZE).intValue();
     }
 
     @Override

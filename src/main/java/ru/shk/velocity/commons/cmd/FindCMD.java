@@ -8,7 +8,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import ru.shk.velocity.commons.Commons;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class FindCMD implements SimpleCommand {
     private final Commons plugin;
@@ -41,6 +45,15 @@ public class FindCMD implements SimpleCommand {
             } else {
                 invocation.source().sendMessage(MiniMessage.miniMessage().deserialize(String.format("<aqua>Игрок <white>%s<aqua> находится на сервере <white>%s<aqua> в мире <white>%s<aqua> на <aqua>%d %d %d", target.get().getUsername(), server, c.getWorld(), c.getX(), c.getY(), c.getZ())));
             }
+        });
+    }
+
+    @Override
+    public CompletableFuture<List<String>> suggestAsync(Invocation invocation) {
+        return CompletableFuture.supplyAsync(() -> {
+            Collection<Player> all = plugin.proxy().getAllPlayers();
+            if (invocation.arguments().length==0 || invocation.arguments()[0].isEmpty()) return all.stream().map(Player::getUsername).toList();
+            return all.stream().map(Player::getUsername).filter(s -> s.startsWith(invocation.arguments()[0].toLowerCase())).toList();
         });
     }
 }

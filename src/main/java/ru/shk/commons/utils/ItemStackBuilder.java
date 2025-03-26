@@ -2,8 +2,8 @@ package ru.shk.commons.utils;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.Bukkit;
@@ -26,8 +26,6 @@ import ru.shk.commons.Commons;
 import ru.shk.configapi.Config;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -66,7 +64,10 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder customHead(String key){
         CustomHead h = Commons.getInstance().findCustomHead(key);
-        if(h==null) return null;
+        if(h==null) {
+            Logger.warning("Unknown custom head: "+key);
+            return null;
+        }
         base64Head(h.getTexture());
         this.customHeadId = h.getId();
         return this;
@@ -155,8 +156,14 @@ public class ItemStackBuilder {
                 Bukkit.getLogger().warning("Item "+type+" has one or more wrong arguments for 'attributes': "+e.getMessage()+". It's being ignored.");
             }
         });
+        Config.getIfHasInt(section, "max-stack-size", this::maxStackSize);
         Config.getIfHasInt(section, "amount", this::count);
         Config.getIfHasInt(section, "custom-model-data", this::customModelData);
+    }
+
+    public ItemStackBuilder maxStackSize(int size){
+        stack.setData(DataComponentTypes.MAX_STACK_SIZE, size);
+        return this;
     }
 
     private ItemStackBuilder autoAddAttribute(UUID attributeUUID, Attribute attribute, String displayName, double value, AttributeModifier.Operation operation, String slot) {
@@ -332,12 +339,10 @@ public class ItemStackBuilder {
         return ((SkullMeta)stack.getItemMeta()).getOwningPlayer().getUniqueId();
     }
     public ItemStackBuilder base64Head(String texture) {
-        SkullMeta skullMeta = (SkullMeta) stack.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(new UUID(0,0), "#");
+        PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "aboba");
         profile.setProperty(new ProfileProperty("textures", texture));
-        skullMeta.setPlayerProfile(profile);
         this.customHeadId = -1;
-        stack.setItemMeta(skullMeta);
+        stack.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(profile));
         return this;
     }
 

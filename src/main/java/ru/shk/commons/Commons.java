@@ -10,8 +10,6 @@ import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -20,10 +18,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
+import redis.clients.jedis.JedisPooled;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.nms.PacketVersion;
+import ru.shk.commons.utils.redis.RedisCredentials;
+import ru.shk.commons.utils.redis.channels.ChannelListener;
 import ru.shk.commons.utils.runnables.Schedule;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
@@ -48,13 +49,21 @@ public final class Commons extends JavaPlugin {
     private final ConcurrentHashMap<Integer, CustomHead> customHeadsCache = new ConcurrentHashMap<>();
     @Getter private MySQL mysql;
     final ThreadPoolExecutor pool = new ThreadPoolExecutor(5, 10, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(), new DefaultThreadFactory("Commons Main Pool"));
-    private final ThreadPoolExecutor teleportService = (ThreadPoolExecutor) Executors.newFixedThreadPool(2, new DefaultThreadFactory("Commons Teleport Service Pool"));
     @Getter@Nullable private WorldEditManager worldEditManager;
     @Getter private PAFManager pafManager;
     @Getter private Config config;
+    public static final String REDIS_GENERAL_CHANNEL = "commons:general";
+
+    @Getter private JedisPooled jedis;
+    private ChannelListener redisListener;
+    private boolean isFolia = false;
 
     @Override
     public void onLoad() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException e) {}
         Logger.logger(getLogger());
         ru.shk.commons.ServerType.setType(ru.shk.commons.ServerType.SPIGOT);
         info(" ");
@@ -69,6 +78,10 @@ public final class Commons extends JavaPlugin {
             info(ChatColor.WHITE+"          Running on "+ver+" - "+ChatColor.GREEN+"Supported");
             if(Commons.serverVersion==PacketVersion.values()[PacketVersion.values().length-1]) isVersionLatestCompatible = true;
         }
+        boolean folia = isFolia();
+        if (folia){
+            warning("          Folia - limited mode!");
+        }
         info(" ");
         instance = this;
         try {
@@ -76,10 +89,12 @@ public final class Commons extends JavaPlugin {
         } catch (Throwable e){
             e.printStackTrace();
         }
-        try {
-            plugins.add(new GUILib());
-        } catch (Throwable e){
-            e.printStackTrace();
+        if (!folia) {
+            try {
+                plugins.add(new GUILib());
+            } catch (Throwable e){
+                e.printStackTrace();
+            }
         }
         try {
             plugins.add(new ConfigAPI());
@@ -98,12 +113,12 @@ public final class Commons extends JavaPlugin {
     }
 
     private void setupSchedule(){
-        Schedule.setAsync(this::async);
         Schedule.setSync(this::sync);
-        Schedule.setAsyncLater((r, d) -> asyncLater(r, (int)(d.toMillis()/50)));
         Schedule.setSyncLater((r, delay) -> syncLater(() -> sync(r), (int)(delay.toMillis()/50)));
-        Schedule.setAsyncRepeating((r, d, p) -> asyncRepeating(r, (int)(d.toMillis()/50), (int)(p.toMillis()/50)));
         Schedule.setSyncRepeating((r, delay, period) -> syncRepeating(r, (int)(delay.toMillis()/50), (int)(period.toMillis()/50)));
+        Schedule.setAsync(this::async);
+        Schedule.setAsyncLater((r, d) -> asyncLater(r, (int)(d.toMillis()/50)));
+        Schedule.setAsyncRepeating((r, d, p) -> asyncRepeating(r, (int)(d.toMillis()/50), (int)(p.toMillis()/50)));
     }
 
     public long getPlayerPlayedTime(String uuid){
@@ -111,64 +126,58 @@ public final class Commons extends JavaPlugin {
     }
 
     private void sendLocationFeedback(String uuid, Coordinates coordinates){
-        ByteArrayDataOutput o = ByteStreams.newDataOutput();
-        o.writeUTF("location");
-        o.writeUTF(uuid);
-        if(coordinates==null){
-            o.writeUTF("player-not-found-error");
-            o.writeInt(0);
-            o.writeInt(0);
-            o.writeInt(0);
-        } else {
-            o.writeUTF(coordinates.getWorld());
-            o.writeInt(coordinates.getX());
-            o.writeInt(coordinates.getY());
-            o.writeInt(coordinates.getZ());
-        }
-        Bukkit.getOnlinePlayers().stream().findAny().ifPresent(player -> player.sendPluginMessage(this, "BungeeCord", o.toByteArray()));
+        Schedule.async(() -> {
+            JsonObject o = new JsonObject();
+            o.addProperty("type", "locationfeedback");
+            o.addProperty("playerUUID", uuid);
+            o.addProperty("world", coordinates.getWorld());
+            o.addProperty("x", coordinates.getX());
+            o.addProperty("y", coordinates.getY());
+            o.addProperty("z", coordinates.getZ());
+            jedis.publish(REDIS_GENERAL_CHANNEL, o.toString());
+        });
     }
 
-    public void executeCommandAtBungee(Player p, String cmd){
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("executeAtBungee");
-        out.writeUTF(cmd);
-        p.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+    public void executeCommandAtProxy(Player p, String cmd){
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "executeAtProxy");
+        o.addProperty("playerUUID", p.getUniqueId().toString());
+        o.addProperty("command",cmd);
+        jedis.publish(REDIS_GENERAL_CHANNEL, o.toString());
     }
 
-    public void broadcastOnBungee(String msg){
-        Optional<? extends Player> p = Bukkit.getOnlinePlayers().stream().findAny();
-        if(p.isEmpty()) return;
-        ByteArrayDataOutput o = ByteStreams.newDataOutput();
-        o.writeUTF(msg);
-        p.get().sendPluginMessage(this, "commons:broadcast", o.toByteArray());
+    public void messageAtProxy(Player p, String msg){
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "message");
+        o.addProperty("playerUUID", p.getUniqueId().toString());
+        o.addProperty("message",msg);
+        jedis.publish(REDIS_GENERAL_CHANNEL, o.toString());
+    }
+
+    public void broadcastOnProxy(String msg){
+        broadcastOnProxy(msg, null);
+    }
+
+    public void broadcastOnProxy(String msg, String permission){
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "broadcastAtProxy");
+        o.addProperty("message",msg);
+        if (permission!=null) o.addProperty("permission", permission);
+        jedis.publish(REDIS_GENERAL_CHANNEL, o.toString());
     }
 
     @Override
     public void onEnable() {
         config = new Config(getDataFolder(), true);
-        if(!config.contains("sockets.enable")) config.setValue("sockets.enable", false);
-        if(!config.contains("sockets.auto-find-port")) config.setValue("sockets.auto-find-port", true);
-        if(!config.contains("sockets.server-port")) config.setValue("sockets.server-port", 3001);
-        if(!config.contains("sockets.bungee-socket-ip")) config.setValue("sockets.bungee-socket-ip", "127.0.0.1");
-        if(!config.contains("sockets.bungee-socket-port")) config.setValue("sockets.bungee-socket-port", 3000);
-//        if(config.getBoolean("sockets.enable")) {
-//            socketManager = new SocketManager(
-//                    config.getBoolean("sockets.auto-find-port")?-1:config.getInt("sockets.server-port"),
-//                    s -> sync(() -> getServer().getConsoleSender().sendMessage(colorize(s))),
-//                    new InetSocketAddress(config.getString("sockets.bungee-socket-ip"), config.getInt("sockets.bungee-socket-port"))
-//            );
-//            socketManager.getSocketThread().start();
-//
-//            // TEST
-//            DecimalFormat f = new DecimalFormat("##.#");
-//            socketManager.getSocketMessageListeners().add(new SocketMessageListener("TPS") {
-//                @Override
-//                public void onMessage(SocketManager manager, SocketMessageType type, String channel, String server, DataInputStream data) {
-//                    manager.sendToBungee("TPS", List.of(f.format(MinecraftServer.getServer().recentTps[0]).toString()));
-//                }
-//            });
-//        }
-        getServer().getScheduler().runTaskTimer(this, () -> {
+        if (config.getBoolean("redis.enabled", true)) {
+            RedisCredentials redisCredentials = new RedisCredentials(config.getString("redis.host", "127.0.0.1"), config.getInt("redis.port", 6379), config.getString("redis.user"), config.getString("redis.password"));
+            RedisCredentials.DEFAULT = redisCredentials;
+            if (config.getBoolean("redis.use-general-channel", true)) {
+                jedis = redisCredentials.newJedis(1,1,1);
+                redisListener = new ChannelListener(redisCredentials, REDIS_GENERAL_CHANNEL, this::onRedisMessage);
+            }
+        }
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> {
             int players = Bukkit.getOnlinePlayers().size();
             if(players>60){
                 pool.setMaximumPoolSize(30);
@@ -213,20 +222,6 @@ public final class Commons extends JavaPlugin {
             return true;
         });
         pafManager = new PAFManager(this);
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "commons:broadcast");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:location", (s, player, bytes) -> {
-            async(() -> {
-                ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-                String uuid = in.readUTF();
-                UUID u = UUID.fromString(uuid);
-                Player p = Bukkit.getPlayer(u);
-                if(p==null || !p.isOnline()){
-                    sendLocationFeedback(uuid, null);
-                } else {
-                    sendLocationFeedback(uuid, new Coordinates(p.getLocation()));
-                }
-            });
-        });
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getMessenger().registerIncomingPluginChannel(this, "commons:updateinv", (s, player, bytes) -> {
             ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
@@ -236,62 +231,43 @@ public final class Commons extends JavaPlugin {
             if(p==null || !p.isOnline()) return;
             p.updateInventory();
         });
-        getServer().getMessenger().registerIncomingPluginChannel(this, "commons:generic", (channel, player, message) -> {
-            try {
-                ByteArrayDataInput in = ByteStreams.newDataInput(message);
-                String type = in.readUTF();
-                switch (type){
-                    case "tp" -> teleportService.submit(() -> {
-                        int teleportId = in.readInt();
-                        String who = in.readUTF();
-                        String to = in.readUTF();
-                        Player p1;
-                        int tries = 0;
-                        do {
-                            tries++;
-                            if(tries==6) {
-                                sync(() -> getLogger().warning("Player teleportation timed out - the first player is not on the server."));
-                                return;
-                            }
-                            p1 = Bukkit.getPlayer(UUID.fromString(who));
-                            if(p1==null){
-                                try {
-                                    Thread.sleep(2000);
-                                } catch (InterruptedException e) {}
-                            }
-                        } while (p1==null);
-                        Player p2 = Bukkit.getPlayer(UUID.fromString(to));
-                        if(p2==null) {
-                            sync(() -> getLogger().warning("Tried to teleport player, but the second player is offline: "+to));
-                            return;
-                        }
-                        Player finalP = p1;
-                        sync(() -> finalP.teleport(p2));
-                        p1.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Телепортирован!"));
-                        sendTeleportFeedback(teleportId);
-                    });
-                }
-            } catch (Throwable t){
-                sync(t::printStackTrace);
+    }
+
+    private void onRedisMessage(JsonObject o){
+        switch (o.get("type").getAsString()){
+            case "teleportrequest" -> {
+                int tpId = o.get("tpId").getAsInt();
+                UUID playerUUID = UUID.fromString(o.get("playerUUID").getAsString());
+                UUID toUUID = UUID.fromString(o.get("toUUID").getAsString());
+                sync(() -> {
+                    Player p = Bukkit.getPlayer(playerUUID);
+                    if (p==null) return;
+                    Player to = Bukkit.getPlayer(toUUID);
+                    if (to==null) return;
+                    if (to.getVehicle()==null){
+                        p.teleportAsync(to.getLocation());
+                    } else {
+                        p.teleportAsync(to.getLocation().clone().add(0,1,0));
+                    }
+                    async(() -> sendTeleportFeedback(tpId));
+                });
             }
-        });
+            case "locationrequest" -> {
+//                getLogger().info("New location request: "+o.toString());
+                UUID uuid = UUID.fromString(o.get("playerUUID").getAsString());
+                sync(() -> {
+                    Player p = Bukkit.getPlayer(uuid);
+                    if (p!=null) sendLocationFeedback(p.getUniqueId().toString(), new Coordinates(p.getLocation()));
+                });
+            }
+        }
     }
 
     private void sendTeleportFeedback(int id){
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("tpFeedback");
-        out.writeInt(id);
-        int tries = 0;
-        while (Bukkit.getOnlinePlayers().size()==0) {
-            tries++;
-            if(tries==5) return;
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        Bukkit.getOnlinePlayers().iterator().next().sendPluginMessage(this, "BungeeCord", out.toByteArray());
+        JsonObject o = new JsonObject();
+        o.addProperty("type","teleportfeedback");
+        o.addProperty("tpId", id);
+        jedis.publish(REDIS_GENERAL_CHANNEL, o.toString());
     }
 
     @Override
@@ -305,6 +281,7 @@ public final class Commons extends JavaPlugin {
 //            }
 //            socketManager.close();
 //        }
+
         plugins.forEach(plugin -> {
             try {
                 plugin.disable();
@@ -321,6 +298,14 @@ public final class Commons extends JavaPlugin {
             throw new RuntimeException(ex);
         }
         info("Tasks completed.");
+        if (jedis!=null) {
+            try {
+                jedis.close();
+            } catch (Throwable t){
+                t.printStackTrace();
+            }
+        }
+        if (redisListener!=null) redisListener.shutdown();
     }
 
     public void showAdvancementNotification(Player p, String header, String footer, String icon){
@@ -391,6 +376,10 @@ public final class Commons extends JavaPlugin {
         return head;
     }
 
+    private boolean isFolia() {
+        return isFolia;
+    }
+
     @Nullable
     public String getCustomHeadTexture(String key){
         CustomHead h = findCustomHead(key);
@@ -425,18 +414,30 @@ public final class Commons extends JavaPlugin {
         pl.getServer().getPluginManager().registerEvents(l, pl);
     }
     public void sync(Runnable r){
+        if (isFolia()) {
+            getServer().getGlobalRegionScheduler().run(this, task -> r.run());
+            return;
+        }
         if (Bukkit.isPrimaryThread()) r.run(); else getServer().getScheduler().runTask(this, r);
     }
     public void async(Runnable r){
         pool.submit(r);
     }
     public void syncLater(Runnable r, int delay){
+        if (isFolia()) {
+            getServer().getGlobalRegionScheduler().runDelayed(this, task -> r.run(), delay);
+            return;
+        }
         getServer().getScheduler().runTaskLater(this, r, delay);
     }
     public void asyncLater(Runnable r, int delay){
         getServer().getScheduler().runTaskLaterAsynchronously(this, r, delay);
     }
     public void syncRepeating(Runnable r, int delay, int period){
+        if (isFolia()){
+            getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> r.run(), delay, period);
+            return;
+        }
         getServer().getScheduler().runTaskTimer(this, r, delay, period);
     }
     public void asyncRepeating(Runnable r, int delay, int period){

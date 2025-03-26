@@ -112,6 +112,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public abstract R base64head(String base64);
     public abstract R potionData(PotionData potionData);
     public abstract R customPotion(PotionEffect potionEffect);
+    public abstract R maxStackSize(int size);
 
     // GETTERS
     public abstract int customHeadId();
@@ -131,6 +132,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public abstract String base64head();
     public abstract String potionData();
     public abstract String customPotion();
+    public abstract Integer maxStackSize();
 
 
     // UTILITIES

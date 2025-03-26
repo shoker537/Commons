@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.7.6.0"
+version = "1.7.7.5"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -46,9 +46,6 @@ repositories {
   maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
   maven {
     url = uri("https://nexus.shoker.su/repository/maven-releases/")
-  }
-  maven {
-    url = uri("https://maven.enginehub.org/repo/")
   }
   maven {
     url = uri("https://repo.papermc.io/repository/maven-public/")
