@@ -7,6 +7,7 @@ import lombok.val;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -22,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.*;
@@ -161,6 +163,11 @@ public class CurrentVersion {
     protected void equipEntity(Player p, Object e, List<Pair<EquipmentSlot, ItemStack>> items) {
         sendPacket(p, new ClientboundSetEquipmentPacket(entityId(e), items));
     }
+    protected void updateInventory(Player p, int containerId, int stateId, List<ItemStack> items, ItemStack cursor) {
+        NonNullList list = NonNullList.createWithCapacity(items.size());
+        list.addAll(items);
+        sendPacket(p, new ClientboundContainerSetContentPacket(containerId, stateId, list, cursor));
+    }
 
     @SneakyThrows
     public void addPlayerProfile(Player p, ServerPlayer player){
@@ -188,6 +195,12 @@ public class CurrentVersion {
         }
         ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entity.getId(), (List<SynchedEntityData.DataValue<?>>) ReflectionUtil.runMethod(entity.getEntityData(), "packAll"));
         sendPacket(p, packet);
+    }
+
+    @SneakyThrows
+    protected void teleportEntity(Player p, Entity e, double x, double y, double z, float yaw, float pitch){
+        PositionMoveRotation pos = new PositionMoveRotation(new Vec3(x,y,z), new Vec3(0,0,0), yaw, pitch);
+        sendPacket(p, ClientboundTeleportEntityPacket.teleport(e.getId(), pos, Set.of(), e.onGround));
     }
 
     @SneakyThrows
@@ -234,11 +247,9 @@ public class CurrentVersion {
         team.setCollisionRule(Team.CollisionRule.PUSH_OTHER_TEAMS);
     }
 
-
     protected void setCanSeeFriendlyInvisible(PlayerTeam team) {
         team.setSeeFriendlyInvisibles(true);
     }
-
 
     protected void setFriendlyFire(PlayerTeam team, boolean friendlyFire) {
         team.setAllowFriendlyFire(friendlyFire);

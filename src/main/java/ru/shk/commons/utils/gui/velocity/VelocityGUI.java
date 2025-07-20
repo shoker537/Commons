@@ -4,7 +4,6 @@ import com.velocitypowered.api.proxy.Player;
 import dev.simplix.protocolize.api.Protocolize;
 import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.inventory.Inventory;
-import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.api.item.ItemStack;
 import dev.simplix.protocolize.api.player.ProtocolizePlayer;
 import dev.simplix.protocolize.data.ItemType;
@@ -24,7 +23,6 @@ import ru.shk.velocity.commons.Commons;
 import ru.shk.velocity.commons.utils.PluginMessage;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -109,13 +107,13 @@ public class VelocityGUI extends GUI<VelocityGUI> {
     }
 
     public VelocityGUI item(int slot, @NonNull ItemStack stack) {
-        return item(slot, new VelocityItemStack(stack));
+        return item(slot, new VelocityItemStack(stack).clone());
     }
     public VelocityGUI item(int slot, @NonNull ItemStack stack, Consumer<ClickEvent> onClick) {
-        return item(slot, new VelocityItemStack(stack), onClick);
+        return item(slot, new VelocityItemStack(stack).clone(), onClick);
     }
     public VelocityGUI item(int slot, @NonNull ItemStack stack, Consumer<ClickEvent> onClick, boolean runAsync) {
-        return item(slot, new VelocityItemStack(stack), onClick, runAsync);
+        return item(slot, new VelocityItemStack(stack).clone(), onClick, runAsync);
     }
 
     public int getInvId(){

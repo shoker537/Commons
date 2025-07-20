@@ -1,8 +1,9 @@
 package ru.shk.commons.utils.gui;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import ru.shk.commons.ServerType;
+import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.Plugin;
 import ru.shk.commons.utils.runnables.Schedule;
 
@@ -15,6 +16,8 @@ public class GUIManager implements Plugin {
     @Getter@Accessors(fluent = true)
     private static GUIManager instance;
     private final HashMap<UUID, GUI> openGUIs = new HashMap<>();
+    @Getter@Setter
+    private boolean debugClose = false;
 
     @Override
     public void load() {
@@ -24,7 +27,7 @@ public class GUIManager implements Plugin {
     @Override
     public void enable() {
         Runnable tickTask = () -> {
-            openGUIs.values().parallelStream().forEach(gui -> {
+            new ArrayList<>(openGUIs.values()).parallelStream().forEach(gui -> {
                 try {
                     gui.doTick();
                 } catch (Throwable t){
@@ -33,11 +36,20 @@ public class GUIManager implements Plugin {
             });
         };
         Schedule.syncRepeating(tickTask, Duration.ofMillis(50), Duration.ofMillis(50));
-//        if(ServerType.get()==ServerType.VELOCITY) {
-//            ru.shk.velocity.commons.Commons.getInstance().repeat(tickTask, Duration.ofMillis(50), Duration.ofMillis(50));
-//        } else if (ServerType.get()==ServerType.SPIGOT) {
-//            ru.shk.commons.Commons.getInstance().syncRepeating(tickTask, 1,1);
-//        }
+        
+//        Protocolize.listenerProvider().registerListener(new AbstractPacketListener<>(InventoryClick.class, Direction.UPSTREAM, 0) {
+//            @Override
+//            public void packetReceive(PacketReceiveEvent<InventoryClick> e) {
+//
+//            }
+//
+//            @Override
+//            public void packetSend(PacketSendEvent<InventoryClick> e) {
+//                if (!e.player().registeredInventories().isEmpty() && e.packet().slot() == -999) {
+//                    e.cancelled(true);
+//                }
+//            }
+//        });
     }
 
     public GUI customGUI(Object inventory) {
@@ -53,18 +65,29 @@ public class GUIManager implements Plugin {
     public void add(UUID player, GUI gui) {
         synchronized (openGUIs) {
             openGUIs.put(player, gui);
+            if(debugClose) Logger.info("Added "+gui.getClass().getSimpleName()+" to "+player.toString());
         }
     }
 
     public void removeGUIsOf(UUID uuid) {
         synchronized (openGUIs) {
             openGUIs.remove(uuid);
+            if (debugClose){
+                Logger.info("Removed guis of "+uuid.toString());
+                StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+                for (StackTraceElement stackTraceElement : stackTraceElements) Logger.info(" "+stackTraceElement.toString());
+            }
         }
     }
 
     public void removeGUI(UUID uuid, GUI gui) {
         synchronized (openGUIs) {
             openGUIs.remove(uuid, gui);
+            if (debugClose){
+                Logger.info("Removed gui "+gui.getClass().getSimpleName()+" of "+uuid.toString());
+                StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+                for (StackTraceElement stackTraceElement : stackTraceElements) Logger.info(" "+stackTraceElement.toString());
+            }
         }
     }
 

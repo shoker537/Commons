@@ -180,11 +180,11 @@ public final class Commons extends JavaPlugin {
         getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> {
             int players = Bukkit.getOnlinePlayers().size();
             if(players>60){
-                pool.setMaximumPoolSize(30);
-            } else if (players>30) {
                 pool.setMaximumPoolSize(20);
-            } else {
+            } else if (players>30) {
                 pool.setMaximumPoolSize(10);
+            } else {
+                pool.setMaximumPoolSize(5);
             }
         }, 1200, 1200);
         getServer().getPluginManager().registerEvents(new Events(), this);
@@ -213,12 +213,19 @@ public final class Commons extends JavaPlugin {
             }
         });
         getCommand("commonsbukkit").setExecutor((sender, command, label, args) -> {
-            sender.sendMessage(colorize(" &b          Commons v"+ getDescription().getVersion()));
-            sender.sendMessage(colorize(" &bThreadPool active count: &f"+ pool.getActiveCount()));
-            sender.sendMessage(colorize(" &bThreadPool queue count: &f"+ pool.getQueue().size()));
-            sender.sendMessage(colorize(" &bThreadPool size: &f"+ pool.getPoolSize()));
-            sender.sendMessage(colorize(" &bThreadPool maxSize: &f"+ pool.getMaximumPoolSize()));
-            sender.sendMessage(colorize(" &bHeadsCache size: &f"+ ru.shk.commons.utils.items.ItemStackBuilder.headsCache().cacheSize()));
+            if (args.length==0){
+                sender.sendMessage(colorize(" &b          Commons v"+ getDescription().getVersion()));
+                sender.sendMessage(colorize(" &bThreadPool active count: &f"+ pool.getActiveCount()));
+                sender.sendMessage(colorize(" &bThreadPool queue count: &f"+ pool.getQueue().size()));
+                sender.sendMessage(colorize(" &bThreadPool size: &f"+ pool.getPoolSize()));
+                sender.sendMessage(colorize(" &bThreadPool maxSize: &f"+ pool.getMaximumPoolSize()));
+                sender.sendMessage(colorize(" &bHeadsCache size: &f"+ ru.shk.commons.utils.items.ItemStackBuilder.headsCache().cacheSize()));
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("debugclose")){
+                GUIManager.instance().setDebugClose(!GUIManager.instance().isDebugClose());
+                sender.sendMessage(colorize(" &bDebug close is now &f"+ GUIManager.instance().isDebugClose()));
+            }
             return true;
         });
         pafManager = new PAFManager(this);

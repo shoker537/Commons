@@ -336,7 +336,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         EnchantmentsComponent c = item.getComponent(EnchantmentsComponent.class);
         if(c==null) return Collections.EMPTY_LIST;
         java.util.List<Enchantment> list = new ArrayList<>();
-        c.getEnchantments().forEach((enchantment, integer) -> list.add(new Enchantment(EnchantmentType.fromString(enchantment.name()), integer)));
+        c.getEnchantments().forEach((enchantment, integer) -> list.add(new Enchantment(EnchantmentType.fromString(enchantment.getLeft().name()), integer)));
         return list;
     }
 

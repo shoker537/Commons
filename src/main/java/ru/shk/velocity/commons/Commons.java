@@ -110,6 +110,7 @@ public class Commons {
 
     @Subscribe
     public void onInit(ProxyInitializeEvent e){
+        setupSchedule();
         proxy.getConsoleCommandSource().sendMessage(colorize(""));
         proxy.getConsoleCommandSource().sendMessage(colorize("            &bshoker'&fs &bcommon&fs"));
         proxy.getConsoleCommandSource().sendMessage(colorize("              for Velocity"));
@@ -130,7 +131,6 @@ public class Commons {
             }
         });
         PAFManager = new PAFManager(this);
-        setupSchedule();
         proxy.getChannelRegistrar().register(MinecraftChannelIdentifier.from("commons:generic"));
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("find").build(), new FindCMD(this));
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("ctp").build(), new CTPCommand(this));
@@ -293,15 +293,27 @@ public class Commons {
     public void onDisable(ProxyShutdownEvent e){
         threadPool.shutdown();
         singleThreadPool.shutdown();
+        teleportService.shutdown();
+        playerLocationReceiver.executor.shutdown();
+        try {
+            playerLocationReceiver.executor.awaitTermination(1, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ex) {
+//            ex.printStackTrace();
+        }
+        try {
+            teleportService.awaitTermination(1, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ex) {
+//            ex.printStackTrace();
+        }
         try {
             if(!threadPool.awaitTermination(5, TimeUnit.SECONDS)) threadPool.shutdownNow();
         } catch (InterruptedException ex) {
-            ex.printStackTrace();
+//            ex.printStackTrace();
         }
         try {
             if(!singleThreadPool.awaitTermination(5, TimeUnit.SECONDS)) singleThreadPool.shutdownNow();
         } catch (InterruptedException ex) {
-            ex.printStackTrace();
+//            ex.printStackTrace();
         }
         plugins.forEach(plugin -> {
             try {

@@ -7,6 +7,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -181,6 +182,9 @@ public class PacketUtil {
     public static void teleportEntity(Player p, Object entity){
         versionClass.teleportEntity(p, (net.minecraft.world.entity.Entity) entity);
     }
+    public static void teleportEntity(Player p, Entity entity, double x, double y, double z, float yaw, float pitch){
+        versionClass.teleportEntity(p, (net.minecraft.world.entity.Entity) getNMSEntity(entity), x, y, z, yaw, pitch);
+    }
     public static void teleportPlayer(Player p, double x, double y, double z, float yaw, float pitch, int teleportId){
 
     }
@@ -195,6 +199,19 @@ public class PacketUtil {
             list.add(new Pair<>(slot.getNmsSlot(), asNMSCopy(itemStack==null?new org.bukkit.inventory.ItemStack(Material.AIR):itemStack)));
         });
         versionClass.equipEntity(p, entity, list);
+    }
+
+    public static void updateInventory(Player p, int containerId, int stateId, List<org.bukkit.inventory.ItemStack> items, org.bukkit.inventory.ItemStack cursor){
+        List<ItemStack> list = new ArrayList<>();
+        if(items==null) return;
+        for (org.bukkit.inventory.ItemStack item : items) {
+            if (item==null) {
+                list.add(new ItemStack(Blocks.AIR));
+            } else {
+                list.add(asNMSCopy(item));
+            }
+        }
+        versionClass.updateInventory(p, containerId, stateId, list, cursor==null?new ItemStack(Blocks.AIR):asNMSCopy(cursor));
     }
 
     public static void playRiptideAnimation(Player p, int ticks){
