@@ -56,7 +56,7 @@ public class BukkitGUI extends GUI<BukkitGUI> {
 
     @Override
     public void close() {
-        player().closeInventory();
+        if(Bukkit.isPrimaryThread()) player().closeInventory(); else Commons.getInstance().sync(() -> player().closeInventory());
     }
 
     @Override
