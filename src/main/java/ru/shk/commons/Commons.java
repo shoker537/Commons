@@ -179,7 +179,7 @@ public final class Commons extends JavaPlugin {
         }
         getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> {
             int players = Bukkit.getOnlinePlayers().size();
-            if(players>60){
+            if(players>90){
                 pool.setMaximumPoolSize(20);
             } else if (players>30) {
                 pool.setMaximumPoolSize(10);
@@ -214,7 +214,7 @@ public final class Commons extends JavaPlugin {
         });
         getCommand("commonsbukkit").setExecutor((sender, command, label, args) -> {
             if (args.length==0){
-                sender.sendMessage(colorize(" &b          Commons v"+ getDescription().getVersion()));
+                sender.sendMessage(colorize(" &b          Commons v" + getDescription().getVersion()));
                 sender.sendMessage(colorize(" &bThreadPool active count: &f"+ pool.getActiveCount()));
                 sender.sendMessage(colorize(" &bThreadPool queue count: &f"+ pool.getQueue().size()));
                 sender.sendMessage(colorize(" &bThreadPool size: &f"+ pool.getPoolSize()));
