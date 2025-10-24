@@ -3,7 +3,8 @@ package ru.shk.commons.utils.nms;
 import lombok.Getter;
 
 public enum PacketVersion {
-    v1_21_3("1.21.3")
+    v1_21_7("1.21.7"),
+    v1_21_8("1.21.8"),
     ;
 
     @Getter private final String versionName;

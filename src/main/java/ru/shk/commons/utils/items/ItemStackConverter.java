@@ -67,77 +67,165 @@ public class ItemStackConverter {
         return list;
     }
 
-
-    private static List<Value<?>> values(String line){
-        line+=" ";
-        char[] lineArray = line.toCharArray();
+    private static List<Value<?>> values(String line) {
         List<Value<?>> list = new ArrayList<>();
-        boolean isInsideTextBlock = false;
-        boolean isList = false;
+        if (line == null || line.isEmpty()) return list;
+
+        boolean isInsideQuotes = false;
         boolean isInsideList = false;
-        boolean isEscapingNextChar = false;
-        boolean isInsideValue = false;
+        boolean escaping = false;
 
-        StringBuilder typing = new StringBuilder();
-        String name = null;
+        StringBuilder currentName = new StringBuilder();
+        StringBuilder currentValue = new StringBuilder();
+        String currentKey = null;
 
-        for (char nextChar : lineArray) {
-            if (nextChar == '\\' && !isEscapingNextChar) {
-                isEscapingNextChar = true;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+
+            if (escaping) {
+                currentValue.append(c);
+                escaping = false;
                 continue;
             }
-            if(!isEscapingNextChar && nextChar=='[' && !isInsideTextBlock){
-                isList = true;
+
+            if (c == '\\') {
+                escaping = true;
+                continue;
+            }
+
+            if (c == '"') {
+                isInsideQuotes = !isInsideQuotes;
+                continue;
+            }
+
+            if (!isInsideQuotes && c == '[') {
                 isInsideList = true;
+                currentValue.append(c);
                 continue;
             }
-            if(!isEscapingNextChar && nextChar==']' && !isInsideTextBlock){
+
+            if (!isInsideQuotes && c == ']') {
                 isInsideList = false;
+                currentValue.append(c);
                 continue;
             }
-            if(isInsideList){
-                if(nextChar=='\"' && !isEscapingNextChar) {
-                    isInsideTextBlock = !isInsideTextBlock;
+
+            // Разделение name:value
+            if (!isInsideQuotes && !isInsideList && c == ':' && currentKey == null) {
+                currentKey = currentName.toString().trim();
+                currentName.setLength(0);
+                continue;
+            }
+
+            // Разделение по пробелам между парами
+            if (!isInsideQuotes && !isInsideList && c == ' ' && currentKey != null) {
+                String valueStr = currentValue.toString().trim();
+                if (!valueStr.isEmpty()) {
+                    Value<?> v = parseValue(currentKey, valueStr);
+                    if (v != null) list.add(v);
                 }
-                typing.append(nextChar);
-                isEscapingNextChar = false;
+                currentKey = null;
+                currentValue.setLength(0);
                 continue;
             }
-            if (nextChar == ':' && !isInsideValue && !isList) {
-                isInsideValue = true;
-                name = typing.toString();
-                typing = new StringBuilder();
-                isEscapingNextChar = false;
-                continue;
+
+            if (currentKey == null) {
+                currentName.append(c);
+            } else {
+                currentValue.append(c);
             }
-            if (!isInsideValue) {
-                typing.append(nextChar);
-                isEscapingNextChar = false;
-                continue;
-            }
-            if (nextChar == ' ' && !isInsideTextBlock) {
-                isInsideValue = false;
-                Value<?> value;
-                if(isList){
-                    value = new StringListValue().name(name).stringValue(typing.toString());
-                } else {
-                    value = new StringValue().name(name).stringValue(typing.toString());
-                }
-                list.add(value);
-                isList = false;
-                typing = new StringBuilder();
-                isEscapingNextChar = false;
-                continue;
-            }
-            if (nextChar == '\"' && !isEscapingNextChar) {
-                isInsideTextBlock = !isInsideTextBlock;
-                continue;
-            }
-            isEscapingNextChar = false;
-            typing.append(nextChar);
+        }
+
+        // Добавление последнего ключа, если строка не закончилась пробелом
+        if (currentKey != null && currentValue.length() > 0) {
+            String valueStr = currentValue.toString().trim();
+            Value<?> v = parseValue(currentKey, valueStr);
+            if (v != null) list.add(v);
         }
 
         return list;
+    }
+
+
+
+//    private static List<Value<?>> values(String line){
+//        line+=" ";
+//        char[] lineArray = line.toCharArray();
+//        List<Value<?>> list = new ArrayList<>();
+//        boolean isInsideTextBlock = false;
+//        boolean isList = false;
+//        boolean isInsideList = false;
+//        boolean isEscapingNextChar = false;
+//        boolean isInsideValue = false;
+//
+//        StringBuilder typing = new StringBuilder();
+//        String name = null;
+//
+//        for (char nextChar : lineArray) {
+//            if (nextChar == '\\' && !isEscapingNextChar) {
+//                isEscapingNextChar = true;
+//                continue;
+//            }
+//            if(!isEscapingNextChar && nextChar=='[' && !isInsideTextBlock){
+//                isList = true;
+//                isInsideList = true;
+//                continue;
+//            }
+//            if(!isEscapingNextChar && nextChar==']' && !isInsideTextBlock){
+//                isInsideList = false;
+//                continue;
+//            }
+//            if(isInsideList){
+//                if(nextChar=='\"' && !isEscapingNextChar) {
+//                    isInsideTextBlock = !isInsideTextBlock;
+//                }
+//                typing.append(nextChar);
+//                isEscapingNextChar = false;
+//                continue;
+//            }
+//            if (nextChar == ':' && !isInsideValue && !isList) {
+//                isInsideValue = true;
+//                name = typing.toString();
+//                typing = new StringBuilder();
+//                isEscapingNextChar = false;
+//                continue;
+//            }
+//            if (!isInsideValue) {
+//                typing.append(nextChar);
+//                isEscapingNextChar = false;
+//                continue;
+//            }
+//            if (nextChar == ' ' && !isInsideTextBlock) {
+//                isInsideValue = false;
+//                Value<?> value;
+//                if(isList){
+//                    value = new StringListValue().name(name).stringValue(typing.toString());
+//                } else {
+//                    value = new StringValue().name(name).stringValue(typing.toString());
+//                }
+//                list.add(value);
+//                isList = false;
+//                typing = new StringBuilder();
+//                isEscapingNextChar = false;
+//                continue;
+//            }
+//            if (nextChar == '\"' && !isEscapingNextChar) {
+//                isInsideTextBlock = !isInsideTextBlock;
+//                continue;
+//            }
+//            isEscapingNextChar = false;
+//            typing.append(nextChar);
+//        }
+//
+//        return list;
+//    }
+
+    private static Value<?> parseValue(String name, String value) {
+        if (value.startsWith("[") && value.endsWith("]")) {
+            return new StringListValue().name(name).stringValue(value);
+        } else {
+            return new StringValue().name(name).stringValue(value);
+        }
     }
 
     public static ItemStackBuilder fromString(String s) {

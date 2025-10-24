@@ -48,7 +48,8 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public abstract R customHead(String key);
     public abstract R displayName(String name);
     public abstract R displayName(Object name);
-    public abstract R customModelData(int id);
+    @Deprecated public abstract R customModelData(int id);
+    public abstract R customModelData(String id);
     public abstract R leatherColor(Color color);
     public abstract R leatherColor(String hexColor);
     public abstract R potionColor(int rgb);

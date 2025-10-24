@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -115,14 +116,18 @@ public class Commons {
         proxy.getConsoleCommandSource().sendMessage(colorize("            &bshoker'&fs &bcommon&fs"));
         proxy.getConsoleCommandSource().sendMessage(colorize("              for Velocity"));
         proxy.getConsoleCommandSource().sendMessage(colorize(""));
-        mysql = new MySQL(config.getString("default-connection","minigames"));
-        mysql.UpdateSync("CREATE TABLE IF NOT EXISTS `custom_heads` (" +
-                "  `id` int NOT NULL AUTO_INCREMENT," +
-                "  `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
-                "  `texture` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
-                "  PRIMARY KEY (`id`) USING BTREE," +
-                "  UNIQUE KEY `UNIQUE` (`key`) USING BTREE" +
-                ") ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        try {
+            mysql = new MySQL(config.getString("default-connection","minigames"));
+            mysql.UpdateSync("CREATE TABLE IF NOT EXISTS `custom_heads` (" +
+                    "  `id` int NOT NULL AUTO_INCREMENT," +
+                    "  `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
+                    "  `texture` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
+                    "  PRIMARY KEY (`id`) USING BTREE," +
+                    "  UNIQUE KEY `UNIQUE` (`key`) USING BTREE" +
+                    ") ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
         plugins.forEach(plugin -> {
             try {
                 plugin.enable();
@@ -136,11 +141,15 @@ public class Commons {
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("ctp").build(), new CTPCommand(this));
         proxy.getPluginManager().getPlugin("protocolize").ifPresent(pluginContainer -> ProtocolizeHook.register());
         if (config.getBoolean("redis.enabled", true)) {
-            RedisCredentials redisCredentials = new RedisCredentials(config.getString("redis.host", "127.0.0.1"), config.getInt("redis.port", 6379), config.getString("redis.user"), config.getString("redis.password"));
-            RedisCredentials.DEFAULT = redisCredentials;
-            if (config.getBoolean("redis.use-general-channel", true)) {
-                jedis = redisCredentials.newJedis(1,1,1);
-                redisListener = new ChannelListener(redisCredentials, REDIS_GENERAL_CHANNEL, this::onRedisMessage);
+            try {
+                RedisCredentials redisCredentials = new RedisCredentials(config.getString("redis.host", "127.0.0.1"), config.getInt("redis.port", 6379), config.getString("redis.user"), config.getString("redis.password"));
+                RedisCredentials.DEFAULT = redisCredentials;
+                if (config.getBoolean("redis.use-general-channel", true)) {
+                    jedis = redisCredentials.newJedis(1,1,1);
+                    redisListener = new ChannelListener(redisCredentials, REDIS_GENERAL_CHANNEL, this::onRedisMessage);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
         }
     }
@@ -287,6 +296,11 @@ public class Commons {
     }
     public void sync(Runnable r){
         if (Thread.currentThread() instanceof SinglePoolThread) r.run(); else singleThreadPool.submit(r);
+    }
+
+    @Subscribe
+    public void onQuit(DisconnectEvent e){
+        GUIManager.instance().removeGUIsOf(e.getPlayer().getUniqueId());
     }
 
     @Subscribe

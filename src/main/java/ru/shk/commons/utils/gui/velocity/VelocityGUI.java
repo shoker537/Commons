@@ -19,6 +19,7 @@ import ru.shk.commons.utils.gui.Item;
 import ru.shk.commons.utils.gui.UniversalClick;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
+import ru.shk.guilib.protocolize.InventoryBackend;
 import ru.shk.velocity.commons.Commons;
 import ru.shk.velocity.commons.utils.PluginMessage;
 
@@ -44,6 +45,7 @@ public class VelocityGUI extends GUI<VelocityGUI> {
 
     @Override
     public void open() {
+        super.open();
         if(inventory==null) {
             inventory = new Inventory(typeAsProtocolize(type(), lines()));
             inventory.title(ChatElement.of(title()));
@@ -74,7 +76,6 @@ public class VelocityGUI extends GUI<VelocityGUI> {
             } catch (InterruptedException e) {}
         }
         super.open();
-        update();
     }
 
     @Override
@@ -162,7 +163,7 @@ public class VelocityGUI extends GUI<VelocityGUI> {
         int max = type()==GUIType.CHEST?lines()*9:type().maxSlots();
         for (int i = 0; i < max; i++) {
             Item item = items().get(i);
-            if(item==null || item.stack().type().name().equals("AIR")) {
+            if(item==null || item.stack().type()==null || item.stack().type().name().equals("AIR")) {
                 inventory.item(i, new ItemStack(ItemType.AIR));
             } else {
                 inventory.item(i, (ItemStack) item.stack().build());

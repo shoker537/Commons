@@ -3,6 +3,7 @@ package ru.shk.commons.utils.items.bukkit;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.CustomModelData;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -97,9 +98,15 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
         return this;
     }
 
-    @Override
+    @Override@Deprecated
     public BukkitItemStack customModelData(int id) {
         item.editMeta(meta -> meta.setCustomModelData(id));
+        return this;
+    }
+
+    @Override
+    public BukkitItemStack customModelData(String id) {
+        item.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addString(id).build());
         return this;
     }
 

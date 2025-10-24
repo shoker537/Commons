@@ -48,7 +48,7 @@ public class ChannelListener {
                             return;
                         }
                         if (onMessage != null) {
-                            if(!Bukkit.isStopping()) threadPool.submit(() -> onMessage.accept(o));
+                            if(active.get()) threadPool.submit(() -> onMessage.accept(o));
                         }
                     }
                 };
@@ -64,6 +64,10 @@ public class ChannelListener {
                 }
             }
         }
+    }
+
+    public void unsubscribe(){
+        shutdown();
     }
 
     public void shutdown(){

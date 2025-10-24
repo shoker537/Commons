@@ -70,24 +70,27 @@ public class GUIManager implements Plugin {
     }
 
     public void removeGUIsOf(UUID uuid) {
+        GUI g;
         synchronized (openGUIs) {
-            openGUIs.remove(uuid);
-            if (debugClose){
-                Logger.info("Removed guis of "+uuid.toString());
-                StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-                for (StackTraceElement stackTraceElement : stackTraceElements) Logger.info(" "+stackTraceElement.toString());
-            }
+            g = openGUIs.get(uuid);
+        }
+        if (g==null) return;
+        g.onClose();
+        if (debugClose){
+            Logger.info("Removed guis of "+uuid.toString());
+            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+            for (StackTraceElement stackTraceElement : stackTraceElements) Logger.info(" "+stackTraceElement.toString());
         }
     }
 
     public void removeGUI(UUID uuid, GUI gui) {
         synchronized (openGUIs) {
             openGUIs.remove(uuid, gui);
-            if (debugClose){
-                Logger.info("Removed gui "+gui.getClass().getSimpleName()+" of "+uuid.toString());
-                StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-                for (StackTraceElement stackTraceElement : stackTraceElements) Logger.info(" "+stackTraceElement.toString());
-            }
+        }
+        if (debugClose){
+            Logger.info("Removed gui "+gui.getClass().getSimpleName()+" of "+uuid.toString());
+            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+            for (StackTraceElement stackTraceElement : stackTraceElements) Logger.info(" "+stackTraceElement.toString());
         }
     }
 

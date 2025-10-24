@@ -15,12 +15,14 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import redis.clients.jedis.JedisPooled;
 import ru.shk.commons.utils.*;
 import ru.shk.commons.utils.gui.GUIManager;
+import ru.shk.commons.utils.items.bukkit.BukkitItemStack;
 import ru.shk.commons.utils.items.universal.HeadsCache;
 import ru.shk.commons.utils.nms.PacketVersion;
 import ru.shk.commons.utils.redis.RedisCredentials;
@@ -33,10 +35,7 @@ import ru.shk.mysql.connection.MySQL;
 
 import javax.annotation.Nullable;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -225,6 +224,13 @@ public final class Commons extends JavaPlugin {
             if (args[0].equalsIgnoreCase("debugclose")){
                 GUIManager.instance().setDebugClose(!GUIManager.instance().isDebugClose());
                 sender.sendMessage(colorize(" &bDebug close is now &f"+ GUIManager.instance().isDebugClose()));
+            }
+            if (args[0].equalsIgnoreCase("item")){
+                Player p = (Player) sender;
+                String item = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+                BukkitItemStack stack = BukkitItemStack.fromString(item);
+                p.getInventory().addItem(stack.build());
+                p.sendRichMessage("<yellow> "+stack.toString());
             }
             return true;
         });

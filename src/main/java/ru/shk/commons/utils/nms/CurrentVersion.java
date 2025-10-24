@@ -1,6 +1,7 @@
 package ru.shk.commons.utils.nms;
 
 import com.mojang.datafixers.util.Pair;
+import io.papermc.paper.adventure.PaperAdventure;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -284,11 +285,11 @@ public class CurrentVersion {
         return createScoreboardTeamPacket(createTeam, true,name, prefix, suffix, null, null);
     }
     protected Packet<?> createScoreboardTeamPacket(boolean createTeam, String name, net.kyori.adventure.text.Component prefix, net.kyori.adventure.text.Component suffix) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        return createScoreboardTeamPacket(createTeam, true, name, net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(prefix), RegistryAccess.EMPTY), net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(suffix), RegistryAccess.EMPTY), null, null);
+        return createScoreboardTeamPacket(createTeam, true, name, toMojangComponent(prefix), toMojangComponent(suffix), null, null);
     }
 
-    protected Component toMojangComponent(net.kyori.adventure.text.Component c){
-        return Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(c), RegistryAccess.EMPTY);
+    public static Component toMojangComponent(net.kyori.adventure.text.Component c){
+        return PaperAdventure.asVanilla(c);
     }
 
     @SneakyThrows

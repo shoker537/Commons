@@ -7,13 +7,14 @@ import com.google.gson.JsonSyntaxException;
 import dev.simplix.protocolize.api.chat.ChatElement;
 import dev.simplix.protocolize.api.item.BaseItemStack;
 import dev.simplix.protocolize.api.item.ItemStack;
-import dev.simplix.protocolize.api.item.MobEffectInstance;
+import dev.simplix.protocolize.api.item.objects.MobEffectInstance;
 import dev.simplix.protocolize.api.item.component.*;
 import dev.simplix.protocolize.api.util.Property;
 import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.MobEffect;
 import dev.simplix.protocolize.data.Potion;
 import dev.simplix.protocolize.data.item.component.*;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -94,10 +95,23 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         }
     }
 
+    @Deprecated
     @Override
     public R customModelData(int id) {
         CustomModelDataComponent c = item.getComponent(CustomModelDataComponent.class);
         if(c==null) c = CustomModelDataComponent.create(id); else c.setCustomModelData(id);
+        c.addFloat(id);
+        item.addComponent(c);
+        return (R) this;
+    }
+
+    @Override
+    public R customModelData(String id) {
+        CustomModelDataComponent c = item.getComponent(CustomModelDataComponent.class);
+        if(c==null) {
+            c = CustomModelDataComponent.create(-1);
+            c.addString(id);
+        } else c.addString(id);
         item.addComponent(c);
         return (R) this;
     }
@@ -218,11 +232,11 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         return (R) this;
     }
 
-    public void clearComponentTag(StructuredComponentType<?> type){
+    public void clearComponentTag(DataComponentType<?> type){
         item.removeComponent(type);
     }
 
-    public void addComponent(StructuredComponent component){
+    public void addComponent(DataComponent component){
         item.addComponent(component);
     }
 
@@ -287,7 +301,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     @Override
     public R flags(List<ItemFlag> flags) {
-        for (StructuredComponent c : item.getComponents()) {
+        for (DataComponent c : item.getComponents()) {
             if(c instanceof EnchantmentsComponentImpl e && flags.contains(ItemFlag.HIDE_ENCHANTMENTS)) e.setShowInTooltip(false);
             else if(c instanceof AttributeModifiersComponentImpl e && flags.contains(ItemFlag.HIDE_MODIFIERS)) e.setShowInTooltip(false);
             else if(c instanceof UnbreakableComponentImpl e && flags.contains(ItemFlag.HIDE_UNBREAKABLE)) e.setShowInTooltip(false);
@@ -295,7 +309,7 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
             //todo: add placed on
             else if(c instanceof DyedColorComponentImpl e && flags.contains(ItemFlag.HIDE_DYE)) e.setShowInTooltip(false);
         }
-        if(flags.contains(ItemFlag.HIDE_ADDITIONAL)) item.addComponent(new HideAdditionalTooltipComponentImpl());
+//        if(flags.contains(ItemFlag.HIDE_ADDITIONAL)) item.addComponent(new HideAdditionalTooltipComponentImpl());
         return (R) this;
     }
 
@@ -336,14 +350,14 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         EnchantmentsComponent c = item.getComponent(EnchantmentsComponent.class);
         if(c==null) return Collections.EMPTY_LIST;
         java.util.List<Enchantment> list = new ArrayList<>();
-        c.getEnchantments().forEach((enchantment, integer) -> list.add(new Enchantment(EnchantmentType.fromString(enchantment.getLeft().name()), integer)));
+        c.getEnchantments().forEach((enchantment, integer) -> list.add(new Enchantment(EnchantmentType.fromString(enchantment.getRegistryType().name()), integer)));
         return list;
     }
 
     @Override
     public java.util.List<ItemFlag> flags() {
         List<ItemFlag> hidden = new ArrayList<>();
-        for (StructuredComponent c : item.getComponents()) {
+        for (DataComponent c : item.getComponents()) {
             if(c instanceof EnchantmentsComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_ENCHANTMENTS);
             else if(c instanceof AttributeModifiersComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_MODIFIERS);
             else if(c instanceof UnbreakableComponentImpl e && !e.isShowInTooltip()) hidden.add(ItemFlag.HIDE_UNBREAKABLE);

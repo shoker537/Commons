@@ -34,7 +34,7 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
     private final PLUGIN owner;
     @Setter@Getter private UUID pp;
     @Accessors(fluent = false)@Getter@Setter private boolean open = false;
-    private int state = 0;
+    private int state = -1;
     @Setter@Getter private int windowId = -1;
 
     public ProtocolizeGUI(PLUGIN pl, String name, InventoryType type){
@@ -130,7 +130,9 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
         return this;
     }
 
-    public abstract void open(PLAYER p);
+    public void open(PLAYER p){
+        state++;
+    }
     public abstract void close(PLAYER p);
 
     public void open(UUID uuid){
@@ -145,7 +147,11 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
     public void close(UUID uuid){
         ProtocolizePlayer player = Protocolize.playerProvider().player(uuid);
         if(player==null) return;
-        player.closeInventory();
+        try {
+            player.closeInventory();
+        } catch (Throwable t){
+            t.printStackTrace();
+        }
         open = false;
         pp = null;
     }
@@ -170,7 +176,7 @@ public abstract class ProtocolizeGUI<PLUGIN, PLAYER> extends Inventory {
     }
 
     public void reopen(PLAYER player){
-        if(!open) return;
+//        if(!open) return;
         close(player);
         open(player);
     }

@@ -1,10 +1,12 @@
 package ru.shk.commons.utils.nms.entity.display;
 
 import com.google.common.base.Preconditions;
+import io.papermc.paper.adventure.PaperAdventure;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -42,7 +44,7 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public synchronized void text(Component component){
-        net.minecraft.network.chat.Component c = net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component), RegistryAccess.EMPTY);
+        net.minecraft.network.chat.Component c = PaperAdventure.asVanilla(component);
         ((Display.TextDisplay)entity).setText(c);
         metadata();
     }
@@ -62,7 +64,7 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @SneakyThrows
     public Component text(){
-        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(((Display.TextDisplay)entity).textRenderState().text(), RegistryAccess.EMPTY));
+        return PaperAdventure.asAdventure(((Display.TextDisplay) entity).textRenderState().text());
     }
     @SneakyThrows
     public TextDisplay.TextAlignment alignment(){

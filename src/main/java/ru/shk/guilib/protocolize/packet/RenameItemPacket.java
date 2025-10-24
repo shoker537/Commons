@@ -26,7 +26,8 @@ public class RenameItemPacket extends AbstractPacket {
             AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_20_1, MINECRAFT_1_20_4, 0x23),
             AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_20_5, MINECRAFT_1_21_1, 0x2A),
             AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_21_2, MINECRAFT_1_21_3, 0x2C),
-            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_21_4, MINECRAFT_LATEST, 0x2E)
+            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_21_4, MINECRAFT_1_21_5, 0x2E),
+            AbstractProtocolMapping.rangedIdMapping(MINECRAFT_1_21_6, Integer.MAX_VALUE, 0x2E)
     );
 
     private String itemName;

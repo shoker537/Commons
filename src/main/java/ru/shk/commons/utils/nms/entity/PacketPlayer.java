@@ -131,9 +131,6 @@ public class PacketPlayer extends PacketEntity<PacketPlayer> {
         public void disconnect(Component reason, PlayerKickEvent.Cause cause) {}
 
         @Override
-        public void send(Packet<?> packet, @Nullable PacketSendListener callbacks) {}
-
-        @Override
         public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket packet) {}
     }
 

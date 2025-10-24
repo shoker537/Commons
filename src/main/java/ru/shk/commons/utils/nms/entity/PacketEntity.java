@@ -178,7 +178,7 @@ public class PacketEntity<T extends PacketEntity> {
 
     @SneakyThrows
     public synchronized void teleport(double x, double y, double z, boolean sendPacket) {
-        entity.moveTo(x,y,z);
+        entity.teleportTo(x,y,z);
         if(sendPacket && isSpawned) receivers.forEach(this::sendTeleportPacket);
     }
 
@@ -199,7 +199,7 @@ public class PacketEntity<T extends PacketEntity> {
         if(!w.getUID().equals(getWorld().getUID())) {
             crossDimensionTeleport(w,x,y,z,yaw, pitch);
         } else {
-            entity.moveTo(x,y,z, yaw, pitch);
+            entity.moveOrInterpolateTo(new Vec3(x,y,z), yaw, pitch);
         }
         if(sendPackets && isSpawned) receivers.forEach(this::sendTeleportPacket);
     }
