@@ -30,7 +30,6 @@ public class BukkitGUI extends GUI<BukkitGUI> {
     }
 
     private void doOpen(){
-        super.open();
         if (inventory==null) {
             if(type()==GUIType.CHEST) {
                 inventory = Bukkit.createInventory(null, lines()*9, title());
@@ -40,6 +39,7 @@ public class BukkitGUI extends GUI<BukkitGUI> {
         }
         refillInv();
         player().openInventory(inventory);
+        super.open();
     }
 
     public Player player(){
@@ -75,6 +75,7 @@ public class BukkitGUI extends GUI<BukkitGUI> {
     }
 
     private void doRefillInv(){
+        if (inventory==null) return;
         int max = type()==GUIType.CHEST?lines()*9:type().maxSlots();
         for (int i = 0; i < max; i++) {
             Item item = items().get(i);

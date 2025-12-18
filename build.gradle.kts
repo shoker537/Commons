@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.8.0.3"
+version = "1.8.0.6"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -96,7 +96,6 @@ dependencies {
   compileOnly("com.mojang:authlib:6.0.54")
   compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.92")
   compileOnly("de.simonsator:VelocityPoweredPartyAndFriends:1.0.91")
-  implementation("net.kyori:adventure-platform-bungeecord:4.3.2")
 
   compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.3-SNAPSHOT")
   implementation("org.projectlombok:lombok:1.18.36")
@@ -141,7 +140,7 @@ tasks {
 
   shadowJar {
     configurations = listOf(project.configurations.runtimeClasspath.get())
-    exclude("META-INF/*","release-timestamp.txt","README.md","LICENSE","latestchanges.html","changelog.txt","AUTHORS", "Class50/*")
+    exclude("META-INF/*","release-timestamp.txt","README.md","LICENSE","latestchanges.html","changelog.txt","AUTHORS", "Class50/*", "net/kyori/*")
     archiveFileName = "${project.name}.jar"
     archiveClassifier = ""
   }

@@ -6,6 +6,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import ru.shk.commons.utils.gui.GUI;
 import ru.shk.commons.utils.gui.GUIManager;
 import ru.shk.commons.utils.gui.UniversalClick;
@@ -20,7 +21,6 @@ public class Events implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e){
-        if(e.getClickedInventory()==null) return;
         GUI customGUI = GUIManager.instance().customGUI(e.getView().getTopInventory());
         if(customGUI==null || e.getCurrentItem()==null) return;
         e.setCancelled(true);

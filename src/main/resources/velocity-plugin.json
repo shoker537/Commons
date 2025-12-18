@@ -5,7 +5,7 @@
   "main": "ru.shk.velocity.commons.Commons",
   "authors": ["shoker137"],
   "dependencies": [
-    {"id": "mysqlapi"},
+    {"id": "mysqlapi", "optional": true},
     {"id": "protocolize", "optional": true}
   ]
 }

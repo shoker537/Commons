@@ -3,6 +3,7 @@ package ru.shk.commons.utils.gui.paged;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
+import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.gui.ClickEvent;
 import ru.shk.commons.utils.gui.GUI;
@@ -38,7 +39,7 @@ public class Paged<ITEM> {
     private int notFoundItemSlot = -1;
     private ItemStackBuilder notFoundItem = null;
     private final AtomicBoolean pageLoading = new AtomicBoolean();
-    private boolean asyncClicks = true;
+    private boolean asyncClicks = ServerType.get()!=ServerType.SPIGOT;
 
     private ItemStackBuilder prevArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6< НАЗАД");
     private ItemStackBuilder nextArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6ВПЕРЕД >");

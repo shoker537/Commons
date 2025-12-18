@@ -18,6 +18,7 @@ public class CTPCommand implements SimpleCommand {
 
     @Override
     public void execute(Invocation invocation) {
+        if(!invocation.source().hasPermission("commons.cmd.tp")) return;
         if (invocation.arguments().length==0){
             invocation.source().sendRichMessage("<red> /ctp <player> [player]");
             return;

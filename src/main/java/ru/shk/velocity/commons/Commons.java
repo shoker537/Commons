@@ -66,6 +66,7 @@ public class Commons {
     private PAFManager PAFManager;
     private JedisPooled jedis;
     private ChannelListener redisListener;
+    private final Logger logger;
 
     @Accessors(fluent = false)@Getter private static Commons instance;
 
@@ -94,6 +95,7 @@ public class Commons {
         this.proxy = server;
         ServerType.setType(ServerType.VELOCITY);
         instance = this;
+        this.logger = logger;
         config = Config.defaultConfig(dataDirectory.toFile());
         registerMessagingChannel("commons:updateinv");
         registerMessagingChannel("BungeeCord");
@@ -116,17 +118,21 @@ public class Commons {
         proxy.getConsoleCommandSource().sendMessage(colorize("            &bshoker'&fs &bcommon&fs"));
         proxy.getConsoleCommandSource().sendMessage(colorize("              for Velocity"));
         proxy.getConsoleCommandSource().sendMessage(colorize(""));
-        try {
-            mysql = new MySQL(config.getString("default-connection","minigames"));
-            mysql.UpdateSync("CREATE TABLE IF NOT EXISTS `custom_heads` (" +
-                    "  `id` int NOT NULL AUTO_INCREMENT," +
-                    "  `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
-                    "  `texture` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
-                    "  PRIMARY KEY (`id`) USING BTREE," +
-                    "  UNIQUE KEY `UNIQUE` (`key`) USING BTREE" +
-                    ") ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
-        } catch (Throwable t) {
-            t.printStackTrace();
+        if (proxy.getPluginManager().isLoaded("mysqlapi")) {
+            try {
+                mysql = new MySQL(config.getString("default-connection","minigames"));
+                mysql.UpdateSync("CREATE TABLE IF NOT EXISTS `custom_heads` (" +
+                        "  `id` int NOT NULL AUTO_INCREMENT," +
+                        "  `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
+                        "  `texture` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
+                        "  PRIMARY KEY (`id`) USING BTREE," +
+                        "  UNIQUE KEY `UNIQUE` (`key`) USING BTREE" +
+                        ") ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        } else {
+            logger.warning("MySQLAPI not found! The plugin may have limited functionality!");
         }
         plugins.forEach(plugin -> {
             try {
