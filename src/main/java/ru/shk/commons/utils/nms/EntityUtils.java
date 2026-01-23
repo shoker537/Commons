@@ -15,6 +15,6 @@ public class EntityUtils {
 
     public static void rotate(Entity e, float yaw, float pitch){
         net.minecraft.world.entity.Entity entity = (net.minecraft.world.entity.Entity) PacketUtil.getNMSEntity(e);
-        entity.forceSetRotation(yaw, pitch);
+        entity.forceSetRotation(yaw, false, pitch, false);
     }
 }

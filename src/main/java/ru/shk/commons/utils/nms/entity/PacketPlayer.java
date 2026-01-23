@@ -34,7 +34,7 @@ public class PacketPlayer extends PacketEntity<PacketPlayer> {
 
     public PacketPlayer(Location l, GameProfile gameProfile) throws RuntimeException {
         super("net.minecraft.world.entity.player.Player", "player", l.getWorld());
-        gameProfile.getProperties().put("textures", new Property("texture", "ewogICJ0aW1lc3RhbXAiIDogMTcwMTQwMjQ4NTY3NSwKICAicHJvZmlsZUlkIiA6ICIxMjcxYWE1MzA5NDk0MWFhYjM3ZGY2YjZiZTEwZjgzYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJTSE9LRVIxMzciLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODA2MDllYjljODUwYTY5ZjVlMWMwZThlODRiNmQxZDQ4ZjFkZTYyMmQyYTMxMjNjMWNkODkzYzY3MzE4MjQ4NyIKICAgIH0sCiAgICAiQ0FQRSIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjlhNzY1Mzc2NDc5ODlmOWEwYjZkMDAxZTMyMGRhYzU5MWMzNTllOWU2MWEzMWY0Y2UxMWM4OGYyMDdmMGFkNCIKICAgIH0KICB9Cn0="));
+        gameProfile.properties().put("textures", new Property("texture", "ewogICJ0aW1lc3RhbXAiIDogMTcwMTQwMjQ4NTY3NSwKICAicHJvZmlsZUlkIiA6ICIxMjcxYWE1MzA5NDk0MWFhYjM3ZGY2YjZiZTEwZjgzYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJTSE9LRVIxMzciLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODA2MDllYjljODUwYTY5ZjVlMWMwZThlODRiNmQxZDQ4ZjFkZTYyMmQyYTMxMjNjMWNkODkzYzY3MzE4MjQ4NyIKICAgIH0sCiAgICAiQ0FQRSIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjlhNzY1Mzc2NDc5ODlmOWEwYjZkMDAxZTMyMGRhYzU5MWMzNTllOWU2MWEzMWY0Y2UxMWM4OGYyMDdmMGFkNCIKICAgIH0KICB9Cn0="));
         this.gameProfile = gameProfile;
         try {
             entity = new ServerPlayer(MinecraftServer.getServer(), (ServerLevel) PacketUtil.getNMSWorld(l.getWorld()), gameProfile, ClientInformation.createDefault());
