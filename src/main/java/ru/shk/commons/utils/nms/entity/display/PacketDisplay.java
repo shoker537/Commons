@@ -7,6 +7,8 @@ import net.minecraft.world.entity.Display;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import ru.shk.commons.utils.nms.PacketUtil;
 import ru.shk.commons.utils.nms.entity.PacketEntity;
 
@@ -57,7 +59,12 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     @SneakyThrows
     public org.bukkit.util.Transformation transformation(){
         Transformation t = Display.createTransformation((SynchedEntityData) getEntityData());
-        return new org.bukkit.util.Transformation(t.getTranslation(), t.getLeftRotation(), t.getScale(), t.getRightRotation());
+        return new org.bukkit.util.Transformation(
+                new Vector3f(t.getTranslation().x(), t.getTranslation().y(), t.getTranslation().z()),
+                new Quaternionf(t.getLeftRotation().x(), t.getLeftRotation().y(), t.getLeftRotation().z(), t.getLeftRotation().w()),
+                new Vector3f(t.getScale().x(), t.getScale().y(), t.getScale().z()),
+                new Quaternionf(t.getRightRotation().x(), t.getRightRotation().y(), t.getRightRotation().z(), t.getRightRotation().w())
+        );
     }
 
     @SneakyThrows

@@ -14,7 +14,6 @@ import dev.simplix.protocolize.data.ItemType;
 import dev.simplix.protocolize.data.MobEffect;
 import dev.simplix.protocolize.data.Potion;
 import dev.simplix.protocolize.data.item.component.*;
-import io.papermc.paper.datacomponent.DataComponentTypes;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -24,7 +23,6 @@ import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.Logger;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.ItemStackConverter;
-import ru.shk.commons.utils.items.bungee.BungeeItemStack;
 import ru.shk.commons.utils.items.universal.*;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
 
@@ -434,7 +432,6 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
     @Override
     public R clone() {
         return (R) switch (ServerType.get()){
-            case BUNGEE -> new BungeeItemStack(item.deepClone());
             case VELOCITY -> new VelocityItemStack(item.deepClone());
             default -> throw new IllegalStateException("This class cannot be used on "+ServerType.get()+" server.");
         };
@@ -445,8 +442,8 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
         return item;
     }
 
-    public static BungeeItemStack fromString(String s){
-        return (BungeeItemStack) ItemStackConverter.fromString(s);
+    public static ProtocolizeItemStack fromString(String s){
+        return (ProtocolizeItemStack) ItemStackConverter.fromString(s);
     }
 
     @Override

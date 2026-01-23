@@ -19,7 +19,6 @@ import ru.shk.commons.utils.gui.Item;
 import ru.shk.commons.utils.gui.UniversalClick;
 import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.items.velocity.VelocityItemStack;
-import ru.shk.guilib.protocolize.InventoryBackend;
 import ru.shk.velocity.commons.Commons;
 import ru.shk.velocity.commons.utils.PluginMessage;
 

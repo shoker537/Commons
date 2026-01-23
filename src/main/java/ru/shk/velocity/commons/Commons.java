@@ -37,7 +37,6 @@ import ru.shk.mysql.connection.data.Rows;
 import ru.shk.velocity.commons.cmd.CTPCommand;
 import ru.shk.velocity.commons.cmd.FindCMD;
 import ru.shk.velocity.commons.config.Config;
-import ru.shk.velocity.commons.gui.GUILib;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -99,7 +98,6 @@ public class Commons {
         config = Config.defaultConfig(dataDirectory.toFile());
         registerMessagingChannel("commons:updateinv");
         registerMessagingChannel("BungeeCord");
-        plugins.add(new GUILib()); //todo: deprecated, remove
         plugins.add(new GUIManager());
         playerLocationReceiver = new PlayerLocationReceiver(this);
         plugins.forEach(plugin -> {
@@ -127,7 +125,7 @@ public class Commons {
                         "  `texture` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL," +
                         "  PRIMARY KEY (`id`) USING BTREE," +
                         "  UNIQUE KEY `UNIQUE` (`key`) USING BTREE" +
-                        ") ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
             } catch (Throwable t) {
                 t.printStackTrace();
             }

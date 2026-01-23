@@ -1,7 +1,6 @@
 package ru.shk.commons;
 
 import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
 import com.sk89q.worldedit.WorldEdit;
@@ -9,13 +8,11 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,13 +27,15 @@ import ru.shk.commons.utils.redis.channels.ChannelListener;
 import ru.shk.commons.utils.runnables.Schedule;
 import ru.shk.configapi.Config;
 import ru.shk.configapi.ConfigAPI;
-import ru.shk.guilib.GUILib;
 import ru.shk.mysql.connection.MySQL;
 
 import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,13 +86,6 @@ public final class Commons extends JavaPlugin {
             plugins.add(new GUIManager());
         } catch (Throwable e){
             e.printStackTrace();
-        }
-        if (!folia) {
-            try {
-                plugins.add(new GUILib());
-            } catch (Throwable e){
-                e.printStackTrace();
-            }
         }
         try {
             plugins.add(new ConfigAPI());
@@ -285,16 +277,6 @@ public final class Commons extends JavaPlugin {
 
     @Override
     public void onDisable() {
-//        if(socketManager!=null){
-//            socketManager.sendToBungee(SocketMessageType.UNREGISTER, List.of());
-//            try {
-//                socketManager.getSocketThread().getSendQueue().awaitTermination(3, TimeUnit.SECONDS);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            socketManager.close();
-//        }
-
         plugins.forEach(plugin -> {
             try {
                 plugin.disable();
@@ -366,7 +348,7 @@ public final class Commons extends JavaPlugin {
             JsonObject o = new HTTPRequest(url).get().asJson();
             return o.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
         } catch (Exception e){
-            ru.shk.commonsbungee.Commons.getInstance().warning(e.getMessage());
+            Logger.warning(e.getMessage());
             return null;
         }
     }
@@ -516,7 +498,7 @@ public final class Commons extends JavaPlugin {
         Matcher matcher = pattern.matcher(message);
         while (matcher.find()) {
             String color = message.substring(matcher.start(), matcher.end());
-            message = message.replace(color, ChatColor.of(color.substring(1)) + "");
+            message = message.replace(color, net.md_5.bungee.api.ChatColor.of(color.substring(1)) + "");
             matcher = pattern.matcher(message);
         }
         return ChatColor.translateAlternateColorCodes('&', message);

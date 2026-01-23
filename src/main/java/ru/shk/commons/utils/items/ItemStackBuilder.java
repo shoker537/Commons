@@ -19,9 +19,6 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
 
     public static ItemStackBuilder newEmptyStack(){
         switch (ServerType.get()){
-            case BUNGEE -> {
-                return new ru.shk.commons.utils.items.bungee.BungeeItemStack();
-            }
             case SPIGOT -> {
                 return new ru.shk.commons.utils.items.bukkit.BukkitItemStack();
             }
@@ -144,9 +141,6 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     }
     public String colorize(String s){
         switch (ServerType.get()){
-            case BUNGEE -> {
-                return ru.shk.commonsbungee.Commons.colorizeWithHex(s);
-            }
             case SPIGOT -> {
                 return ru.shk.commons.Commons.colorizeWithHex(s);
             }
