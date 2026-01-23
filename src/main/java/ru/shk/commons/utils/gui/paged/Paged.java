@@ -54,6 +54,11 @@ public class Paged<ITEM> {
 
     public record Offsets(int left, int right){}
 
+    public Paged<ITEM> offsets(int left, int right) {
+        offsets = new Offsets(left, right);
+        return this;
+    }
+
     public Paged<ITEM> attachedGUI(GUI gui){
         attachedGUI = gui;
         return this;
