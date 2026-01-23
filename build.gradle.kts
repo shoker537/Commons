@@ -83,7 +83,7 @@ dependencies {
   paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
   implementation("com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4")
   compileOnly("com.github.retrooper:packetevents-spigot:2.5.0")
-  compileOnly(files("E:\\IdeaProjects\\commons-lang\\target\\commons-lang3-3.13.0-SNAPSHOT.jar"))
+  compileOnly("org.apache.commons:commons-lang3:3.20.0")
   compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.14.0")
@@ -105,7 +105,7 @@ dependencies {
   compileOnly("land.shield:PlayerAPI:1.8.4")
   compileOnly("ru.shk:MySQLAPI:3.4.0")
 
-  compileOnly(files("D:/Libraries/ProtocolLib.jar"))
+  compileOnly(files("E:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
   annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
 }
