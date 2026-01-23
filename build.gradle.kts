@@ -4,7 +4,7 @@ plugins {
   `java-library`
   `maven-publish`
   id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
-  id("com.github.johnrengelman.shadow") version "8.1.1"
+  id("com.gradleup.shadow") version "9.3.0"
 }
 
 group = "ru.shk"
@@ -92,7 +92,7 @@ dependencies {
     isTransitive = false
   }
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
-  compileOnly("com.mojang:authlib:6.0.54")
+  compileOnly("com.mojang:authlib:6.0.57")
 //  compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.92")
   compileOnly("de.simonsator:VelocityPoweredPartyAndFriends:1.0.91")
 
