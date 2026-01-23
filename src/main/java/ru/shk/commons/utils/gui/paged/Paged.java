@@ -40,6 +40,7 @@ public class Paged<ITEM> {
     private ItemStackBuilder notFoundItem = null;
     private final AtomicBoolean pageLoading = new AtomicBoolean();
     private boolean asyncClicks = ServerType.get()!=ServerType.SPIGOT;
+    private Offsets offsets = new Offsets(0, 0);
 
     private ItemStackBuilder prevArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6< НАЗАД");
     private ItemStackBuilder nextArrow = ItemStackBuilder.newEmptyStack().type("arrow").displayName("&6ВПЕРЕД >");
@@ -50,6 +51,8 @@ public class Paged<ITEM> {
     public Paged(GUI attachedGUI){
         this.attachedGUI = attachedGUI;
     }
+
+    public record Offsets(int left, int right){}
 
     public Paged<ITEM> attachedGUI(GUI gui){
         attachedGUI = gui;
@@ -77,95 +80,124 @@ public class Paged<ITEM> {
         generate(false);
     }
 
-    public void generate(boolean goAsync){
-        if(notFoundItemSlot==-1) notFoundItemSlot = (9 * lineStartsAt) + (((lineEndsAt - lineStartsAt + 1) / 2)*9) + 4;
+
+    public void generate(boolean goAsync) {
+        if (this.notFoundItemSlot == -1) {
+            this.notFoundItemSlot = 9 * this.lineStartsAt
+                    + (this.lineEndsAt - this.lineStartsAt + 1) / 2 * 9
+                    + this.offsets.left()
+                    + (9 - this.offsets.left() - this.offsets.right()) / 2;
+        }
 
         Runnable r = () -> {
-            if (isPageLoading()) return;
-            lockPageLoading();
-            try {
-                clearGeneratedArea();
-                attachedGUI.item(notFoundItemSlot, ItemStackBuilder.newEmptyStack().type("clock").displayName("&6Загрузка..."));
-                long generateStart = System.currentTimeMillis();
-                List<ITEM> currentPageItems = pageGenerator.apply(currentPageIndex, itemsOnPage());
-                long generateTook = System.currentTimeMillis() - generateStart;
-                if (generateTook>5000) Logger.warning("Generate items took "+generateTook+"ms to process in "+attachedGUI.getClass().getSimpleName());
-                long pagesStart = System.currentTimeMillis();
-                boolean hasLeft = pageChecker.test(currentPageIndex-1, itemsOnPage());
-                boolean hasRight = pageChecker.test(currentPageIndex+1, itemsOnPage());
-                long pagesTook = System.currentTimeMillis() - pagesStart;
-                if (pagesTook>5000) Logger.warning("PageChecks took "+pagesTook+"ms to process in "+attachedGUI.getClass().getSimpleName());
-                this.currentPageItems = currentPageItems;
-                long itemsStart = System.currentTimeMillis();
-                List<IndexedItem<ITEM>> stacks = convertItemsInParallel(currentPageItems);
-                long itemsTook = System.currentTimeMillis() - itemsStart;
-                if (itemsTook>5000) Logger.warning("ItemConverter took "+itemsTook+"ms to process in "+attachedGUI.getClass().getSimpleName());
-                attachedGUI.clear(notFoundItemSlot);
-                if(currentPageItems.isEmpty()) {
-                    if(notFoundItem!=null) attachedGUI.item(notFoundItemSlot, notFoundItem);
-                } else {
-                    int startSlot = lineStartsAt*9;
-                    for (int i = 0; i < stacks.size(); i++) {
-                        int finalI = i;
-                        attachedGUI.item(startSlot, stacks.get(i).stack.get(), clickEvent -> clickItem(clickEvent, currentPageItems.get(finalI)), asyncClicks);
-                        startSlot++;
-                    }
-                }
-                if (useServiceLine) {
-                    OverlayItemsProvider overlays = new OverlayItemsProvider();
-                    if(overlaysGenerator!=null) {
-                        try {
-                            overlaysGenerator.accept(overlays);
-                        } catch (Throwable t){
-                            t.printStackTrace();
-                        }
-                    }
+            if (!this.isPageLoading()) {
+                this.lockPageLoading();
+                boolean var11 = false;
 
-                    if(hasLeft) overlays.item(0, prevArrow, clickEvent -> Schedule.async(this::prevPage));
-                    if(hasRight) overlays.item(8, nextArrow, clickEvent -> Schedule.async(this::nextPage));
+                try {
+                    var11 = true;
+                    this.clearGeneratedArea();
+                    this.attachedGUI.item(this.notFoundItemSlot, ItemStackBuilder.newEmptyStack().type("clock").displayName("&6Загрузка..."));
+                    List<ITEM> currentPageItems = this.pageGenerator.apply(this.currentPageIndex, this.itemsOnPage());
+                    boolean var2x = this.pageChecker.test(this.currentPageIndex - 1, this.itemsOnPage());
+                    boolean var3 = this.pageChecker.test(this.currentPageIndex + 1, this.itemsOnPage());
+                    this.currentPageItems = currentPageItems;
+                    List<IndexedItem<ITEM>> var4 = this.convertItemsInParallel(currentPageItems);
+                    this.attachedGUI.clear(this.notFoundItemSlot);
+                    this.placeItems(var4);
 
-                    int overlaysStartIndex = (lineEndsAt+1) * 9;
-                    for (int i = 0; i < overlays.items.length; i++) {
-                        Item item = overlays.items[i];
-                        if(item!=null) {
-                            attachedGUI.item(overlaysStartIndex+i, item.stack(), item.onClick());
-                        } else {
-                            attachedGUI.item(overlaysStartIndex+i, null);
-                        }
-                    }
-                }
-                if (delayedGenerate!=null){
-                    AtomicInteger pageSaved = new AtomicInteger(currentPageIndex);
-                    int startSlot = lineStartsAt*9;
-                    for (IndexedItem<ITEM> item : stacks) {
-                        Schedule.async(() -> {
-                            ItemStackBuilder result = delayedGenerate.apply(item.item, item.stack.get());
-                            Schedule.sync(() -> {
-                                Item currentItem = attachedGUI.items().get(startSlot+item.index);
-                                Consumer<ClickEvent> click = null;
-                                if (currentItem!=null) click = currentItem.onClick();
-                                if (pageSaved.get()==currentPageIndex) {
-                                    attachedGUI.item(startSlot+item.index, result, click);
-                                }
+                    if(delayedGenerate!=null){
+                        for (IndexedItem<ITEM> stack : var4) {
+                            IndexedItem<ITEM> oldItem = stack;
+                            Schedule.async(() -> {
+                                ItemStackBuilder b = this.delayedGenerate.apply(stack.item, stack.stack.get());
+                                stack.stack.set(b);
+                                Schedule.sync(() -> {
+                                    int slot = stack.index.get();
+                                    Item currentItem = this.attachedGUI.items().get(slot);
+                                    if (currentItem != null && currentItem.stack() == oldItem.stack.get()) {
+                                        this.attachedGUI.item(slot, b, clickEvent -> clickItem(clickEvent, oldItem.item));
+                                    }
+                                });
                             });
-                        });
+                        }
+                    }
+
+                    if (this.useServiceLine) {
+                        OverlayItemsProvider overlays = new OverlayItemsProvider();
+                        if (this.overlaysGenerator != null) {
+                            this.overlaysGenerator.accept(overlays);
+                        }
+
+                        if (var2x) {
+                            overlays.item(0, this.prevArrow, var1xx -> {
+                                Schedule.async(this::prevPage);
+                            });
+                        }
+
+                        if (var3) {
+                            overlays.item(8, this.nextArrow, var1xx -> {
+                                Schedule.async(this::nextPage);
+                            });
+                        }
+
+                        int overlaysStartIndex = (this.lineEndsAt + 1) * 9;
+
+                        for (int i = 0; i < overlays.items.length; i++) {
+                            Item item = overlays.items[i];
+                            this.attachedGUI
+                                    .item(overlaysStartIndex + i, item == null ? ItemStackBuilder.newEmptyStack() : item.stack(), item == null ? null : item.onClick());
+                        }
+
+                        var11 = false;
+                    } else {
+                        var11 = false;
+                    }
+                } finally {
+                    if (var11) {
+                        this.releasePageLoading();
                     }
                 }
-            } catch (Throwable t){
-                t.printStackTrace();
-            }
-            releasePageLoading();
-        };
 
-        if (goAsync) Schedule.async(r); else r.run();
+                this.releasePageLoading();
+            }
+        };
+        if (goAsync) {
+            Schedule.async(r);
+        } else {
+            r.run();
+        }
     }
 
-    private record IndexedItem<ITEM>(int index, ITEM item, AtomicReference<ItemStackBuilder> stack){}
+    private void placeItems(List<IndexedItem<ITEM>> indexedItems) {
+        if (indexedItems.isEmpty()) {
+            if (this.notFoundItem != null) {
+                this.attachedGUI.item(this.notFoundItemSlot, this.notFoundItem);
+            }
+        } else {
+            int columns = 9 - this.offsets.left() - this.offsets.right();
+            int slot = this.lineStartsAt * 9 + this.offsets.left();
 
+            for (int i = 0; i < indexedItems.size(); i++) {
+                int finalI = i;
+                IndexedItem<ITEM> indexedItem = indexedItems.get(i);
+                indexedItem.index.set(slot);
+                this.attachedGUI.item(slot, indexedItem.stack.get(), var3x -> {
+                    this.clickItem(var3x, indexedItems.get(finalI).item);
+                }, this.asyncClicks);
+                slot++;
+                if ((i + 1) % columns == 0) {
+                    slot += this.offsets.left() + this.offsets.right();
+                }
+            }
+        }
+    }
+
+    private record IndexedItem<ITEM>(AtomicInteger index, ITEM item, AtomicReference<ItemStackBuilder> stack){}
 
     private List<IndexedItem<ITEM>> convertItemsInParallel(List<ITEM> items){
         List<IndexedItem<ITEM>> indexed = new ArrayList<>();
-        for (int i = 0; i < items.size(); i++) indexed.add(new IndexedItem<>(i, items.get(i), new AtomicReference<>(null)));
+        for (int i = 0; i < items.size(); i++) indexed.add(new IndexedItem<>(new AtomicInteger(i), items.get(i), new AtomicReference<>(null)));
         Consumer<IndexedItem<ITEM>> action = indexedItem -> {
             ItemStackBuilder result;
             try {
@@ -191,7 +223,7 @@ public class Paged<ITEM> {
             e.printStackTrace();
             return indexed;
         }
-        return indexed.stream().sorted(Comparator.comparingInt(value -> value.index)).limit(54).toList();
+        return indexed.stream().sorted(Comparator.comparingInt(value -> value.index.get())).limit(54).toList();
     }
 
     public void clearGeneratedArea(){
@@ -218,8 +250,9 @@ public class Paged<ITEM> {
         }
     }
 
-    private int itemsOnPage(){
-        return (lineEndsAt-lineStartsAt+1) * 9;
+    private int itemsOnPage() {
+        int columns = 9 - this.offsets.left() - this.offsets.right();
+        return (this.lineEndsAt - this.lineStartsAt + 1) * columns;
     }
 
     public void nextPage(){
