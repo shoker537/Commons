@@ -15,6 +15,7 @@ import dev.simplix.protocolize.data.MobEffect;
 import dev.simplix.protocolize.data.Potion;
 import dev.simplix.protocolize.data.item.component.*;
 import lombok.NonNull;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -51,6 +52,25 @@ public abstract class ProtocolizeItemStack<R extends ProtocolizeItemStack> exten
 
     public ProtocolizeItemStack(@NonNull String type) {
         this.item = new ItemStack(ItemType.valueOf(type.toUpperCase()));
+    }
+
+    @Override
+    public Key itemModel() {
+        ItemModelComponent itemModel = item.getComponent(ItemModelComponent.class);
+        if (itemModel != null && itemModel.getModel()!=null) return Key.key(itemModel.getModel());
+        return null;
+    }
+
+    @Override
+    public R itemModel(Key key) {
+        ItemModelComponent itemModel = item.getComponent(ItemModelComponent.class);
+        if (itemModel == null) {
+            itemModel = ItemModelComponent.create(key.asString());
+        } else {
+            itemModel.setModel(key.asString());
+        }
+        item.addComponent(itemModel);
+        return (R) this;
     }
 
     @Override

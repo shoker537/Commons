@@ -5,6 +5,7 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.CustomModelData;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -18,10 +19,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -37,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, BukkitItemStack> {
     private int customHeadId = -1;
@@ -303,6 +302,12 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     }
 
     @Override
+    public BukkitItemStack itemModel(Key key) {
+        item.editMeta(itemMeta -> itemMeta.setItemModel(new NamespacedKey(key.namespace(), key.value())));
+        return this;
+    }
+
+    @Override
     public int customHeadId() {
         return customHeadId;
     }
@@ -428,6 +433,21 @@ public class BukkitItemStack extends ItemStackBuilder<ItemStack, Material, Bukki
     @Override
     public Integer maxStackSize() {
         return item.getData(DataComponentTypes.MAX_STACK_SIZE).intValue();
+    }
+
+    @Override
+    public Key itemModel() {
+        return item.getItemMeta().getItemModel()==null?null:item.getItemMeta().getItemModel().key();
+    }
+
+    public BukkitItemStack editMeta(Consumer<ItemMeta> consumer){
+        item.editMeta(consumer);
+        return this;
+    }
+
+    public <T extends ItemMeta> BukkitItemStack editMeta(Class<T> clazz, Consumer<T> consumer){
+        item.editMeta(clazz, consumer);
+        return this;
     }
 
     @Override

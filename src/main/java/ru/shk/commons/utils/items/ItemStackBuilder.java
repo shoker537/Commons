@@ -3,6 +3,7 @@ package ru.shk.commons.utils.items;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import net.kyori.adventure.key.Key;
 import ru.shk.commons.ServerType;
 import ru.shk.commons.utils.items.universal.*;
 
@@ -111,6 +112,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public abstract R potionData(PotionData potionData);
     public abstract R customPotion(PotionEffect potionEffect);
     public abstract R maxStackSize(int size);
+    public abstract R itemModel(Key key);
 
     // GETTERS
     public abstract int customHeadId();
@@ -131,6 +133,7 @@ public abstract class ItemStackBuilder<ITEM,MATERIAL extends Enum, R extends Ite
     public abstract String potionData();
     public abstract String customPotion();
     public abstract Integer maxStackSize();
+    public abstract Key itemModel();
 
 
     // UTILITIES
