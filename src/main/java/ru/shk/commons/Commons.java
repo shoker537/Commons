@@ -5,7 +5,6 @@ import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
 import com.sk89q.worldedit.WorldEdit;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import land.shield.playerapi.CachedPlayer;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.*;
@@ -333,11 +332,11 @@ public final class Commons extends JavaPlugin {
     }
 
     @Nullable
-    public String getSkinTexture(CachedPlayer cp){
-        String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+cp.getId()+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
-        if(texture!=null) texture = getSkinTextureFromMojang(cp.getUuid());
+    public String getSkinTexture(int playerId, UUID uuid){
+        String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+playerId+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
+        if(texture!=null) texture = getSkinTextureFromMojang(uuid);
         if(texture==null) return null;
-        mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+cp.getId()+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
+        mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+playerId+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
     }
 
