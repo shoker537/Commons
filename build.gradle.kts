@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ru.shk"
-version = "1.8.1.0"
+version = "1.8.1.1"
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
@@ -40,8 +40,6 @@ java {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven("https://nexus.prgm.in/repository/maven-public/")
-  maven("https://repo.md5lukas.de/public")
   maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
   maven {
     url = uri("https://nexus.shoker.su/repository/maven-releases/")
@@ -88,12 +86,12 @@ dependencies {
   compileOnly("com.sk89q.worldedit:worldedit-core:7.2.0-SNAPSHOT")
   implementation("commons-io:commons-io:2.21.0")
   compileOnly(files("E:/Libraries/protocolize-velocity.jar"))
-  implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
-    isTransitive = false
-  }
+//  implementation("de.md5lukas:anvilgui:2.0.0-SNAPSHOT") {
+//    isTransitive = false
+//  }
+  implementation(files("E:/Libraries/anvilgui-2.0.0.jar"))
   compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
   compileOnly("com.mojang:authlib:6.0.57")
-//  compileOnly("de.simonsator:BungeecordPartyAndFriends:1.0.92")
   compileOnly("de.simonsator:VelocityPoweredPartyAndFriends:1.0.91")
 
   implementation("org.projectlombok:lombok:1.18.42")
@@ -101,7 +99,7 @@ dependencies {
   implementation("redis.clients:jedis:5.2.0")
 
   compileOnly("land.shield:PlayerAPI:1.8.4")
-  compileOnly("ru.shk:MySQLAPI:3.4.0")
+  compileOnly("ru.shk:MySQLAPI:3.4.10")
 
   compileOnly(files("E:/Libraries/ProtocolLib.jar"))
   compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
