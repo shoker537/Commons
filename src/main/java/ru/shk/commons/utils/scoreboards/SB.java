@@ -22,8 +22,8 @@ public class SB {
     @Getter
     private final Objective objective;
 
-    private byte c;
-    private byte space = 1;
+    private int c;
+    private int space = 1;
     private int last_entry = 0;
 
     public SB(Component title, String objective, int maxValue) {
@@ -39,7 +39,7 @@ public class SB {
     }
 
     public void load(int maxValue) {
-        c = (byte) (maxValue - 1);
+        c = maxValue - 1;
     }
 
     public void addLine(String line) {
@@ -59,6 +59,7 @@ public class SB {
         objective.getScore(entry).setScore(c);
         c--;
     }
+
     public void addDynamicLine(String team, String prefix, String suffix) {
         String entry = getNextEntry()+"";
         if (board.getTeam(team) != null) {
@@ -73,7 +74,7 @@ public class SB {
     }
 
     public void setLine(String line) {
-        objective.getScore(line.replace("&", "§")).setScore(c);
+        addLine(line);
     }
 
     public void setDynamicLine(String team, String suffix) {
@@ -85,7 +86,9 @@ public class SB {
     public void setDynamicLine(String team, String prefix, String suffix) {
         board.getTeam(team).setSuffix((suffix.replace("&", "§")));
         board.getTeam(team).setPrefix((prefix.replace("&", "§")));
-    }    public void setDynamicLine(String team, Component prefix, Component suffix) {
+    }
+
+    public void setDynamicLine(String team, Component prefix, Component suffix) {
         board.getTeam(team).suffix(suffix);
         board.getTeam(team).prefix(prefix);
     }
@@ -127,6 +130,10 @@ public class SB {
         return next;
     }
 
+    public void show(Player p){
+        p.setScoreboard(board);
+    }
+
     public static void updateScoreboardPersonally(Player player, String team, Component prefix, Component suffix) {
         sendScoreboardTeamPacket(player, team.replace("&", "§"), prefix, suffix);
     }
@@ -149,5 +156,9 @@ public class SB {
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void unsetScoreboard(Player p){
+        p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
     }
 }
