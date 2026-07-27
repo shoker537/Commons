@@ -15,6 +15,7 @@ public class StringListValue extends Value<List<String>> {
 
     @Override
     public List<String> convertToObject(String s) {
+        s = s.substring(1, s.length() - 1);
         if(!s.endsWith(",")) s+=",";
         List<String> list = new ArrayList<>();
         char[] chars = s.toCharArray();
