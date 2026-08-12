@@ -13,10 +13,10 @@ import ru.shk.commons.utils.items.ItemStackBuilder;
 import ru.shk.commons.utils.runnables.Schedule;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -217,14 +217,20 @@ public class Paged<ITEM> {
             for (IndexedItem<ITEM> itemIndexedItem : indexed) action.accept(itemIndexedItem);
             return indexed;
         }
-        final ThreadPoolExecutor itemsConverterPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Math.min(indexed.size()/5, 5));
-        for (IndexedItem<ITEM> itemIndexedItem : indexed) {
-            itemsConverterPool.submit(() -> action.accept(itemIndexedItem));
-        }
-        itemsConverterPool.shutdown();
-        try {
-            itemsConverterPool.awaitTermination(30, TimeUnit.SECONDS);
+        try (ExecutorService itemsConverterPool = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<?>> futures = new ArrayList<>();
+            for (IndexedItem<ITEM> itemIndexedItem : indexed) {
+                futures.add(itemsConverterPool.submit(() -> action.accept(itemIndexedItem)));
+            }
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             e.printStackTrace();
             return indexed;
         }
