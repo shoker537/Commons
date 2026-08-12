@@ -58,8 +58,8 @@ public class Commons {
     private final PlayerLocationReceiver playerLocationReceiver;
 
     private final ThreadPoolExecutor teleportService = new ThreadPoolExecutor(0, 5, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-    private final HashMap<UUID, Future<?>> runningTeleports = new HashMap<>();
-    private final List<Integer> tpInProcess = new ArrayList<>();
+    private final ConcurrentMap<UUID, Future<?>> runningTeleports = new ConcurrentHashMap<>();
+    private final Set<Integer> tpInProcess = ConcurrentHashMap.newKeySet();
     private int lastTpId = 0;
     private final Object tpSyncObject = new Object();
     private PAFManager PAFManager;
@@ -172,7 +172,7 @@ public class Commons {
         switch (type){
             case "teleportfeedback" -> {
                 int id = o.get("tpId").getAsInt();
-                tpInProcess.removeIf(integer -> integer==id);
+                tpInProcess.remove(id);
             }
             case "executeAtProxy" -> {
                 UUID uuid = UUID.fromString(o.get("playerUUID").getAsString());
@@ -251,10 +251,7 @@ public class Commons {
 
     private void teleportAndWaitForFeedback(Player from, Player to){
         later(() -> {
-            if(runningTeleports.containsKey(from.getUniqueId())){
-                runningTeleports.get(from.getUniqueId()).cancel(true);
-            }
-            runningTeleports.put(from.getUniqueId(),
+            Future<?> previousTeleport = runningTeleports.put(from.getUniqueId(),
                     teleportService.submit(() -> {
                         from.sendMessage(Component.text("Телепортируем...").color(NamedTextColor.YELLOW));
                         int selectedTpId;
@@ -263,9 +260,7 @@ public class Commons {
                             if(lastTpId==10000) lastTpId=1;
                             selectedTpId = lastTpId;
                         }
-                        synchronized (tpInProcess){
-                            tpInProcess.add(selectedTpId);
-                        }
+                        tpInProcess.add(selectedTpId);
                         int times = 0;
                         do {
                             times++;
@@ -281,6 +276,7 @@ public class Commons {
                             }
                         } while (tpInProcess.contains(selectedTpId));
                     }));
+            if(previousTeleport!=null) previousTeleport.cancel(true);
         }, Duration.ofSeconds(3));
     }
 
