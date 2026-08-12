@@ -40,11 +40,11 @@ public class ReflectionUtil {
     }
     @SneakyThrows
     public static Object runMethod(Class<?> clazz, Object instance, String methodName, List<Object> args) {
-        return runMethodAutoDefineTypes(clazz, instance, methodName, null, args.toArray());
+        return runMethodDefiningTypes(clazz, instance, methodName, null, args.toArray());
     }
     @SneakyThrows
     public static Object runMethod(Class<?> clazz, Object instance, String methodName, List<Class<?>> types, List<Object> args) {
-        return runMethodDefiningTypes(clazz, instance, methodName, (Class<?>[]) types.toArray(), args.toArray());
+        return runMethodDefiningTypes(clazz, instance, methodName, types.toArray(Class<?>[]::new), args.toArray());
     }
     @SneakyThrows
     public static Object runMethodWithSingleArgument(Class<?> clazz, Object instance, String methodName, Class<?> type, Object arg) {
@@ -57,11 +57,13 @@ public class ReflectionUtil {
         for (int i = 0; i < args.length; i++) {
             if(types!=null && types.length!=0) arr[i] = types[i]; else arr[i] = args[i].getClass();
         }
-        Method m = getMethodFromCache(clazz, methodName, arr, args);
+        Method m = getMethodFromCache(clazz, methodName, arr);
         boolean saveToCache = m==null;
-        try {
-            m = clazz.getMethod(methodName, arr);
-        } catch (NoSuchMethodException e){}
+        if(m==null) {
+            try {
+                m = clazz.getMethod(methodName, arr);
+            } catch (NoSuchMethodException e){}
+        }
         if(m==null) {
             try {
                 m = clazz.getDeclaredMethod(methodName, arr);
@@ -69,14 +71,14 @@ public class ReflectionUtil {
         }
 
         if(m==null){
-            MethodUtils.getMatchingMethod(clazz, methodName, arr);
+            m = MethodUtils.getMatchingMethod(clazz, methodName, arr);
         }
         if(m==null) m = MethodUtils.getMatchingAccessibleMethod(clazz, methodName, arr);
         if(m==null) {
             printAvailableMethods(clazz);
             throw new NoSuchMethodException("Method "+methodName+"("+ Arrays.stream(args).map(o -> o.getClass().getSimpleName()).collect(Collectors.joining(", "))+") not found in "+clazz.getSimpleName()+" class");
         }
-        if(saveToCache) cacheMethod(m, clazz, methodName, types, args);
+        if(saveToCache) cacheMethod(m, clazz, methodName, arr);
         if(!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
         return m.invoke(clazz.cast(instance), args);
     }
@@ -143,15 +145,13 @@ public class ReflectionUtil {
     }
 
     @Nullable private static Field getFieldFromCache(Class<?> aClass, String fieldName){
-        Optional<CachedField> cached = fieldsCache.asMap().keySet().stream().filter(cachedField -> cachedField.fieldName.equals(fieldName) && cachedField.getClass().equals(aClass)).findAny();
-        return cached.map(fieldsCache::getIfPresent).orElse(null);
+        return fieldsCache.getIfPresent(new CachedField(aClass, fieldName));
     }
-    @Nullable private static Method getMethodFromCache(Class<?> aClass, String methodName, Class<?>[] types, Object[] args){
-        Optional<CachedMethod> cached = methodsCache.asMap().keySet().stream().filter(cachedMethod -> cachedMethod.methodName.equals(methodName) && cachedMethod.getClass().equals(aClass) && Arrays.equals(types, cachedMethod.types) && Arrays.equals(args, cachedMethod.arguments)).findAny();
-        return cached.map(methodsCache::getIfPresent).orElse(null);
+    @Nullable private static Method getMethodFromCache(Class<?> aClass, String methodName, Class<?>[] types){
+        return methodsCache.getIfPresent(new CachedMethod(aClass, methodName, types));
     }
-    private static void cacheMethod(@NonNull Method method, Class<?> aClass, String name, Class<?>[] types, Object[] args){
-        methodsCache.put(new CachedMethod(aClass, name, types, args), method);
+    private static void cacheMethod(@NonNull Method method, Class<?> aClass, String name, Class<?>[] types){
+        methodsCache.put(new CachedMethod(aClass, name, types), method);
     }
     private static void cacheField(@NonNull Field field, Class<?> aClass, String name){
         fieldsCache.put(new CachedField(aClass, name), field);
@@ -174,7 +174,7 @@ public class ReflectionUtil {
             return new HashCodeBuilder(17, 37).append(aClass).append(fieldName).toHashCode();
         }
     }
-    private record CachedMethod(@NonNull Class<?> aClass, @NonNull String methodName, @NonNull Class<?>[] types, @NonNull Object[] arguments){
+    private record CachedMethod(@NonNull Class<?> aClass, @NonNull String methodName, @NonNull Class<?>[] types){
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -183,12 +183,12 @@ public class ReflectionUtil {
 
             CachedMethod that = (CachedMethod) o;
 
-            return new EqualsBuilder().append(aClass, that.aClass).append(methodName, that.methodName).append(types, that.types).append(arguments, that.arguments).isEquals();
+            return new EqualsBuilder().append(aClass, that.aClass).append(methodName, that.methodName).append(types, that.types).isEquals();
         }
 
         @Override
         public int hashCode() {
-            return new HashCodeBuilder(17, 37).append(aClass).append(methodName).append(types).append(arguments).toHashCode();
+            return new HashCodeBuilder(17, 37).append(aClass).append(methodName).append(types).toHashCode();
         }
     }
 }
