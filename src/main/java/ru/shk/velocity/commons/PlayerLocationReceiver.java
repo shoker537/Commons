@@ -4,23 +4,20 @@ import com.google.gson.JsonObject;
 import com.velocitypowered.api.proxy.Player;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ru.shk.commons.utils.Coordinates;
-import ru.shk.commons.utils.Logger;
-import ru.shk.commons.utils.redis.RedisCredentials;
-import ru.shk.commons.utils.redis.channels.ChannelListener;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class PlayerLocationReceiver {
     public Map<UUID, Coordinates> receivedCoordinates = new ConcurrentHashMap<>();
     public ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3, new DefaultThreadFactory("Commons Location Receiver Pool"));
     private final Commons pl;
-    private int awaiting = 0;
+    private final AtomicInteger awaiting = new AtomicInteger();
 
     public PlayerLocationReceiver(Commons pl){
         this.pl = pl;
@@ -31,29 +28,31 @@ public class PlayerLocationReceiver {
     }
 
     public Coordinates findPlayer(Player pp){
-        awaiting++;
-        sendFindPlayer(pp);
-        int a = 0;
-        while (a<5+Math.min(1+awaiting, 30)){
-            a++;
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if(receivedCoordinates.containsKey(pp.getUniqueId())){
-                Coordinates c = receivedCoordinates.get(pp.getUniqueId());
-                if(c.getWorld().equals("player-not-found-error")){
-                    sendFindPlayer(pp);
-                    continue;
+        int currentAwaiting = awaiting.incrementAndGet();
+        try {
+            sendFindPlayer(pp);
+            int a = 0;
+            while (a<5+Math.min(1+currentAwaiting, 30)){
+                a++;
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return null;
                 }
-                receivedCoordinates.remove(pp.getUniqueId());
-                awaiting--;
-                return c;
+                Coordinates c = receivedCoordinates.remove(pp.getUniqueId());
+                if(c!=null){
+                    if(c.getWorld().equals("player-not-found-error")){
+                        sendFindPlayer(pp);
+                        continue;
+                    }
+                    return c;
+                }
             }
+            return null;
+        } finally {
+            awaiting.decrementAndGet();
         }
-        awaiting--;
-        return null;
     }
 
     private void sendFindPlayer(Player p){
