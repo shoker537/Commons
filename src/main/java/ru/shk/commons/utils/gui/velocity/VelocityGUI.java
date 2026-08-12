@@ -74,7 +74,6 @@ public class VelocityGUI extends GUI<VelocityGUI> {
                 Thread.sleep(200);
             } catch (InterruptedException e) {}
         }
-        super.open();
     }
 
     @Override
