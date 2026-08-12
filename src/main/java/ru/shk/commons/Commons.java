@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class Commons extends JavaPlugin {
+    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("&#[a-fA-F0-9]{6}");
     @Getter private static Commons instance;
     @Getter private static PacketVersion serverVersion;
     @Getter private static boolean isVersionLatestCompatible = false;
@@ -334,7 +335,7 @@ public final class Commons extends JavaPlugin {
     @Nullable
     public String getSkinTexture(int playerId, UUID uuid){
         String texture = mysql.QueryString("SELECT texture FROM heads_texture_cache WHERE player_id="+playerId+" AND "+System.currentTimeMillis()+"-updated_at<604800000 LIMIT 1;", null);
-        if(texture!=null) texture = getSkinTextureFromMojang(uuid);
+        if(texture==null) texture = getSkinTextureFromMojang(uuid);
         if(texture==null) return null;
         mysql.UpdateAsync("INSERT INTO heads_texture_cache SET player_id="+playerId+", texture='"+texture+"', updated_at="+System.currentTimeMillis()+" ON DUPLICATE KEY UPDATE texture='"+texture+"', updated_at="+System.currentTimeMillis());
         return texture;
@@ -493,13 +494,11 @@ public final class Commons extends JavaPlugin {
     }
 
     public static String colorizeWithHex(String message) {
-        Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
-        Matcher matcher = pattern.matcher(message);
-        while (matcher.find()) {
-            String color = message.substring(matcher.start(), matcher.end());
-            message = message.replace(color, net.md_5.bungee.api.ChatColor.of(color.substring(1)) + "");
-            matcher = pattern.matcher(message);
-        }
+        Matcher matcher = HEX_COLOR_PATTERN.matcher(message);
+        StringBuilder builder = new StringBuilder();
+        while (matcher.find()) matcher.appendReplacement(builder, Matcher.quoteReplacement(net.md_5.bungee.api.ChatColor.of(matcher.group().substring(1)).toString()));
+        matcher.appendTail(builder);
+        message = builder.toString();
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 }
