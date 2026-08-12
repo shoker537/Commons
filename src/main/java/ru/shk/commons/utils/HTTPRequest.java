@@ -17,6 +17,7 @@ public class HTTPRequest {
     private final URL url;
     private String result;
     private static final Gson gson = new Gson();
+    private static final HttpClient client = HttpClient.newHttpClient();
     private int timeout = 5;
     @Getter private int responseCode  =  -1;
     private final HashMap<String, String> headers = new HashMap<>();
@@ -37,8 +38,6 @@ public class HTTPRequest {
 
     public HTTPRequest post(JsonObject body){
         try {
-            HttpClient client = HttpClient.newHttpClient();
-
             HttpRequest.Builder request = HttpRequest.newBuilder()
                     .uri(url.toURI())
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -60,9 +59,7 @@ public class HTTPRequest {
     }
 
     public HTTPRequest get(){
-        HttpClient client;
         try {
-            client = HttpClient.newHttpClient();
             HttpRequest.Builder request = HttpRequest.newBuilder()
                     .uri(url.toURI())
                     .timeout(Duration.ofSeconds(timeout));
