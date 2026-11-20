@@ -2,7 +2,7 @@ package ru.shk.commons.utils.nms.entity;
 
 import lombok.SneakyThrows;
 import net.minecraft.core.Rotations;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.level.Level;
 import org.bukkit.World;
@@ -10,12 +10,12 @@ import ru.shk.commons.utils.nms.PacketUtil;
 @SuppressWarnings("unused")
 public class PacketArmorStand extends PacketEntity<PacketArmorStand> {
     public PacketArmorStand(World world, double x, double y, double z){
-        super("net.minecraft.world.entity.decoration.EntityArmorStand", "armor_stand", world, x, y, z);
+        super(ArmorStand.class.getName(), "armor_stand", world, x, y, z);
     }
 
     @Override
     public void createEntity(World world) {
-        entity = new ArmorStand(EntityType.ARMOR_STAND, (Level) PacketUtil.getNMSWorld(world));
+        entity = new ArmorStand(EntityTypes.ARMOR_STAND, (Level) PacketUtil.getNMSWorld(world));
     }
 
     @SneakyThrows

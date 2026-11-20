@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.val;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -90,7 +92,11 @@ public class PacketEntity<T extends PacketEntity> {
 
     @SneakyThrows
     public void createEntity(World world){
-        entity = (net.minecraft.world.entity.Entity) ReflectionUtil.constructObject(Class.forName(entityClass), net.minecraft.world.entity.EntityType.byString(entityTypeEnum).get(), PacketUtil.getNMSWorld(world));
+        var entityType = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(entityTypeEnum))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown entity type: " + entityTypeEnum))
+                .value();
+        entity = (net.minecraft.world.entity.Entity) ReflectionUtil.constructObject(
+                Class.forName(entityClass), entityType, PacketUtil.getNMSWorld(world));
     }
 
     @SneakyThrows

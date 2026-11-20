@@ -5,6 +5,7 @@ import lombok.Getter;
 public enum PacketVersion {
     v1_21_7("1.21.7"),
     v1_21_8("1.21.8"),
+    v26_3("26.3"),
     ;
 
     @Getter private final String versionName;

@@ -8,7 +8,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.Level;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -31,7 +31,7 @@ public class PacketTextDisplay extends PacketDisplay {
     }
     @Override
     public void createEntity(World world) {
-        entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, (Level) PacketUtil.getNMSWorld(world));
+        entity = new Display.TextDisplay(EntityTypes.TEXT_DISPLAY, (Level) PacketUtil.getNMSWorld(world));
     }
     public synchronized void defaultBackground(boolean b){
         setFlag(4, b);

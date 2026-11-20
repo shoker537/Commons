@@ -60,10 +60,10 @@ public class PacketDisplay extends PacketEntity<PacketDisplay> {
     public org.bukkit.util.Transformation transformation(){
         Transformation t = Display.createTransformation((SynchedEntityData) getEntityData());
         return new org.bukkit.util.Transformation(
-                new Vector3f(t.getTranslation().x(), t.getTranslation().y(), t.getTranslation().z()),
-                new Quaternionf(t.getLeftRotation().x(), t.getLeftRotation().y(), t.getLeftRotation().z(), t.getLeftRotation().w()),
-                new Vector3f(t.getScale().x(), t.getScale().y(), t.getScale().z()),
-                new Quaternionf(t.getRightRotation().x(), t.getRightRotation().y(), t.getRightRotation().z(), t.getRightRotation().w())
+                new Vector3f(t.translation()),
+                new Quaternionf(t.leftRotation()),
+                new Vector3f(t.scale()),
+                new Quaternionf(t.rightRotation())
         );
     }
 

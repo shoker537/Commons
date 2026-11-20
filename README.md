@@ -4,9 +4,9 @@
 
 ![Latest version](https://img.shields.io/nexus/r/ru.shk/Commons?server=https%3A%2F%2Fnexus.shoker.su&nexusVersion=3&style=for-the-badge&logo=Commons&color=%2313ba59)
 
-Compiled with Java 21
+Commons requires Java 25 or newer to build and run.
 
-Modules which use NMS support 1.21.2 / 1.21.3
+The Bukkit plugin and its NMS features target Paper 26.3.
 
 # Usage
 
@@ -40,7 +40,7 @@ Be careful at importing the correct Commons class:
 
 # Commons (spigot-side)
 
-- **getServerVersion()** returns PacketVersion - server version (using server package) used by the plugin for NMS compatibility
+- **getServerVersion()** returns the `PacketVersion` used by the plugin for NMS compatibility, based on the Minecraft version.
 - **getCustomHead()** returns a CustomHead defined in a database, requires additional setup
 - **secondsToTime()** turns seconds to a String in format "0:00"
 - **currentSeconds()** returns current time in seconds

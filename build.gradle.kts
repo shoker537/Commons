@@ -3,7 +3,7 @@ import java.util.*
 plugins {
   `java-library`
   `maven-publish`
-  id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
+  id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
   id("com.gradleup.shadow") version "9.3.0"
 }
 
@@ -35,7 +35,7 @@ publishing {
   }
 }
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 repositories {
   mavenLocal()
@@ -78,7 +78,7 @@ repositories {
   maven("https://jitpack.io")
 }
 dependencies {
-  paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+  paperweight.paperDevBundle("26.3.build.+")
   implementation("com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4")
   compileOnly("com.github.retrooper:packetevents-spigot:2.11.1")
   implementation("org.apache.commons:commons-lang3:3.20.0")
@@ -115,7 +115,7 @@ tasks {
   }
   compileJava {
     options.encoding = Charsets.UTF_8.name()
-    options.release.set(21)
+    options.release.set(25)
   }
   javadoc {
     options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything

@@ -1,7 +1,7 @@
 name: Commons
 version: "${version}"
 main: ru.shk.commons.Commons
-api-version: '1.21'
+api-version: '26.3'
 load: STARTUP
 authors: [ shoker137 ]
 softdepend:

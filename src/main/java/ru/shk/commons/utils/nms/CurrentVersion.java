@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -27,6 +26,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
+import net.minecraft.world.scores.TeamColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -42,6 +42,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -267,7 +268,7 @@ public class CurrentVersion {
         setFriendlyFire(t, friendlyFire);
         t.setPlayerPrefix(prefix);
         t.setPlayerSuffix(suffix);
-        if(color!=null) t.setColor(ChatFormatting.valueOf(color.name()));
+        if (color != null && color.isColor()) t.setColor(Optional.of(TeamColor.valueOf(color.name())));
         if(entries!=null) t.getPlayers().addAll(entries);
         return ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(t, createTeam);
     }
